@@ -16,7 +16,7 @@ Both powered with 3.3V from Arduino Mega.
 Connection to the PC with USB (Serial) baudrate 2Mbit/s
 
 Both ino files are provided to read the sensors at max speed (MPU has a sampling rate of around 1Khz, LSM6DS3 is faster)
-
+C# software is built with VS2017 community and some libraries available on nuget (my laptop in the garage still uses Windows7 which is enough for running this tool)
 ----
 🛠️ How to Use the Wheel Balancing Software
 🔌 Connecting the Sensor
