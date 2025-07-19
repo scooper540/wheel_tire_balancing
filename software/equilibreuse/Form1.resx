@@ -1,0 +1,208 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="richTextBox1.Text" xml:space="preserve">
+    <value>🛠️ How to Use the Wheel Balancing Software
+🔌 Connecting the Sensor
+Select the appropriate COM port and click Connect.
+
+Wait a few seconds.
+
+Check that the number of samples captured in 5 seconds matches your sensor’s expected output:
+
+About 5000 samples for MPU9250/MPU6500
+
+About 11000 samples for LSM6DS3
+
+⚙️ Data Capture
+Spin the wheel and select a target RPM range, typically between 200 and 230.
+
+Click Start Capture once the wheel reaches the desired RPM (e.g., right after the motor is disengaged).
+
+Click End Capture when finished.
+
+A CSV file is automatically generated.
+
+📊 Data Analysis
+Click Analyze CSV to load a captured file.
+
+Use Selection Selector to choose the wheel turns to be analyzed.
+
+Display Modes:
+Compiled: Superimposes all selected turns on a single 360° angular signal.
+
+Single: Displays each turn individually.
+
+Global: Displays all turns sequentially.
+
+If Order Tracking Interpolate is enabled, all turns are resampled to the same number of points (using linear interpolation) for consistent FFT analysis.
+
+Additional Views:
+Gyro: Displays gyroscope data.
+
+Analysis:
+
+Text: Provides summary analysis of compiled, global, turn-by-turn, and gyro data.
+
+Graphical: Shows where to place balancing weights based on the first five harmonics.
+
+Temporal: Displays statistics on peak vibration amplitudes and their angular positions.
+
+🧭 How to Balance a Wheel
+The goal is to reduce the amplitude of the first few harmonics on the X and Y axes to correct static and dynamic imbalance.
+
+Types of Imbalance:
+Static imbalance: Uneven mass distribution on a single axis (X or Y).
+
+Dynamic imbalance: Uneven mass on both axes; occurs when X and Y angles at the fundamental frequency are approximately 90° apart.
+
+Step-by-Step Balancing:
+After capturing data between 200 and 230 RPM, check if dynamic imbalance is detected (e.g., in more than 25% of turns).
+
+Place balancing weights on the inner and outer sides of the wheel based on the suggested angles.
+
+Repeat the process: capture new data and reanalyze to see if the number of turns with imbalance decreases.
+
+If the X or Y angle corresponds to the valve position, place a weight 180° opposite that position (especially for the first correction).
+
+Reduce the amplitude of the fundamental frequency until it is:
+
+Below 2 to 2.5 times the baseline curve, typically seen in Compiled and Turn-by-turn views (e.g., for MPU9250).
+
+Note: The Global view should not be used for this, as the number of turns may vary between captures.
+
+A flat FFT curve on the fundamental and early harmonics means your wheel is properly balanced ✅
+
+⚙️ Advanced Analysis Options
+Option	Description
+Resultant	Calculates √(X² + Y²)
+FFT	Frequency analysis (Hann window by default)
+SampleRate	Captured sampling rate, used for FFT calculations
+Lowpass filter	Applies a low-pass filter (value defined in textbox)
+ZeroPhase	Applies the filter in forward and reverse (zero phase shift)
+Limit FFT	Limits FFT display to the first X Hz
+Absolute values	Converts all CSV data to absolute values
+Sum	Sums the values instead of averaging them
+RemoveDC	Removes DC offset from each wheel turn (useful for unclear angular detection)
+Order Tracking Interpolate	Resamples selected turns to the same number of points (improves FFT accuracy)</value>
+  </data>
+  <metadata name="toolTip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>17, 17</value>
+  </metadata>
+</root>
