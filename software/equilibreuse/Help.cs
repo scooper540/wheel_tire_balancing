@@ -33,7 +33,7 @@ namespace equilibreuse
             richTextBox.SelectionFont = new Font("Segoe UI", 10, FontStyle.Bold);
             richTextBox.AppendText("⚙️ Data Capture\n");
             richTextBox.SelectionFont = new Font("Segoe UI", 10, FontStyle.Regular);
-            richTextBox.AppendText("1. Spin the wheel and select a target RPM range, typically between 200 and 230.\n");
+            richTextBox.AppendText("1. Place a white line on the rim of the tire and verify the sensor see it. This is the 0°. Spin the wheel and select a target RPM range, typically between 200 and 230.\n");
             richTextBox.AppendText("2. Click Start Capture once the wheel reaches the desired RPM (e.g., right after the motor is disengaged).\n");
             richTextBox.AppendText("3. Click End Capture when finished.\n");
             richTextBox.AppendText("   - A CSV file is automatically generated.\n\n");
@@ -63,7 +63,7 @@ namespace equilibreuse
             richTextBox.AppendText(" - Static imbalance: Uneven mass distribution on a single axis (X or Y).\n");
             richTextBox.AppendText(" - Dynamic imbalance: Uneven mass on both axes; occurs when X and Y angles at the fundamental frequency are approximately 90° apart.\n");
             richTextBox.AppendText("Step-by-Step Balancing:\n");
-            richTextBox.AppendText("1. After capturing data between 200 and 230 RPM, check if dynamic imbalance is detected (e.g., in more than 25% of turns).\n");
+            richTextBox.AppendText("1. Place a white line on the rim of the tire and verify the sensor see it. This is the 0°. After capturing data between 200 and 230 RPM, check if dynamic imbalance is detected (e.g., in more than 25% of turns).\n");
             richTextBox.AppendText("2. Place balancing weights on the inner and outer sides of the wheel based on the suggested angles.\n");
             richTextBox.AppendText("3. Repeat the process: capture new data and reanalyze to see if the number of turns with imbalance decreases.\n");
             richTextBox.AppendText("4. If the X or Y angle corresponds to the valve position, place a weight 180° opposite that position (especially for the first correction).\n");
