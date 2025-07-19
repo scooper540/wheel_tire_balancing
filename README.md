@@ -5,17 +5,24 @@ How I did it:
 - I bought a used car rear hub (moyeu arrière in french)
 - I mounted it securely on a wooden base, which I then fixed to my garage workbench.
 - I attached the accelerometer to the hub, with:
+  
       The X-axis perpendicular to the wheel,
+  
       The Y-axis aligned with the wheel’s rotation axis.
 - I put a white line on the rim of the tire and spin the wheel using an electric motor that drives a belt wrapped around the wheel, rotating it as if the car were moving forward.
 
 I'm using an Arduino Mega (should work with other models) with an accelerometer (MPU9250/6500 or LSM6DS3) and a white line sensor (for example TCRT5000).
-Sensor is connected on Mega on D2
-Accelerometer is connected with i2c to SDA/SCL
+
+Sensor is connected on Mega on D2.
+
+Accelerometer is connected with i2c to SDA/SCL.
+
 Both powered with 3.3V from Arduino Mega.
+
 Connection to the PC with USB (Serial) baudrate 2Mbit/s
 
 Both ino files are provided to read the sensors at max speed (MPU has a sampling rate of around 1Khz, LSM6DS3 is faster)
+
 C# software is built with VS2017 community and some libraries available on nuget (my laptop in the garage still uses Windows7 which is enough for running this tool)
 
 🛠️ How to Use the Wheel Balancing Software
@@ -62,16 +69,26 @@ Step-by-Step Balancing:
    - Note: The Global view should not be used for this, as the number of turns may vary between captures.
 A flat FFT curve on the fundamental and early harmonics means your wheel is properly balanced ✅
 
-⚙️ Advanced Analysis Options
+⚙️ Advanced Analysis Options:
+
 Resultant: Calculates √(X² + Y²)
+
 FFT: Frequency analysis (Hann window by default)
+
 SampleRate: Captured sampling rate, used for FFT calculations
+
 Lowpass filter: Applies a low-pass filter (value defined in textbox)
+
 ZeroPhase: Applies the filter in forward and reverse (zero phase shift)
+
 Limit FFT: Limits FFT display to the first X Hz
+
 Absolute values: Converts all CSV data to absolute values
+
 Sum: Sums the values instead of averaging them
+
 RemoveDC: Removes DC offset from each wheel turn
+
 Order Tracking Interpolate: Resamples selected turns to the same number of points (improves FFT accuracy)
 
 
