@@ -351,6 +351,7 @@ namespace equilibreuse
 
             int alignedCount = selectedSections.Select(x => x.records.Count).Max();
             //get avg samplerate
+            double rpm = selectedSections.Select(x => x.Rpm).Min();
             double sampleRate = selectedSections.Select(x => x.SamplingRate).Average();
 
             double[] analyzedX = new double[alignedCount];
@@ -396,9 +397,7 @@ namespace equilibreuse
                     }
                 }
             }
-            ApplyLowPassFilter(ref analyzedX, sampleRate);
-            ApplyLowPassFilter(ref analyzedY, sampleRate);
-            ApplyLowPassFilter(ref analyzedZ, sampleRate);
+
             int countX = analyzedX.Count();
             for (int i = 0; i < countX; i++)
             {
@@ -406,6 +405,21 @@ namespace equilibreuse
                                             + Math.Pow(analyzedY[i], 2)
                                             );
             }
+
+            ApplyLowPassFilter(ref analyzedX, sampleRate);
+            ApplyLowPassFilter(ref analyzedY, sampleRate);
+            ApplyLowPassFilter(ref analyzedZ, sampleRate);
+            ApplyLowPassFilter(ref resultante, sampleRate);
+            double avgTourTime = alignedCount / sampleRate;
+            double f_rot = 1.0 / avgTourTime;
+            if (chkPassband.Checked)
+            {
+                analyzedX = LowPassFilter.ApplyNarrowBandPassFilter(analyzedX, f_rot, sampleRate);
+                analyzedY = LowPassFilter.ApplyNarrowBandPassFilter(analyzedY, f_rot, sampleRate);
+                analyzedZ = LowPassFilter.ApplyNarrowBandPassFilter(analyzedZ, f_rot, sampleRate);
+                resultante = LowPassFilter.ApplyNarrowBandPassFilter(resultante, f_rot, sampleRate);
+            }
+          
             lblPeak.Text = $"X Pk-Pk (average) : {analyzedX.Max() - analyzedX.Min()}\r\nY Pk-Pk (average) : {analyzedY.Max() - analyzedY.Min()}\r\nZ Pk-Pk (average) : {analyzedZ.Max() - analyzedZ.Min()}";
 
             formsPlotAnalysis.Plot.Clear();
@@ -468,14 +482,19 @@ namespace equilibreuse
             }
             else
             {
-                FFTData dataX = EquilibrageHelper.CalculateFFT(analyzedX, sampleRate, cbxFFTSingle,chkRemoveDC.Checked, chkDb.Checked);
-                FFTData dataY = EquilibrageHelper.CalculateFFT(analyzedY, sampleRate, cbxFFTSingle, chkRemoveDC.Checked, chkDb.Checked);
-                FFTData dataZ = EquilibrageHelper.CalculateFFT(analyzedZ, sampleRate, cbxFFTSingle, chkRemoveDC.Checked, chkDb.Checked);
-                FFTData dataResultante = EquilibrageHelper.CalculateFFT(resultante, sampleRate, cbxFFTSingle, chkRemoveDC.Checked, chkDb.Checked);
+                //resample to 200
+             //   double[] outX = new double[200];
+             //   double[] outY = new double[200];
+             //   double[] outZ = new double[200];
+             //   ResampleSectionAngularXYZ(analyzedX, analyzedY, analyzedZ, 200, 1.0 / sampleRate, outX, outY, outZ, 0);
+
+                FFTData dataX = EquilibrageHelper.CalculateFFT(analyzedX, sampleRate, cbxFFTSingle,chkRemoveDC.Checked, chkDb.Checked,rpm);
+                FFTData dataY = EquilibrageHelper.CalculateFFT(analyzedY, sampleRate, cbxFFTSingle, chkRemoveDC.Checked, chkDb.Checked, rpm);
+                FFTData dataZ = EquilibrageHelper.CalculateFFT(analyzedZ, sampleRate, cbxFFTSingle, chkRemoveDC.Checked, chkDb.Checked, rpm);
+                FFTData dataResultante = EquilibrageHelper.CalculateFFT(resultante, sampleRate, cbxFFTSingle, chkRemoveDC.Checked, chkDb.Checked, rpm);
                 
                 
-                double avgTourTime = alignedCount / sampleRate;
-                double f_rot = 1.0 / avgTourTime;
+               
                 formsPlotAnalysis.Plot.Clear();
                 lstPeakZCompiled.Items.Clear();
                 lstPeakXCompiled.Items.Clear();
@@ -500,7 +519,6 @@ namespace equilibreuse
                 String sText = $"Fundamental: {f_rot}Hz\r\n1er order: {f_rot * 2}\r\n2eme order: {f_rot * 3}\r\n3eme order: {f_rot * 4}\r\n4er order: {f_rot * 5}\r\n5er order: {f_rot * 6}\r\n";
                 formsPlotAnalysis.Plot.AddAnnotation(sText);
                 lstSimulationCompiled.Items.Clear();
-                double gain = 1.0;
                 var calcResult = EquilibrageHelper.CompleteSimulation(lstSimulationCompiled, "Compiled", dataX, dataY, dataZ, dataResultante, sampleRate, f_rot);
                 for (int i = 0; i < 5; i++)
                 {
@@ -583,23 +601,33 @@ namespace equilibreuse
                     y[i] = s.records[i].y;
                     z[i] = s.records[i].z;
                 }
-                ApplyLowPassFilter(ref x, sampleRate);
-                ApplyLowPassFilter(ref y, sampleRate);
-                ApplyLowPassFilter(ref z, sampleRate);
                 for (int i = 0; i < count; i++)
                 {
                     resultante[i] = Math.Sqrt(Math.Pow(x[i], 2)
                                                 + Math.Pow(y[i], 2)
                                                 );
                 }
-              
-                FFTData cmpX = EquilibrageHelper.CalculateFFT(x, sampleRate, cbxFFTSingle, chkRemoveDC.Checked, chkDb.Checked);
-                FFTData cmpY = EquilibrageHelper.CalculateFFT(y, sampleRate, cbxFFTSingle, chkRemoveDC.Checked, chkDb.Checked);
-                FFTData cmpZ = EquilibrageHelper.CalculateFFT(z, sampleRate, cbxFFTSingle, chkRemoveDC.Checked, chkDb.Checked);
-                FFTData cmpResultante = EquilibrageHelper.CalculateFFT(resultante, sampleRate, cbxFFTSingle, chkRemoveDC.Checked, chkDb.Checked);
-                
+                ApplyLowPassFilter(ref x, sampleRate);
+                ApplyLowPassFilter(ref y, sampleRate);
+                ApplyLowPassFilter(ref z, sampleRate);
+                ApplyLowPassFilter(ref resultante, sampleRate);
+
                 double avgTourTime = count / sampleRate;  // en secondes
                 double f_rot = 1.0 / avgTourTime;
+                if (chkPassband.Checked)
+                {
+                    x = LowPassFilter.ApplyNarrowBandPassFilter(x, f_rot, sampleRate);
+                    y = LowPassFilter.ApplyNarrowBandPassFilter(y, f_rot, sampleRate);
+                    z = LowPassFilter.ApplyNarrowBandPassFilter(z, f_rot, sampleRate);
+                    resultante = LowPassFilter.ApplyNarrowBandPassFilter(resultante, f_rot, sampleRate);
+                }
+               
+
+                FFTData cmpX = EquilibrageHelper.CalculateFFT(x, sampleRate, cbxFFTSingle, chkRemoveDC.Checked, chkDb.Checked, s.Rpm);
+                FFTData cmpY = EquilibrageHelper.CalculateFFT(y, sampleRate, cbxFFTSingle, chkRemoveDC.Checked, chkDb.Checked, s.Rpm);
+                FFTData cmpZ = EquilibrageHelper.CalculateFFT(z, sampleRate, cbxFFTSingle, chkRemoveDC.Checked, chkDb.Checked, s.Rpm);
+                FFTData cmpResultante = EquilibrageHelper.CalculateFFT(resultante, sampleRate, cbxFFTSingle, chkRemoveDC.Checked, chkDb.Checked, s.Rpm);
+              
                 lstCR.Add(EquilibrageHelper.CompleteSimulation(null, "turn by turn", cmpX, cmpY, cmpZ, cmpResultante, sampleRate, f_rot));
             }
             //for the 5 orders, calculate the average and most possible value =
@@ -762,6 +790,15 @@ namespace equilibreuse
             ApplyLowPassFilter(ref x, sampleRate);
             ApplyLowPassFilter(ref y, sampleRate);
             ApplyLowPassFilter(ref z, sampleRate);
+            //apply passband filter
+            double avgTourTime = count / sampleRate;  // en secondes
+            double f_rot = 1.0 / avgTourTime;
+            if (chkPassband.Checked)
+            {
+                x = LowPassFilter.ApplyNarrowBandPassFilter(x, f_rot, sampleRate);
+                y = LowPassFilter.ApplyNarrowBandPassFilter(y, f_rot, sampleRate);
+                z = LowPassFilter.ApplyNarrowBandPassFilter(z, f_rot, sampleRate);
+            }
             formsPlotX.Plot.Clear();
             lstPeakX.Items.Clear();
             formsPlotY.Plot.Clear();
@@ -786,13 +823,17 @@ namespace equilibreuse
             }
             else
             {
-               
-                FFTData cmpX = EquilibrageHelper.CalculateFFT(x, sampleRate, cbxFFTSingle, chkRemoveDC.Checked, chkDb.Checked);
-                FFTData cmpY = EquilibrageHelper.CalculateFFT(y, sampleRate, cbxFFTSingle, chkRemoveDC.Checked, chkDb.Checked);
-                FFTData cmpZ = EquilibrageHelper.CalculateFFT(z, sampleRate, cbxFFTSingle, chkRemoveDC.Checked, chkDb.Checked);
+                //resample to 200
+                // double[] outX = new double[200];
+                // double[] outY = new double[200];
+                // double[] outZ = new double[200];
+                // ResampleSectionAngularXYZ(x, y, z, 200, 1.0 / sampleRate, outX, outY, outZ, 0);
+         
+                FFTData cmpX = EquilibrageHelper.CalculateFFT(x, sampleRate, cbxFFTSingle, chkRemoveDC.Checked, chkDb.Checked, s.Rpm);
+                FFTData cmpY = EquilibrageHelper.CalculateFFT(y, sampleRate, cbxFFTSingle, chkRemoveDC.Checked, chkDb.Checked,s.Rpm);
+                FFTData cmpZ = EquilibrageHelper.CalculateFFT(z, sampleRate, cbxFFTSingle, chkRemoveDC.Checked, chkDb.Checked,s.Rpm);
               
-                double avgTourTime = count / sampleRate;  // en secondes
-                double f_rot = 1.0 / avgTourTime;
+               
          
                 AnalyzeAxis("X", cmpX, sampleRate, lstPeakX, Color.Blue, formsPlotX, f_rot);
                 AnalyzeAxis("Y", cmpY, sampleRate, lstPeakY, Color.Blue, formsPlotY, f_rot);
@@ -814,6 +855,7 @@ namespace equilibreuse
 
             int countTotal = iTotalRecordsInCSV; //number of total records for selected sections in the dataset
             int alignedCount = selectedSections.Select(x => x.records.Count).Max();
+            double rpm = selectedSections.Select(x => x.Rpm).Min();
             //get avg samplerate
             double sampleRate = selectedSections.Select(x => x.SamplingRate).Average();
             if (chkOrderTracking.Checked) //resample on 360 points per sections
@@ -878,10 +920,6 @@ namespace equilibreuse
                 tourNumber++;
 
             }
-
-            ApplyLowPassFilter(ref analyzedX, sampleRate);
-            ApplyLowPassFilter(ref analyzedY, sampleRate);
-            ApplyLowPassFilter(ref analyzedZ, sampleRate);
             int countX = analyzedX.Count();
             for (int i = 0; i < countX; i++)
             {
@@ -889,6 +927,22 @@ namespace equilibreuse
                                             + Math.Pow(analyzedY[i], 2)
                                             );
             }
+
+            double avgTourTime = countTotal / sampleRate / selectedSections.Count;  // en secondes  
+            double f_rot = 1.0 / avgTourTime;
+
+            ApplyLowPassFilter(ref analyzedX, sampleRate);
+            ApplyLowPassFilter(ref analyzedY, sampleRate);
+            ApplyLowPassFilter(ref analyzedZ, sampleRate);
+            ApplyLowPassFilter(ref resultante, sampleRate);
+            if (chkPassband.Checked)
+            {
+                analyzedX = LowPassFilter.ApplyNarrowBandPassFilter(analyzedX, f_rot, sampleRate);
+                analyzedY = LowPassFilter.ApplyNarrowBandPassFilter(analyzedY, f_rot, sampleRate);
+                analyzedZ = LowPassFilter.ApplyNarrowBandPassFilter(analyzedZ, f_rot, sampleRate);
+                resultante = LowPassFilter.ApplyNarrowBandPassFilter(resultante, f_rot, sampleRate);
+            }
+            
             lblPeak.Text += $"\r\nX Pk-Pk (global) : {analyzedX.Max() - analyzedX.Min()}\r\nY Pk-Pk (global) : {analyzedY.Max() - analyzedY.Min()}\r\nZ Pk-Pk (global) : {analyzedZ.Max() - analyzedZ.Min()}";
 
 
@@ -963,13 +1017,11 @@ namespace equilibreuse
             else
             {
 
-                FFTData cmpX = EquilibrageHelper.CalculateFFT(analyzedX, sampleRate, cbxFFT, chkRemoveDC.Checked, chkDb.Checked);
-                FFTData cmpY = EquilibrageHelper.CalculateFFT(analyzedY, sampleRate, cbxFFT, chkRemoveDC.Checked, chkDb.Checked);
-                FFTData cmpZ = EquilibrageHelper.CalculateFFT(analyzedZ, sampleRate, cbxFFT, chkRemoveDC.Checked, chkDb.Checked);
-                FFTData cmpResultante = EquilibrageHelper.CalculateFFT(resultante, sampleRate, cbxFFT, chkRemoveDC.Checked, chkDb.Checked);
-                double avgTourTime = countTotal / sampleRate / selectedSections.Count;  // en secondes  
-                double f_rot = 1.0 / avgTourTime;
-                
+                FFTData cmpX = EquilibrageHelper.CalculateFFT(analyzedX, sampleRate, cbxFFT, chkRemoveDC.Checked, chkDb.Checked, rpm);
+                FFTData cmpY = EquilibrageHelper.CalculateFFT(analyzedY, sampleRate, cbxFFT, chkRemoveDC.Checked, chkDb.Checked, rpm);
+                FFTData cmpZ = EquilibrageHelper.CalculateFFT(analyzedZ, sampleRate, cbxFFT, chkRemoveDC.Checked, chkDb.Checked, rpm);
+                FFTData cmpResultante = EquilibrageHelper.CalculateFFT(resultante, sampleRate, cbxFFT, chkRemoveDC.Checked, chkDb.Checked, rpm);
+              
                 formsPlotGlobal.Plot.Clear();
                 lstPeakGlobalX.Items.Clear();
                 lstPeakGlobalY.Items.Clear();
@@ -1060,6 +1112,7 @@ namespace equilibreuse
 
             int countTotal = iTotalRecordsInCSV; //number of total records for selected sections in the dataset
             int alignedCount = selectedSections.Select(x => x.records.Count).Max();
+            double rpm = selectedSections.Select(x => x.Rpm).Min();
             double sampleRate = selectedSections.Select(x => x.SamplingRate).Average();
 
             if (chkOrderTracking.Checked) //resample on 360 points per sections
@@ -1130,9 +1183,6 @@ namespace equilibreuse
                 tourNumber++;
 
             }
-            ApplyLowPassFilter(ref analyzedX, sampleRate);
-            ApplyLowPassFilter(ref analyzedY, sampleRate);
-            ApplyLowPassFilter(ref analyzedZ, sampleRate);
             int countX = analyzedX.Count();
             for (int i = 0; i < countX; i++)
             {
@@ -1140,6 +1190,21 @@ namespace equilibreuse
                                             + Math.Pow(analyzedY[i], 2)
                                             );
             }
+            ApplyLowPassFilter(ref analyzedX, sampleRate);
+            ApplyLowPassFilter(ref analyzedY, sampleRate);
+            ApplyLowPassFilter(ref analyzedZ, sampleRate);
+            ApplyLowPassFilter(ref resultante, sampleRate);
+            double avgTourTime = countTotal / sampleRate / selectedSections.Count;  // en secondes  
+            double f_rot = 1.0 / avgTourTime;
+
+            if (chkPassband.Checked)
+            {
+                analyzedX = LowPassFilter.ApplyNarrowBandPassFilter(analyzedX, f_rot, sampleRate);
+                analyzedY = LowPassFilter.ApplyNarrowBandPassFilter(analyzedY, f_rot, sampleRate);
+                analyzedZ = LowPassFilter.ApplyNarrowBandPassFilter(analyzedZ, f_rot, sampleRate);
+                resultante = LowPassFilter.ApplyNarrowBandPassFilter(resultante, f_rot, sampleRate);
+            }
+           
             CalculateGyroAngles(ref analyzedX, ref analyzedY, ref analyzedZ, ref resultante, ref angleX, ref angleY, ref angleZ, ref pitch, ref roll);
 
             lblPeak.Text += $"\r\nGyro X Pk-Pk (global) : {analyzedX.Max() - analyzedX.Min()}\r\nGyro Y Pk-Pk (global) : {analyzedY.Max() - analyzedY.Min()}\r\nGyro Z Pk-Pk (global) : {analyzedZ.Max() - analyzedZ.Min()}";
@@ -1205,13 +1270,11 @@ namespace equilibreuse
             }
             else
             {
-                FFTData cmpX = EquilibrageHelper.CalculateFFT(analyzedX, sampleRate, cbxFFT, chkRemoveDC.Checked, chkDb.Checked);
-                FFTData cmpY = EquilibrageHelper.CalculateFFT(analyzedY, sampleRate, cbxFFT, chkRemoveDC.Checked, chkDb.Checked);
-                FFTData cmpZ = EquilibrageHelper.CalculateFFT(analyzedZ, sampleRate, cbxFFT, chkRemoveDC.Checked, chkDb.Checked);
-                FFTData cmpResultante = EquilibrageHelper.CalculateFFT(resultante, sampleRate, cbxFFT, chkRemoveDC.Checked, chkDb.Checked);
-                double avgTourTime = countTotal / sampleRate / selectedSections.Count;  // en secondes  
-                double f_rot = 1.0 / avgTourTime;
-
+                FFTData cmpX = EquilibrageHelper.CalculateFFT(analyzedX, sampleRate, cbxFFT, chkRemoveDC.Checked, chkDb.Checked, rpm);
+                FFTData cmpY = EquilibrageHelper.CalculateFFT(analyzedY, sampleRate, cbxFFT, chkRemoveDC.Checked, chkDb.Checked, rpm);
+                FFTData cmpZ = EquilibrageHelper.CalculateFFT(analyzedZ, sampleRate, cbxFFT, chkRemoveDC.Checked, chkDb.Checked,rpm);
+                FFTData cmpResultante = EquilibrageHelper.CalculateFFT(resultante, sampleRate, cbxFFT, chkRemoveDC.Checked, chkDb.Checked, rpm);
+              
                 formsPlotGyro.Plot.Clear();
                 lstPeakGyroX.Items.Clear();
                 lstPeakGyroY.Items.Clear();
@@ -1373,6 +1436,24 @@ namespace equilibreuse
             }
         }
         // Rééchantillonne une section en N points angulaires pour X,Y,Z
+        void ResampleSectionAngularXYZ(double[] inX, double[] inY, double[] inZ, int N, double dt,
+            double[] outX, double[] outY, double[] outZ, int offset)
+        {
+            int raw = inX.Length;
+            double T = raw * dt;
+
+            for (int j = 0; j < N; j++)
+            {
+                double tTarget = j * T / (N - 1);
+                int i = Math.Min((int)(tTarget / dt), raw - 2);
+                double t0 = i * dt, t1 = (i + 1) * dt;
+
+                outX[offset + j] = Interpolate(t0, inX[i], t1, inX[i+1], tTarget);
+                outY[offset + j] = Interpolate(t0, inY[i], t1, inY[i + 1], tTarget);
+                outZ[offset + j] = Interpolate(t0, inZ[i], t1, inZ[i + 1], tTarget);
+            }
+        }
+        // Rééchantillonne une section en N points angulaires pour X,Y,Z
         void ResampleSectionGyroXYZ(List<xyz> records, int N, double dt,
             double[] outX, double[] outY, double[] outZ, int offset)
         {
@@ -1517,8 +1598,10 @@ namespace equilibreuse
                             if(s!=null)
                             {
                                 //normalize the section
-                             //   double squarerpm = s.Rpm/1000.0;
-                             //   s.records = s.records.Select(xyz => new xyz() { x = xyz.x / squarerpm, y = xyz.y / squarerpm, z = xyz.z / squarerpm, gx = xyz.gx / squarerpm, gy = xyz.gy / squarerpm, gz = xyz.gz / squarerpm, isWhite = xyz.isWhite, ms = xyz.ms }).ToList();
+                                //   double squarerpm = s.Rpm/1000.0;
+                                //   s.records = s.records.Select(xyz => new xyz() { x = xyz.x / squarerpm, y = xyz.y / squarerpm, z = xyz.z / squarerpm, gx = xyz.gx / squarerpm, gy = xyz.gy / squarerpm, gz = xyz.gz / squarerpm, isWhite = xyz.isWhite, ms = xyz.ms }).ToList();
+                                if (s.SamplingRate == -1)
+                                    s.SamplingRate = Convert.ToDouble(txtSampleRate.Text);
                             }
                             s = new section();
                             s.records = new List<xyz>(360);
@@ -1534,6 +1617,8 @@ namespace equilibreuse
                         //normalize the section
                         //double squarerpm = s.Rpm / 1000.0;
                         //s.records = s.records.Select(xyz => new xyz() { x = xyz.x / squarerpm, y = xyz.y / squarerpm, z = xyz.z / squarerpm, gx = xyz.gx / squarerpm, gy = xyz.gy / squarerpm, gz = xyz.gz / squarerpm, isWhite = xyz.isWhite, ms = xyz.ms }).ToList();
+                        if (s.SamplingRate == -1)
+                            s.SamplingRate = Convert.ToDouble(txtSampleRate.Text);
                     }
                 }
             }
@@ -1541,7 +1626,7 @@ namespace equilibreuse
             lstSectionSelector.Items.Clear();
             foreach (section se in loadedSections)
             {
-                lstSectionSelector.Items.Add(new SectionInfo() { sampleRate = se.SamplingRate,  rpm = se.Rpm , index = i });
+                lstSectionSelector.Items.Add(new SectionInfo() { sampleRate = se.SamplingRate,  rpm = se.Rpm , index = i, count = se.Size });
                 i++;
             }
             lstSimulationCompiled.Items.Clear();
@@ -1621,7 +1706,7 @@ namespace equilibreuse
             // Appliquer le filtrage passe-bas FIR avant la FFT
             if (chkLowPassFilter.Checked)
             {
-                int count = data.Count();
+                /*int count = data.Count();
                 LowPassFilter filter = new LowPassFilter(Convert.ToDouble(txtFilter.Text), sampleRate); // 100 Hz cutoff, 1000 Hz sample rate
                 if (chkZeroPhase.Checked)
                     data = LowPassFilter.ApplyZeroPhase(data, filter);
@@ -1629,7 +1714,12 @@ namespace equilibreuse
                 {
                     for (int i = 0; i < count; i++)
                         data[i] = filter.Process(data[i]);
-                }
+                }*/
+               if(!chkZeroPhase.Checked)
+                    LowPassFilter.ApplyLowPassFilter(ref data, Convert.ToDouble(txtFilter.Text), sampleRate);
+                else
+                    LowPassFilter.ApplyLowPassFilterZeroPhase(ref data, Convert.ToDouble(txtFilter.Text), sampleRate);
+                    
             }
         }
 
@@ -2112,9 +2202,10 @@ namespace equilibreuse
         public double rpm;
         public double sampleRate;
         public int index;
+        public int count;
         public override string ToString()
         {
-            return "RPM: " + rpm.ToString() + " SampleRate: " + sampleRate.ToString();
+            return "RPM: " + rpm.ToString() + " SampleRate: " + sampleRate.ToString() + " Count: " + count;
         }
     }
 
@@ -2128,22 +2219,39 @@ namespace equilibreuse
     }
     public class section
     {
+        public section()
+        {
+            _sampleRate = -1;
+        }
         public int Size
         {
             get { return records.Count; }
         }
+        private double _sampleRate;
         public double SamplingRate
         {
             get
             {
                 int startTS = records[0].ms;
                 int endTS = records[records.Count-1].ms;
-                if (endTS < startTS)
-                    endTS += (ushort.MaxValue);
-                startTS *= 64; //64 us
-                endTS *= 64;
-                double duration = (endTS - startTS)/1000.0; //ms
-                return ((records.Count * 1000.0) / duration);
+                if (startTS == endTS)
+                {
+                    return _sampleRate;
+                }
+                else
+                {
+                    if (endTS < startTS)
+                        endTS += (ushort.MaxValue);
+                    startTS *= 64; //64 us
+                    endTS *= 64;
+                    double duration = (endTS - startTS) / 1000.0; //ms
+                    return ((records.Count * 1000.0) / duration);
+                }
+                
+            }
+            set
+            {
+                _sampleRate = value;
             }
         }
         public double Rpm

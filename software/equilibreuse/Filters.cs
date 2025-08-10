@@ -1,4 +1,6 @@
-﻿using System;
+﻿using MathNet.Filtering.FIR;
+using MathNet.Filtering.Windowing;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -117,11 +119,79 @@ namespace equilibreuse
             var coeffs = MathNet.Filtering.FIR.FirCoefficients.LowPass(sampleRate, cutoffFrequency, halfOrder);
             var window = new MathNet.Filtering.Windowing.HammingWindow { Width = coeffs.Length }.CopyToArray();
             for (int i = 0; i < coeffs.Length; i++)
-                coeffs[i] *= window[i];
+               coeffs[i] *= window[i];
 
             var fir = new MathNet.Filtering.FIR.OnlineFirFilter(coeffs);
             for (int i = 0; i < signal.Length; i++)
                 signal[i] = fir.ProcessSample(signal[i]);
         }
+        public static void ApplyLowPassFilterZeroPhase(ref double[] signal, double cutoffFrequency, double sampleRate)
+        {
+            int halfOrder = 50;
+
+            // Calcul des coefficients du filtre passe-bas
+            var coeffs = FirCoefficients.LowPass(sampleRate, cutoffFrequency, halfOrder);
+
+            // Application d'une fenêtre Hamming pour lisser les bords
+            var window = new HammingWindow { Width = coeffs.Length }.CopyToArray();
+            for (int i = 0; i < coeffs.Length; i++)
+                coeffs[i] *= window[i];
+
+            // Création du filtre FIR
+            var fir = new OnlineFirFilter(coeffs);
+
+            // Étape 1 : filtre avant
+            double[] forwardFiltered = new double[signal.Length];
+            for (int i = 0; i < signal.Length; i++)
+                forwardFiltered[i] = fir.ProcessSample(signal[i]);
+
+            // Étape 2 : inversion du signal
+            Array.Reverse(forwardFiltered);
+
+            // Réinitialisation du filtre pour deuxième passe
+            fir.Reset();
+
+            // Étape 3 : filtre arrière
+            double[] backwardFiltered = new double[signal.Length];
+            for (int i = 0; i < signal.Length; i++)
+                backwardFiltered[i] = fir.ProcessSample(forwardFiltered[i]);
+
+            // Étape 4 : inversion finale
+            Array.Reverse(backwardFiltered);
+
+            // Remplacement du signal original
+            Array.Copy(backwardFiltered, signal, signal.Length);
+        }
+        public static double[] ApplyNarrowBandPassFilter(double[] signal, double centerFreq, double sampleRate, double bandwidth = 0.4)
+        {
+            int filterOrder = 100; // Assez élevé pour étroitesse
+            double nyquist = sampleRate / 2;
+
+            // Bord inférieur et supérieur
+            double low = (centerFreq - bandwidth / 2) / nyquist;
+            double high = (centerFreq + bandwidth / 2) / nyquist;
+
+            var coeffs = MathNet.Filtering.FIR.FirCoefficients.BandPass(sampleRate, centerFreq - bandwidth / 2, centerFreq + bandwidth / 2, filterOrder);
+          //  var window = new MathNet.Filtering.Windowing.HammingWindow { Width = coeffs.Length }.CopyToArray();
+          //  for (int i = 0; i < coeffs.Length; i++)
+          //      coeffs[i] *= window[i];
+
+            var filter = new MathNet.Filtering.FIR.OnlineFirFilter(coeffs);
+           
+            var forward = new double[signal.Length];
+            var backward = new double[signal.Length];
+            for (int i = 0; i < signal.Length; i++)
+                forward[i] = filter.ProcessSample(signal[i]);
+            // 2. Backward pass (reverse the signal and filter again)
+            filter.Reset();
+            Array.Reverse(forward);
+            for (int i = 0; i < signal.Length; i++)
+                backward[i] = filter.ProcessSample(forward[i]);
+
+            // 3. Reverse back to original time order
+            Array.Reverse(backward);
+            return backward;
+        }
+
     }
 }

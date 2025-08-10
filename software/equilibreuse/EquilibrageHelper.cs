@@ -305,7 +305,7 @@ namespace equilibreuse
         }
 
      
-        internal static FFTData CalculateFFT(double[] signal, double sampleRate, ComboBox cbxFFT, bool bRemoveDC,bool bdB)
+        internal static FFTData CalculateFFT(double[] signal, double sampleRate, ComboBox cbxFFT, bool bRemoveDC,bool bdB,double rpm)
         {        
             // Paramètres du zero-padding
             int count = signal.Count(); //should be 360
@@ -357,14 +357,18 @@ namespace equilibreuse
             data.Frequence = frequencies;
             data.AngleDeg = new double[data.Frequence.Length];
             data.Magnitude = new double[data.Frequence.Length];
+            double omega = 2 * Math.PI * rpm / 60.0;
             for (int i = 0; i < data.Frequence.Length; i++)
             {
                 data.Magnitude[i] = (double)Math.Sqrt(re[i] * re[i] + im[i] * im[i]);
-                if(bdB)
+               
+                data.Magnitude[i] = data.Magnitude[i] * 100000 / (omega * omega); // ou mag / (rpm * rpm) si tu restes en RPM
+                if (bdB)
                     data.Magnitude[i] = 10 * Math.Log10(data.Magnitude[i]) - 10 * Math.Log10(fftSize);
                 data.AngleDeg[i]  = (double)(Math.Atan2(im[i], re[i]) * (180.0 / Math.PI) + 360) % 360;
             }
-            data.Magnitude[0] = Math.Abs(re[0]);
+            data.Magnitude[0] = Math.Abs(re[0]) * 100000 / (omega * omega);
+
             return data;
         }
         public static string GetStatisticsFundamental(string sTitle, double totalSamples, double sampleRate, double magnitude, double numberoftours)

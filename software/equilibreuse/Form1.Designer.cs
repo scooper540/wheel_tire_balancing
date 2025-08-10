@@ -185,6 +185,7 @@
             this.chkFFTSingle = new System.Windows.Forms.CheckBox();
             this.lblFFTAnalysis = new System.Windows.Forms.Label();
             this.chkDb = new System.Windows.Forms.CheckBox();
+            this.chkPassband = new System.Windows.Forms.CheckBox();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -543,8 +544,6 @@
             // chkLowPassFilter
             // 
             this.chkLowPassFilter.AutoSize = true;
-            this.chkLowPassFilter.Checked = true;
-            this.chkLowPassFilter.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkLowPassFilter.Location = new System.Drawing.Point(637, 3);
             this.chkLowPassFilter.Name = "chkLowPassFilter";
             this.chkLowPassFilter.Size = new System.Drawing.Size(86, 17);
@@ -1629,8 +1628,6 @@
             // chkZeroPhase
             // 
             this.chkZeroPhase.AutoSize = true;
-            this.chkZeroPhase.Checked = true;
-            this.chkZeroPhase.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkZeroPhase.Location = new System.Drawing.Point(729, 1);
             this.chkZeroPhase.Name = "chkZeroPhase";
             this.chkZeroPhase.Size = new System.Drawing.Size(78, 17);
@@ -1642,10 +1639,10 @@
             // lblPeak
             // 
             this.lblPeak.AutoSize = true;
-            this.lblPeak.Font = new System.Drawing.Font("Microsoft Sans Serif", 5.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblPeak.Location = new System.Drawing.Point(1130, 8);
+            this.lblPeak.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblPeak.Location = new System.Drawing.Point(1137, 2);
             this.lblPeak.Name = "lblPeak";
-            this.lblPeak.Size = new System.Drawing.Size(0, 9);
+            this.lblPeak.Size = new System.Drawing.Size(0, 12);
             this.lblPeak.TabIndex = 48;
             // 
             // txtFFTLimit
@@ -1733,10 +1730,10 @@
             // lblFFTAnalysis
             // 
             this.lblFFTAnalysis.AutoSize = true;
-            this.lblFFTAnalysis.Font = new System.Drawing.Font("Microsoft Sans Serif", 6F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblFFTAnalysis.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblFFTAnalysis.Location = new System.Drawing.Point(998, 2);
             this.lblFFTAnalysis.Name = "lblFFTAnalysis";
-            this.lblFFTAnalysis.Size = new System.Drawing.Size(0, 9);
+            this.lblFFTAnalysis.Size = new System.Drawing.Size(0, 12);
             this.lblFFTAnalysis.TabIndex = 61;
             // 
             // chkDb
@@ -1750,11 +1747,25 @@
             this.chkDb.UseVisualStyleBackColor = true;
             this.chkDb.CheckedChanged += new System.EventHandler(this.chkFFT_CheckedChanged);
             // 
+            // chkPassband
+            // 
+            this.chkPassband.AutoSize = true;
+            this.chkPassband.Checked = true;
+            this.chkPassband.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkPassband.Location = new System.Drawing.Point(870, 22);
+            this.chkPassband.Name = "chkPassband";
+            this.chkPassband.Size = new System.Drawing.Size(95, 17);
+            this.chkPassband.TabIndex = 63;
+            this.chkPassband.Text = "Passband filter";
+            this.chkPassband.UseVisualStyleBackColor = true;
+            this.chkPassband.CheckedChanged += new System.EventHandler(this.chkLowPassFilter_CheckedChanged);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1287, 639);
+            this.Controls.Add(this.chkPassband);
             this.Controls.Add(this.chkDb);
             this.Controls.Add(this.lblFFTAnalysis);
             this.Controls.Add(this.cbxFFTSingle);
@@ -1986,6 +1997,7 @@
         private System.Windows.Forms.CheckBox chkFFTSingle;
         private System.Windows.Forms.Label lblFFTAnalysis;
         private System.Windows.Forms.CheckBox chkDb;
+        private System.Windows.Forms.CheckBox chkPassband;
     }
 }
 
