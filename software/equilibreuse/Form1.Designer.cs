@@ -171,6 +171,7 @@
             this.btnUpdateAnalysisSection = new System.Windows.Forms.Button();
             this.lstSectionSelector = new System.Windows.Forms.CheckedListBox();
             this.tabPage14 = new System.Windows.Forms.TabPage();
+            this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.chkOrderTracking = new System.Windows.Forms.CheckBox();
             this.chkZeroPhase = new System.Windows.Forms.CheckBox();
             this.lblPeak = new System.Windows.Forms.Label();
@@ -180,7 +181,10 @@
             this.chkRemoveDC = new System.Windows.Forms.CheckBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.cbxSensor = new System.Windows.Forms.ComboBox();
-            this.richTextBox1 = new System.Windows.Forms.RichTextBox();
+            this.cbxFFTSingle = new System.Windows.Forms.ComboBox();
+            this.chkFFTSingle = new System.Windows.Forms.CheckBox();
+            this.lblFFTAnalysis = new System.Windows.Forms.Label();
+            this.chkDb = new System.Windows.Forms.CheckBox();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -427,11 +431,11 @@
             this.chkFFT.AutoSize = true;
             this.chkFFT.Checked = true;
             this.chkFFT.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkFFT.Location = new System.Drawing.Point(762, 64);
+            this.chkFFT.Location = new System.Drawing.Point(790, 63);
             this.chkFFT.Name = "chkFFT";
-            this.chkFFT.Size = new System.Drawing.Size(45, 17);
+            this.chkFFT.Size = new System.Drawing.Size(78, 17);
             this.chkFFT.TabIndex = 27;
-            this.chkFFT.Text = "FFT";
+            this.chkFFT.Text = "FFT Global";
             this.chkFFT.UseVisualStyleBackColor = true;
             this.chkFFT.CheckedChanged += new System.EventHandler(this.chkFFT_CheckedChanged);
             // 
@@ -448,7 +452,7 @@
             "BlackmanHarris",
             "BlackmanNuttal",
             "FlatTop"});
-            this.cbxFFT.Location = new System.Drawing.Point(813, 61);
+            this.cbxFFT.Location = new System.Drawing.Point(870, 60);
             this.cbxFFT.Name = "cbxFFT";
             this.cbxFFT.Size = new System.Drawing.Size(121, 21);
             this.cbxFFT.TabIndex = 28;
@@ -539,6 +543,8 @@
             // chkLowPassFilter
             // 
             this.chkLowPassFilter.AutoSize = true;
+            this.chkLowPassFilter.Checked = true;
+            this.chkLowPassFilter.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkLowPassFilter.Location = new System.Drawing.Point(637, 3);
             this.chkLowPassFilter.Name = "chkLowPassFilter";
             this.chkLowPassFilter.Size = new System.Drawing.Size(86, 17);
@@ -961,9 +967,9 @@
             this.label43.AutoSize = true;
             this.label43.Location = new System.Drawing.Point(400, 3);
             this.label43.Name = "label43";
-            this.label43.Size = new System.Drawing.Size(379, 13);
+            this.label43.Size = new System.Drawing.Size(339, 13);
             this.label43.TabIndex = 28;
-            this.label43.Text = "BLUE: Turn by Turn, RED: Compiled (360ms), GREEN: Global, YELLOW: Gyro";
+            this.label43.Text = "BLUE: Turn by Turn, RED: Compiled, GREEN: Global, YELLOW: Gyro";
             // 
             // tabControl2
             // 
@@ -1599,6 +1605,14 @@
             this.tabPage14.Text = "Help";
             this.tabPage14.UseVisualStyleBackColor = true;
             // 
+            // richTextBox1
+            // 
+            this.richTextBox1.Location = new System.Drawing.Point(15, 6);
+            this.richTextBox1.Name = "richTextBox1";
+            this.richTextBox1.Size = new System.Drawing.Size(1231, 501);
+            this.richTextBox1.TabIndex = 0;
+            this.richTextBox1.Text = resources.GetString("richTextBox1.Text");
+            // 
             // chkOrderTracking
             // 
             this.chkOrderTracking.AutoSize = true;
@@ -1615,6 +1629,8 @@
             // chkZeroPhase
             // 
             this.chkZeroPhase.AutoSize = true;
+            this.chkZeroPhase.Checked = true;
+            this.chkZeroPhase.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkZeroPhase.Location = new System.Drawing.Point(729, 1);
             this.chkZeroPhase.Name = "chkZeroPhase";
             this.chkZeroPhase.Size = new System.Drawing.Size(78, 17);
@@ -1638,7 +1654,7 @@
             this.txtFFTLimit.Name = "txtFFTLimit";
             this.txtFFTLimit.Size = new System.Drawing.Size(40, 20);
             this.txtFFTLimit.TabIndex = 49;
-            this.txtFFTLimit.Text = "100";
+            this.txtFFTLimit.Text = "20";
             // 
             // label5
             // 
@@ -1682,19 +1698,67 @@
             this.cbxSensor.Size = new System.Drawing.Size(89, 21);
             this.cbxSensor.TabIndex = 58;
             // 
-            // richTextBox1
+            // cbxFFTSingle
             // 
-            this.richTextBox1.Location = new System.Drawing.Point(15, 6);
-            this.richTextBox1.Name = "richTextBox1";
-            this.richTextBox1.Size = new System.Drawing.Size(1231, 501);
-            this.richTextBox1.TabIndex = 0;
-            this.richTextBox1.Text = resources.GetString("richTextBox1.Text");
+            this.cbxFFTSingle.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbxFFTSingle.FormattingEnabled = true;
+            this.cbxFFTSingle.Items.AddRange(new object[] {
+            "None",
+            "Hamming",
+            "HammingPeriodic",
+            "Hann",
+            "HannPeriodic",
+            "BlackmanHarris",
+            "BlackmanNuttal",
+            "FlatTop"});
+            this.cbxFFTSingle.Location = new System.Drawing.Point(869, 42);
+            this.cbxFFTSingle.Name = "cbxFFTSingle";
+            this.cbxFFTSingle.Size = new System.Drawing.Size(121, 21);
+            this.cbxFFTSingle.TabIndex = 60;
+            this.cbxFFTSingle.SelectedIndexChanged += new System.EventHandler(this.cbxFFT_SelectedIndexChanged);
+            // 
+            // chkFFTSingle
+            // 
+            this.chkFFTSingle.AutoSize = true;
+            this.chkFFTSingle.Checked = true;
+            this.chkFFTSingle.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkFFTSingle.Location = new System.Drawing.Point(789, 45);
+            this.chkFFTSingle.Name = "chkFFTSingle";
+            this.chkFFTSingle.Size = new System.Drawing.Size(77, 17);
+            this.chkFFTSingle.TabIndex = 59;
+            this.chkFFTSingle.Text = "FFT Single";
+            this.chkFFTSingle.UseVisualStyleBackColor = true;
+            this.chkFFTSingle.CheckedChanged += new System.EventHandler(this.chkFFT_CheckedChanged);
+            // 
+            // lblFFTAnalysis
+            // 
+            this.lblFFTAnalysis.AutoSize = true;
+            this.lblFFTAnalysis.Font = new System.Drawing.Font("Microsoft Sans Serif", 6F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblFFTAnalysis.Location = new System.Drawing.Point(998, 2);
+            this.lblFFTAnalysis.Name = "lblFFTAnalysis";
+            this.lblFFTAnalysis.Size = new System.Drawing.Size(0, 9);
+            this.lblFFTAnalysis.TabIndex = 61;
+            // 
+            // chkDb
+            // 
+            this.chkDb.AutoSize = true;
+            this.chkDb.Location = new System.Drawing.Point(744, 62);
+            this.chkDb.Name = "chkDb";
+            this.chkDb.Size = new System.Drawing.Size(39, 17);
+            this.chkDb.TabIndex = 62;
+            this.chkDb.Text = "dB";
+            this.chkDb.UseVisualStyleBackColor = true;
+            this.chkDb.CheckedChanged += new System.EventHandler(this.chkFFT_CheckedChanged);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1287, 639);
+            this.Controls.Add(this.chkDb);
+            this.Controls.Add(this.lblFFTAnalysis);
+            this.Controls.Add(this.cbxFFTSingle);
+            this.Controls.Add(this.chkFFTSingle);
             this.Controls.Add(this.cbxSensor);
             this.Controls.Add(this.chkRemoveDC);
             this.Controls.Add(this.chkShowResultante);
@@ -1918,6 +1982,10 @@
         private System.Windows.Forms.ToolTip toolTip1;
         private System.Windows.Forms.ComboBox cbxSensor;
         private System.Windows.Forms.RichTextBox richTextBox1;
+        private System.Windows.Forms.ComboBox cbxFFTSingle;
+        private System.Windows.Forms.CheckBox chkFFTSingle;
+        private System.Windows.Forms.Label lblFFTAnalysis;
+        private System.Windows.Forms.CheckBox chkDb;
     }
 }
 

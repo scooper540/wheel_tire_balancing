@@ -305,7 +305,7 @@ namespace equilibreuse
         }
 
      
-        internal static FFTData CalculateFFT(double[] signal, double sampleRate, ComboBox cbxFFT, bool bRemoveDC)
+        internal static FFTData CalculateFFT(double[] signal, double sampleRate, ComboBox cbxFFT, bool bRemoveDC,bool bdB)
         {        
             // Paramètres du zero-padding
             int count = signal.Count(); //should be 360
@@ -360,10 +360,46 @@ namespace equilibreuse
             for (int i = 0; i < data.Frequence.Length; i++)
             {
                 data.Magnitude[i] = (double)Math.Sqrt(re[i] * re[i] + im[i] * im[i]);
+                if(bdB)
+                    data.Magnitude[i] = 10 * Math.Log10(data.Magnitude[i]) - 10 * Math.Log10(fftSize);
                 data.AngleDeg[i]  = (double)(Math.Atan2(im[i], re[i]) * (180.0 / Math.PI) + 360) % 360;
             }
             data.Magnitude[0] = Math.Abs(re[0]);
             return data;
+        }
+        public static string GetStatisticsFundamental(string sTitle, double totalSamples, double sampleRate, double magnitude, double numberoftours)
+        {
+
+            // 1. Durée du signal (s)
+            double duration = totalSamples / sampleRate;
+
+            // 2. Magnitude normalisée par durée (amplitude moyenne par seconde)
+            double magnitudePerSecond = magnitude / duration;
+
+            // 3. Magnitude normalisée par tour
+            double magnitudePerRevolution = magnitude / numberoftours;
+
+  
+
+            // 5. PSD (densité spectrale de puissance)
+            // PSD = |X(f)|^2 / (fs * N) ou / (fs * durée)
+            double psd = (magnitude * magnitude) / (totalSamples);
+            return $"{sTitle}: {magnitudePerSecond:F4}\r\n{magnitudePerRevolution:F4} {psd:F4}";
+        }
+
+        /// <summary>
+        /// Calcule la moyenne vectorielle complexe de plusieurs composantes FFT (magnitude + phase)
+        /// </summary>
+        public static Complex ComputeVectorAverage(List<(double magnitude, double phaseRadians)> components)
+        {
+            Complex sum = Complex.Zero;
+            foreach (var (magnitude, phase) in components)
+            {
+                Complex z = Complex.FromPolarCoordinates(magnitude, phase);
+                sum += z;
+            }
+
+            return sum / components.Count;
         }
         internal static Complex[] CalculateFFT2(double[] signal, ComboBox cbxFFT,bool bRemoveDC)
         {
@@ -425,15 +461,7 @@ namespace equilibreuse
             value |= value >> 16;
             return value + 1;
         }
-        // Affiche une boîte de résumé (optionnel)
-        public static void ShowCorrectionMessage(double amp, double phase, double correction)
-        {
-            MessageBox.Show(
-                $"Amplitude: {amp:F2} g\nPhase mesurée: {phase:F1}°\n=> Ajouter masse à: {correction:F1}°",
-                "Équilibrage dynamique",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Information);
-        }
+       
         public static double GainToGrams(double accelerationG, double radiusMeters, double rpm)
         {
             // 1 g ≈ 9.80665 m/s²
@@ -493,5 +521,7 @@ namespace equilibreuse
                 }
             }
         }
+
+       
     }
 }

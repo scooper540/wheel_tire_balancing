@@ -51,6 +51,7 @@ namespace equilibreuse
             t1.Tick += T1_Tick;
             t1.Interval = 1000;
             cbxFFT.SelectedItem = "Hann";
+            cbxFFTSingle.SelectedItem = "Hann";
             cbxSensor.SelectedIndex = 1; //lsm6ds3 per default
             Help.FillHelp(richTextBox1);
         }
@@ -193,7 +194,13 @@ namespace equilibreuse
                                     if (!isWhite)
                                     {
                                         //count RPM
-                                        rpm = (float)(60.0 * sampleRate / count);
+                                        //new section
+                                        if(s!=null)
+                                        {
+                                            rpm = (float)s.Rpm;
+                                        }
+                                        s = new section();
+                                        s.records = new List<xyz>(360);
                                         bNewSection = true;
                                         count = 0;
                                     }
@@ -218,16 +225,14 @@ namespace equilibreuse
                                     avgTemp.y -= avg.y;
                                     avgTemp.z -= avg.z;
                                     avgTemp.isWhite = isWhite;
+                                    if (s != null)
+                                        s.records.Add(avgTemp);
                                     if (saveData && (rpm > minRPM && rpm < maxRPM))
                                     {
                                         if (bNewSection)
                                         {
-                                            s = new section();
-                                            s.records = new List<xyz>(360);
                                             dataToSave.Add(s);
                                         }
-                                        if (s != null)
-                                            s.records.Add(avgTemp);
                                     }
                                 }
                             }
@@ -404,7 +409,7 @@ namespace equilibreuse
             lblPeak.Text = $"X Pk-Pk (average) : {analyzedX.Max() - analyzedX.Min()}\r\nY Pk-Pk (average) : {analyzedY.Max() - analyzedY.Min()}\r\nZ Pk-Pk (average) : {analyzedZ.Max() - analyzedZ.Min()}";
 
             formsPlotAnalysis.Plot.Clear();
-            if (!chkFFT.Checked)
+            if (!chkFFTSingle.Checked)
             {
                 //display the graph on 360° basis
                 double[] angle = new double[alignedCount];
@@ -463,10 +468,10 @@ namespace equilibreuse
             }
             else
             {
-                FFTData dataX = EquilibrageHelper.CalculateFFT(analyzedX, sampleRate, cbxFFT,chkRemoveDC.Checked);
-                FFTData dataY = EquilibrageHelper.CalculateFFT(analyzedY, sampleRate, cbxFFT, chkRemoveDC.Checked);
-                FFTData dataZ = EquilibrageHelper.CalculateFFT(analyzedZ, sampleRate, cbxFFT, chkRemoveDC.Checked);
-                FFTData dataResultante = EquilibrageHelper.CalculateFFT(resultante, sampleRate, cbxFFT, chkRemoveDC.Checked);
+                FFTData dataX = EquilibrageHelper.CalculateFFT(analyzedX, sampleRate, cbxFFTSingle,chkRemoveDC.Checked, chkDb.Checked);
+                FFTData dataY = EquilibrageHelper.CalculateFFT(analyzedY, sampleRate, cbxFFTSingle, chkRemoveDC.Checked, chkDb.Checked);
+                FFTData dataZ = EquilibrageHelper.CalculateFFT(analyzedZ, sampleRate, cbxFFTSingle, chkRemoveDC.Checked, chkDb.Checked);
+                FFTData dataResultante = EquilibrageHelper.CalculateFFT(resultante, sampleRate, cbxFFTSingle, chkRemoveDC.Checked, chkDb.Checked);
                 
                 
                 double avgTourTime = alignedCount / sampleRate;
@@ -550,6 +555,8 @@ namespace equilibreuse
                         formsPlotT5Y.Plot.AddVerticalLine(calcResult.py[i].BestAngleDeg, Color.Red, width: 3);
                     }
                 }
+                lblFFTAnalysis.Text += "Compiled X AVG Mag: " + calcResult.px[0].ActualAmplitude.ToString("F4") + "\r\n";
+                lblFFTAnalysis.Text += "Compiled Y AVG Mag: " + calcResult.py[0].ActualAmplitude.ToString("F4") + "\r\n";
             }
             formsPlotAnalysis.Render();
             if (selectedSections.Count > 0)
@@ -557,6 +564,7 @@ namespace equilibreuse
                 lblRecordNumber.Text = "0";
                 RefreshXYZ(selectedSections[0]);
             }
+           
         }
         private void CalculateXYZ()
         {
@@ -585,10 +593,10 @@ namespace equilibreuse
                                                 );
                 }
               
-                FFTData cmpX = EquilibrageHelper.CalculateFFT(x, sampleRate, cbxFFT, chkRemoveDC.Checked);
-                FFTData cmpY = EquilibrageHelper.CalculateFFT(y, sampleRate, cbxFFT, chkRemoveDC.Checked);
-                FFTData cmpZ = EquilibrageHelper.CalculateFFT(z, sampleRate, cbxFFT, chkRemoveDC.Checked);
-                FFTData cmpResultante = EquilibrageHelper.CalculateFFT(resultante, sampleRate, cbxFFT, chkRemoveDC.Checked);
+                FFTData cmpX = EquilibrageHelper.CalculateFFT(x, sampleRate, cbxFFTSingle, chkRemoveDC.Checked, chkDb.Checked);
+                FFTData cmpY = EquilibrageHelper.CalculateFFT(y, sampleRate, cbxFFTSingle, chkRemoveDC.Checked, chkDb.Checked);
+                FFTData cmpZ = EquilibrageHelper.CalculateFFT(z, sampleRate, cbxFFTSingle, chkRemoveDC.Checked, chkDb.Checked);
+                FFTData cmpResultante = EquilibrageHelper.CalculateFFT(resultante, sampleRate, cbxFFTSingle, chkRemoveDC.Checked, chkDb.Checked);
                 
                 double avgTourTime = count / sampleRate;  // en secondes
                 double f_rot = 1.0 / avgTourTime;
@@ -663,6 +671,8 @@ namespace equilibreuse
                 {
                     DisplayTurnByTurnGraph(lstBestAngleInner, lstBestAngleOuter, lstBestAngleX, lstBestAngleY, formsPlotT1I, formsPlotT1O, formsPlotT1X, formsPlotT1Y);
                     lblTotalSelected.Text = $"Found Dynamic unbalance on {lstBestAngleInner.Count} turn of {lstSectionSelector.CheckedItems.Count} selected";
+                    lblFFTAnalysis.Text += "Turn by turn X AVG Mag: " + lstMagnitudeX.Average(t => t.Item2).ToString("F4") + "\r\n";
+                    lblFFTAnalysis.Text += "Turn by turn Y AVG Mag: " + lstMagnitudeY.Average(t => t.Item2).ToString("F4") + "\r\n";
                 }
                 else if (i == 1)
                     DisplayTurnByTurnGraph(lstBestAngleInner, lstBestAngleOuter, lstBestAngleX, lstBestAngleY, formsPlotT2I, formsPlotT2O, formsPlotT2X, formsPlotT2Y);
@@ -673,9 +683,9 @@ namespace equilibreuse
                 else if (i == 4)
                     DisplayTurnByTurnGraph(lstBestAngleInner, lstBestAngleOuter, lstBestAngleX, lstBestAngleY, formsPlotT5I, formsPlotT5O, formsPlotT5X, formsPlotT5Y);
 
-                
-
+               
             }
+         
         }
 
         private void CalculateStatistics(string data, int i, Dictionary<int, int> lstData)
@@ -777,9 +787,9 @@ namespace equilibreuse
             else
             {
                
-                FFTData cmpX = EquilibrageHelper.CalculateFFT(x, sampleRate, cbxFFT, chkRemoveDC.Checked);
-                FFTData cmpY = EquilibrageHelper.CalculateFFT(y, sampleRate, cbxFFT, chkRemoveDC.Checked);
-                FFTData cmpZ = EquilibrageHelper.CalculateFFT(z, sampleRate, cbxFFT, chkRemoveDC.Checked);
+                FFTData cmpX = EquilibrageHelper.CalculateFFT(x, sampleRate, cbxFFTSingle, chkRemoveDC.Checked, chkDb.Checked);
+                FFTData cmpY = EquilibrageHelper.CalculateFFT(y, sampleRate, cbxFFTSingle, chkRemoveDC.Checked, chkDb.Checked);
+                FFTData cmpZ = EquilibrageHelper.CalculateFFT(z, sampleRate, cbxFFTSingle, chkRemoveDC.Checked, chkDb.Checked);
               
                 double avgTourTime = count / sampleRate;  // en secondes
                 double f_rot = 1.0 / avgTourTime;
@@ -953,10 +963,10 @@ namespace equilibreuse
             else
             {
 
-                FFTData cmpX = EquilibrageHelper.CalculateFFT(analyzedX, sampleRate, cbxFFT, chkRemoveDC.Checked);
-                FFTData cmpY = EquilibrageHelper.CalculateFFT(analyzedY, sampleRate, cbxFFT, chkRemoveDC.Checked);
-                FFTData cmpZ = EquilibrageHelper.CalculateFFT(analyzedZ, sampleRate, cbxFFT, chkRemoveDC.Checked);
-                FFTData cmpResultante = EquilibrageHelper.CalculateFFT(resultante, sampleRate, cbxFFT, chkRemoveDC.Checked);
+                FFTData cmpX = EquilibrageHelper.CalculateFFT(analyzedX, sampleRate, cbxFFT, chkRemoveDC.Checked, chkDb.Checked);
+                FFTData cmpY = EquilibrageHelper.CalculateFFT(analyzedY, sampleRate, cbxFFT, chkRemoveDC.Checked, chkDb.Checked);
+                FFTData cmpZ = EquilibrageHelper.CalculateFFT(analyzedZ, sampleRate, cbxFFT, chkRemoveDC.Checked, chkDb.Checked);
+                FFTData cmpResultante = EquilibrageHelper.CalculateFFT(resultante, sampleRate, cbxFFT, chkRemoveDC.Checked, chkDb.Checked);
                 double avgTourTime = countTotal / sampleRate / selectedSections.Count;  // en secondes  
                 double f_rot = 1.0 / avgTourTime;
                 
@@ -1039,6 +1049,8 @@ namespace equilibreuse
                         formsPlotT5Y.Plot.AddVerticalLine(calcResult.py[i].BestAngleDeg, Color.Green, width: 3);
                     }
                 }
+                lblFFTAnalysis.Text += EquilibrageHelper.GetStatisticsFundamental("Normalized Global X", countTotal, sampleRate, calcResult.px[0].ActualAmplitude, selectedSections.Count) + "\r\n";
+                lblFFTAnalysis.Text += EquilibrageHelper.GetStatisticsFundamental("Normalized Global Y", countTotal, sampleRate, calcResult.py[0].ActualAmplitude, selectedSections.Count);
             }
             formsPlotGlobal.Render();
         }
@@ -1193,10 +1205,10 @@ namespace equilibreuse
             }
             else
             {
-                FFTData cmpX = EquilibrageHelper.CalculateFFT(analyzedX, sampleRate, cbxFFT, chkRemoveDC.Checked);
-                FFTData cmpY = EquilibrageHelper.CalculateFFT(analyzedY, sampleRate, cbxFFT, chkRemoveDC.Checked);
-                FFTData cmpZ = EquilibrageHelper.CalculateFFT(analyzedZ, sampleRate, cbxFFT, chkRemoveDC.Checked);
-                FFTData cmpResultante = EquilibrageHelper.CalculateFFT(resultante, sampleRate, cbxFFT, chkRemoveDC.Checked);
+                FFTData cmpX = EquilibrageHelper.CalculateFFT(analyzedX, sampleRate, cbxFFT, chkRemoveDC.Checked, chkDb.Checked);
+                FFTData cmpY = EquilibrageHelper.CalculateFFT(analyzedY, sampleRate, cbxFFT, chkRemoveDC.Checked, chkDb.Checked);
+                FFTData cmpZ = EquilibrageHelper.CalculateFFT(analyzedZ, sampleRate, cbxFFT, chkRemoveDC.Checked, chkDb.Checked);
+                FFTData cmpResultante = EquilibrageHelper.CalculateFFT(resultante, sampleRate, cbxFFT, chkRemoveDC.Checked, chkDb.Checked);
                 double avgTourTime = countTotal / sampleRate / selectedSections.Count;  // en secondes  
                 double f_rot = 1.0 / avgTourTime;
 
@@ -1501,7 +1513,13 @@ namespace equilibreuse
                        // if (Math.Abs(r.x) > 15 || Math.Abs(r.y) > 15 || Math.Abs(r.z) > 15 || Math.Abs(r.gx) > 15 || Math.Abs(r.gy) > 15 || Math.Abs(r.gz) > 15)
                        //     continue;
                         if (r.isWhite && !bPreviousWhite)
-                        {
+                        { 
+                            if(s!=null)
+                            {
+                                //normalize the section
+                             //   double squarerpm = s.Rpm/1000.0;
+                             //   s.records = s.records.Select(xyz => new xyz() { x = xyz.x / squarerpm, y = xyz.y / squarerpm, z = xyz.z / squarerpm, gx = xyz.gx / squarerpm, gy = xyz.gy / squarerpm, gz = xyz.gz / squarerpm, isWhite = xyz.isWhite, ms = xyz.ms }).ToList();
+                            }
                             s = new section();
                             s.records = new List<xyz>(360);
                             loadedSections.Add(s);
@@ -1511,16 +1529,19 @@ namespace equilibreuse
                         bPreviousWhite = r.isWhite;
                         iTotalRecordsInCSV++;
                     }
-
+                    if (s != null)
+                    {
+                        //normalize the section
+                        //double squarerpm = s.Rpm / 1000.0;
+                        //s.records = s.records.Select(xyz => new xyz() { x = xyz.x / squarerpm, y = xyz.y / squarerpm, z = xyz.z / squarerpm, gx = xyz.gx / squarerpm, gy = xyz.gy / squarerpm, gz = xyz.gz / squarerpm, isWhite = xyz.isWhite, ms = xyz.ms }).ToList();
+                    }
                 }
             }
-            double sampleRate = Convert.ToDouble(txtSampleRate.Text);
             int i = 0;
             lstSectionSelector.Items.Clear();
             foreach (section se in loadedSections)
             {
-
-                lstSectionSelector.Items.Add(new SectionInfo() { sampleRate = se.SamplingRate,  rpm = ((float)(60.0 * se.SamplingRate / se.Size)), index = i });
+                lstSectionSelector.Items.Add(new SectionInfo() { sampleRate = se.SamplingRate,  rpm = se.Rpm , index = i });
                 i++;
             }
             lstSimulationCompiled.Items.Clear();
@@ -1539,6 +1560,8 @@ namespace equilibreuse
                 selectedSections.Add(loadedSections[s]);
                 iTotalRecordsInCSV += loadedSections[s].records.Count;
             }
+            lblFFTAnalysis.Text = String.Empty;
+
             formsPlotT1X.Plot.Clear(); formsPlotT1Y.Plot.Clear(); formsPlotT1O.Plot.Clear(); formsPlotT1I.Plot.Clear();
             formsPlotT2X.Plot.Clear(); formsPlotT2Y.Plot.Clear(); formsPlotT2O.Plot.Clear(); formsPlotT2I.Plot.Clear();
             formsPlotT3X.Plot.Clear(); formsPlotT3Y.Plot.Clear(); formsPlotT3O.Plot.Clear(); formsPlotT3I.Plot.Clear();
@@ -2121,6 +2144,13 @@ namespace equilibreuse
                 endTS *= 64;
                 double duration = (endTS - startTS)/1000.0; //ms
                 return ((records.Count * 1000.0) / duration);
+            }
+        }
+        public double Rpm
+        {
+            get
+            {
+                return ((float)(60.0 * SamplingRate / Size));
             }
         }
         public List<xyz> records = new List<xyz>();
