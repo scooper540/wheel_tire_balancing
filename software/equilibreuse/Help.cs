@@ -44,7 +44,7 @@ namespace equilibreuse
             richTextBox.AppendText("1. Click Analyze CSV to load a captured file.\n");
             richTextBox.AppendText("2. Use Selection Selector to choose the wheel turns to be analyzed.\n");
             richTextBox.AppendText("Display Modes:\n");
-            richTextBox.AppendText(" - Compiled: Superimposes all selected turns on a single 360° angular signal.\n");
+            richTextBox.AppendText(" - Compiled: Superposes all selected turns.\n");
             richTextBox.AppendText(" - Single: Displays each turn individually.\n");
             richTextBox.AppendText(" - Global: Displays all turns sequentially.\n");
             richTextBox.AppendText("   - If Order Tracking Interpolate is enabled, all turns are resampled to the same number of points for consistent FFT analysis.\n");
@@ -58,19 +58,20 @@ namespace equilibreuse
             richTextBox.SelectionFont = new Font("Segoe UI", 10, FontStyle.Bold);
             richTextBox.AppendText("🧭 How to Balance a Wheel\n");
             richTextBox.SelectionFont = new Font("Segoe UI", 10, FontStyle.Regular);
-            richTextBox.AppendText("The goal is to reduce the amplitude of the first few harmonics on the X and Y axes to correct static and dynamic imbalance.\n");
+            richTextBox.AppendText("The goal is to reduce the amplitude of the fundamental on the X and Y axes to correct static and dynamic imbalance.\n");
             richTextBox.AppendText("Types of Imbalance:\n");
             richTextBox.AppendText(" - Static imbalance: Uneven mass distribution on a single axis (X or Y).\n");
             richTextBox.AppendText(" - Dynamic imbalance: Uneven mass on both axes; occurs when X and Y angles at the fundamental frequency are approximately 90° apart.\n");
-            richTextBox.AppendText("Step-by-Step Balancing:\n");
-            richTextBox.AppendText("1. Place a white line on the rim of the tire and verify the sensor see it. This is the 0°. After capturing data between 200 and 230 RPM, check if dynamic imbalance is detected (e.g., in more than 25% of turns).\n");
-            richTextBox.AppendText("2. Place balancing weights on the inner and outer sides of the wheel based on the suggested angles.\n");
-            richTextBox.AppendText("3. Repeat the process: capture new data and reanalyze to see if the number of turns with imbalance decreases.\n");
+            richTextBox.AppendText("Step-by-Step Balancing (uses Green Line (global data), more accurate for angle detection):\n");
+            richTextBox.AppendText("1. Place a white line on the rim of the tire and verify the sensor see it. This is the 0°. After capturing data between 200 and 230 RPM, check if dynamic imbalance is detected with Green Line (global).\n");
+            richTextBox.AppendText("2. Place balancing weights on the inner and outer sides of the wheel based on the suggested angles if dynamic imbalance is found, else start with Outer side (Y).\n");
+            richTextBox.AppendText("3. Repeat the process: capture new data and reanalyze to see if the number of turns with imbalance decreases AND magnitude on X and Y decreases.\n");
             richTextBox.AppendText("4. If the X or Y angle corresponds to the valve position, place a weight 180° opposite that position (especially for the first correction).\n");
             richTextBox.AppendText("5. Reduce the amplitude of the fundamental frequency until it is:\n");
             richTextBox.AppendText("   - Below 2 to 2.5 times the baseline curve (e.g., in Compiled and Turn-by-turn views).\n");
-            richTextBox.AppendText("   - Note: The Global view should not be used for this, as the number of turns may vary between captures.\n");
+            richTextBox.AppendText("   - Check global data statitics if the magnitude ratio and PSD decrease.\n");
             richTextBox.AppendText("A flat FFT curve on the fundamental and early harmonics means your wheel is properly balanced ✅\n\n");
+            richTextBox.AppendText("Peak-to-Peak and RMS analysis could need to apply a filter to see if the values decreases (less vibrations).\n");
 
             richTextBox.SelectionFont = new Font("Segoe UI", 10, FontStyle.Bold);
             richTextBox.AppendText("⚙️ Advanced Analysis Options\n");
