@@ -198,7 +198,7 @@ namespace equilibreuse
 
             return bestAngle;
         }
-        public static PolarSeriesResult GetPolarSeries(FFTData data, double sampleRate,double f_rot, double gain,int stepDeg)
+        public static PolarSeriesResult GetPolarSeries(FFTData data, double sampleRate,double f_rot, int stepDeg)
         {
             var funda = EquilibrageHelper.GetFundamentalPhase(data.Frequence, data.Magnitude,data.AngleDeg, f_rot);
             if (funda == null)
@@ -213,7 +213,7 @@ namespace equilibreuse
             res.ActualAmplitude = funda.Magnitude;
             return res;
         }
-        public static CalculationResult CompleteSimulation(ListBox lstData, String diagram, FFTData x, FFTData y, FFTData z, FFTData resultante, double sampleRate, double fRot, double gain = 1.0, int stepDeg = 1)
+        public static CalculationResult CompleteSimulation(ListBox lstData, String diagram, FFTData x, FFTData y, FFTData z, FFTData resultante, double sampleRate, double fRot, int stepDeg = 1)
         {
             CalculationResult cr = new CalculationResult();
             for (int i = 1; i < 6; i++)
@@ -221,7 +221,7 @@ namespace equilibreuse
                 PolarSeriesResult px = new PolarSeriesResult(), py = new PolarSeriesResult(), pz = new PolarSeriesResult(), pr = new PolarSeriesResult();
                 try
                 {
-                    px = GetPolarSeries(x, sampleRate, fRot*i, gain, stepDeg);
+                    px = GetPolarSeries(x, sampleRate, fRot*i, stepDeg);
                     cr.px[i - 1] = px;
                 }
                 catch (Exception ex)
@@ -231,7 +231,7 @@ namespace equilibreuse
                 }
                 try
                 {
-                    py = GetPolarSeries(y, sampleRate, fRot * i, gain, stepDeg);
+                    py = GetPolarSeries(y, sampleRate, fRot * i, stepDeg);
                     cr.py[i - 1] = py;
                 }
                 catch (Exception ex)
@@ -241,7 +241,7 @@ namespace equilibreuse
                 }
                 try
                 {
-                    pz = GetPolarSeries(z, sampleRate, fRot * i, gain, stepDeg);
+                    pz = GetPolarSeries(z, sampleRate, fRot * i, stepDeg);
                     cr.pz[i - 1] = pz;
                 }
                 catch (Exception ex)
@@ -251,7 +251,7 @@ namespace equilibreuse
                 }
                 try
                 {
-                    pr = GetPolarSeries(resultante, sampleRate, fRot * i, gain, stepDeg);
+                    pr = GetPolarSeries(resultante, sampleRate, fRot * i, stepDeg);
                     cr.pResultante[i - 1] = pr;
                 }
                 catch (Exception ex)
@@ -272,24 +272,7 @@ namespace equilibreuse
             }
             return cr;
         }
-        public static void RemoveDCOffset(double[] signal)
-        {
-            if (signal == null || signal.Length == 0) return;
-
-            // Calcul de la moyenne (composante DC)
-            double mean = 0;
-            for (int i = 0; i < signal.Length; i++)
-            {
-                mean += signal[i];
-            }
-            mean /= signal.Length;
-
-            // Soustraction de la moyenne à chaque point
-            for (int i = 0; i < signal.Length; i++)
-            {
-                signal[i] -= mean;
-            }
-        }
+      
         // Extraction amplitude & phase à f_rot
         public static Fundamentale GetFundamentalPhase(double[] freq, double[] mags, double[] angle, double f_rot, double tolerance = 1, double freqMin = 1.0)
         { 
@@ -305,12 +288,10 @@ namespace equilibreuse
         }
 
      
-        internal static FFTData CalculateFFT(double[] signal, double sampleRate, ComboBox cbxFFT, bool bRemoveDC,bool bdB,double rpm)
+        internal static FFTData CalculateFFT(double[] signal, double sampleRate, ComboBox cbxFFT,bool bdB,double rpm)
         {        
             // Paramètres du zero-padding
-            int count = signal.Count(); //should be 360
-            if (bRemoveDC)
-                RemoveDCOffset(signal);
+            int count = signal.Count();
 
             int zeroPadFactor = 8;
             int fftSize = count * zeroPadFactor;
@@ -362,12 +343,12 @@ namespace equilibreuse
             {
                 data.Magnitude[i] = (double)Math.Sqrt(re[i] * re[i] + im[i] * im[i]);
                
-                data.Magnitude[i] = data.Magnitude[i] * 100000 / (omega * omega); // ou mag / (rpm * rpm) si tu restes en RPM
+                data.Magnitude[i] = data.Magnitude[i] / (omega * omega); // ou mag / (rpm * rpm) si tu restes en RPM
                 if (bdB)
                     data.Magnitude[i] = 10 * Math.Log10(data.Magnitude[i]) - 10 * Math.Log10(fftSize);
                 data.AngleDeg[i]  = (double)(Math.Atan2(im[i], re[i]) * (180.0 / Math.PI) + 360) % 360;
             }
-            data.Magnitude[0] = Math.Abs(re[0]) * 100000 / (omega * omega);
+            data.Magnitude[0] = Math.Abs(re[0]) / (omega * omega);
 
             return data;
         }
@@ -409,9 +390,7 @@ namespace equilibreuse
         {
             // Paramètres du zero-padding
             int count = signal.Count(); //should be 360
-            if(bRemoveDC)
-                RemoveDCOffset(signal);
-         
+
             int zeroPadFactor = 8;
             int fftSize = count * zeroPadFactor;
             fftSize = NextPowerOfTwo(fftSize);

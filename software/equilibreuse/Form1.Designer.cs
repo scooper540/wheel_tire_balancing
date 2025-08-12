@@ -158,6 +158,12 @@
             this.formsPlotAnalysisTemporalX = new ScottPlot.FormsPlot();
             this.formsPlotAnalysisTemporalY = new ScottPlot.FormsPlot();
             this.formsPlotAnalysisTemporalZ = new ScottPlot.FormsPlot();
+            this.tabPage15 = new System.Windows.Forms.TabPage();
+            this.label46 = new System.Windows.Forms.Label();
+            this.label45 = new System.Windows.Forms.Label();
+            this.btnClearAnalysisHistory = new System.Windows.Forms.Button();
+            this.dataGridY = new System.Windows.Forms.DataGridView();
+            this.dataGridX = new System.Windows.Forms.DataGridView();
             this.tabPage7 = new System.Windows.Forms.TabPage();
             this.btnExportWAV = new System.Windows.Forms.Button();
             this.btn240250 = new System.Windows.Forms.Button();
@@ -173,7 +179,6 @@
             this.tabPage14 = new System.Windows.Forms.TabPage();
             this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.chkOrderTracking = new System.Windows.Forms.CheckBox();
-            this.chkZeroPhase = new System.Windows.Forms.CheckBox();
             this.lblPeak = new System.Windows.Forms.Label();
             this.txtFFTLimit = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
@@ -186,6 +191,10 @@
             this.lblFFTAnalysis = new System.Windows.Forms.Label();
             this.chkDb = new System.Windows.Forms.CheckBox();
             this.chkPassband = new System.Windows.Forms.CheckBox();
+            this.txtGain = new System.Windows.Forms.TextBox();
+            this.label6 = new System.Windows.Forms.Label();
+            this.txtFilterOrder = new System.Windows.Forms.TextBox();
+            this.label44 = new System.Windows.Forms.Label();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -200,6 +209,9 @@
             this.tabPage12.SuspendLayout();
             this.tabPage13.SuspendLayout();
             this.tabPage6.SuspendLayout();
+            this.tabPage15.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridY)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridX)).BeginInit();
             this.tabPage7.SuspendLayout();
             this.tabPage14.SuspendLayout();
             this.SuspendLayout();
@@ -533,7 +545,7 @@
             // chkSum
             // 
             this.chkSum.AutoSize = true;
-            this.chkSum.Location = new System.Drawing.Point(744, 21);
+            this.chkSum.Location = new System.Drawing.Point(744, 23);
             this.chkSum.Name = "chkSum";
             this.chkSum.Size = new System.Drawing.Size(47, 17);
             this.chkSum.TabIndex = 39;
@@ -554,9 +566,9 @@
             // 
             // txtFilter
             // 
-            this.txtFilter.Location = new System.Drawing.Point(813, 0);
+            this.txtFilter.Location = new System.Drawing.Point(719, 1);
             this.txtFilter.Name = "txtFilter";
-            this.txtFilter.Size = new System.Drawing.Size(41, 20);
+            this.txtFilter.Size = new System.Drawing.Size(25, 20);
             this.txtFilter.TabIndex = 41;
             this.txtFilter.Text = "100";
             // 
@@ -586,6 +598,7 @@
             this.tabControl1.Controls.Add(this.tabPage5);
             this.tabControl1.Controls.Add(this.tabPage8);
             this.tabControl1.Controls.Add(this.tabPage6);
+            this.tabControl1.Controls.Add(this.tabPage15);
             this.tabControl1.Controls.Add(this.tabPage7);
             this.tabControl1.Controls.Add(this.tabPage14);
             this.tabControl1.Location = new System.Drawing.Point(15, 82);
@@ -868,7 +881,7 @@
             this.label42.AutoSize = true;
             this.label42.Location = new System.Drawing.Point(577, 250);
             this.label42.Name = "label42";
-            this.label42.Size = new System.Drawing.Size(252, 52);
+            this.label42.Size = new System.Drawing.Size(251, 52);
             this.label42.TabIndex = 71;
             this.label42.Text = "Coeff variation\r\nCV < 0.1 → données très proches (faible dispersion)\r\n0.1 ≤ CV < " +
     "0.3 → données modérément dispersées\r\nCV ≥ 0.3 → données très dispersées";
@@ -966,9 +979,10 @@
             this.label43.AutoSize = true;
             this.label43.Location = new System.Drawing.Point(400, 3);
             this.label43.Name = "label43";
-            this.label43.Size = new System.Drawing.Size(339, 13);
+            this.label43.Size = new System.Drawing.Size(468, 13);
             this.label43.TabIndex = 28;
-            this.label43.Text = "BLUE: Turn by Turn, RED: Compiled, GREEN: Global, YELLOW: Gyro";
+            this.label43.Text = "BLUE: Turn by Turn, BLACK: Avg Turn by Turn, RED: Compiled, GREEN: Global, YELLOW" +
+    ": Gyro";
             // 
             // tabControl2
             // 
@@ -1463,6 +1477,65 @@
             this.formsPlotAnalysisTemporalZ.Size = new System.Drawing.Size(405, 361);
             this.formsPlotAnalysisTemporalZ.TabIndex = 20;
             // 
+            // tabPage15
+            // 
+            this.tabPage15.Controls.Add(this.label46);
+            this.tabPage15.Controls.Add(this.label45);
+            this.tabPage15.Controls.Add(this.btnClearAnalysisHistory);
+            this.tabPage15.Controls.Add(this.dataGridY);
+            this.tabPage15.Controls.Add(this.dataGridX);
+            this.tabPage15.Location = new System.Drawing.Point(4, 22);
+            this.tabPage15.Name = "tabPage15";
+            this.tabPage15.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage15.Size = new System.Drawing.Size(1252, 523);
+            this.tabPage15.TabIndex = 9;
+            this.tabPage15.Text = "Analysis History";
+            this.tabPage15.UseVisualStyleBackColor = true;
+            // 
+            // label46
+            // 
+            this.label46.AutoSize = true;
+            this.label46.Location = new System.Drawing.Point(555, 233);
+            this.label46.Name = "label46";
+            this.label46.Size = new System.Drawing.Size(14, 13);
+            this.label46.TabIndex = 4;
+            this.label46.Text = "Y";
+            // 
+            // label45
+            // 
+            this.label45.AutoSize = true;
+            this.label45.Location = new System.Drawing.Point(557, 11);
+            this.label45.Name = "label45";
+            this.label45.Size = new System.Drawing.Size(14, 13);
+            this.label45.TabIndex = 3;
+            this.label45.Text = "X";
+            // 
+            // btnClearAnalysisHistory
+            // 
+            this.btnClearAnalysisHistory.Location = new System.Drawing.Point(6, 7);
+            this.btnClearAnalysisHistory.Name = "btnClearAnalysisHistory";
+            this.btnClearAnalysisHistory.Size = new System.Drawing.Size(75, 23);
+            this.btnClearAnalysisHistory.TabIndex = 2;
+            this.btnClearAnalysisHistory.Text = "Clear";
+            this.btnClearAnalysisHistory.UseVisualStyleBackColor = true;
+            this.btnClearAnalysisHistory.Click += new System.EventHandler(this.btnClearAnalysisHistory_Click);
+            // 
+            // dataGridY
+            // 
+            this.dataGridY.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dataGridY.Location = new System.Drawing.Point(6, 255);
+            this.dataGridY.Name = "dataGridY";
+            this.dataGridY.Size = new System.Drawing.Size(1228, 272);
+            this.dataGridY.TabIndex = 1;
+            // 
+            // dataGridX
+            // 
+            this.dataGridX.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dataGridX.Location = new System.Drawing.Point(6, 36);
+            this.dataGridX.Name = "dataGridX";
+            this.dataGridX.Size = new System.Drawing.Size(1228, 185);
+            this.dataGridX.TabIndex = 0;
+            // 
             // tabPage7
             // 
             this.tabPage7.Controls.Add(this.btnExportWAV);
@@ -1625,17 +1698,6 @@
             this.chkOrderTracking.UseVisualStyleBackColor = true;
             this.chkOrderTracking.CheckedChanged += new System.EventHandler(this.chkOrderTracking_CheckedChanged);
             // 
-            // chkZeroPhase
-            // 
-            this.chkZeroPhase.AutoSize = true;
-            this.chkZeroPhase.Location = new System.Drawing.Point(729, 1);
-            this.chkZeroPhase.Name = "chkZeroPhase";
-            this.chkZeroPhase.Size = new System.Drawing.Size(78, 17);
-            this.chkZeroPhase.TabIndex = 47;
-            this.chkZeroPhase.Text = "ZeroPhase";
-            this.chkZeroPhase.UseVisualStyleBackColor = true;
-            this.chkZeroPhase.CheckedChanged += new System.EventHandler(this.chkZeroPhase_CheckedChanged);
-            // 
             // lblPeak
             // 
             this.lblPeak.AutoSize = true;
@@ -1647,20 +1709,22 @@
             // 
             // txtFFTLimit
             // 
-            this.txtFFTLimit.Location = new System.Drawing.Point(916, 0);
+            this.txtFFTLimit.Location = new System.Drawing.Point(765, 60);
             this.txtFFTLimit.Name = "txtFFTLimit";
-            this.txtFFTLimit.Size = new System.Drawing.Size(40, 20);
+            this.txtFFTLimit.Size = new System.Drawing.Size(21, 20);
             this.txtFFTLimit.TabIndex = 49;
             this.txtFFTLimit.Text = "20";
+            this.txtFFTLimit.TextChanged += new System.EventHandler(this.txtFFTLimit_TextChanged);
             // 
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(861, 3);
+            this.label5.Location = new System.Drawing.Point(714, 64);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(50, 13);
             this.label5.TabIndex = 50;
             this.label5.Text = "Limit FFT";
+            this.label5.Click += new System.EventHandler(this.label5_Click);
             // 
             // chkShowResultante
             // 
@@ -1676,7 +1740,9 @@
             // chkRemoveDC
             // 
             this.chkRemoveDC.AutoSize = true;
-            this.chkRemoveDC.Location = new System.Drawing.Point(788, 20);
+            this.chkRemoveDC.Checked = true;
+            this.chkRemoveDC.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkRemoveDC.Location = new System.Drawing.Point(788, 23);
             this.chkRemoveDC.Name = "chkRemoveDC";
             this.chkRemoveDC.Size = new System.Drawing.Size(84, 17);
             this.chkRemoveDC.TabIndex = 57;
@@ -1739,7 +1805,7 @@
             // chkDb
             // 
             this.chkDb.AutoSize = true;
-            this.chkDb.Location = new System.Drawing.Point(744, 62);
+            this.chkDb.Location = new System.Drawing.Point(870, 22);
             this.chkDb.Name = "chkDb";
             this.chkDb.Size = new System.Drawing.Size(39, 17);
             this.chkDb.TabIndex = 62;
@@ -1750,9 +1816,7 @@
             // chkPassband
             // 
             this.chkPassband.AutoSize = true;
-            this.chkPassband.Checked = true;
-            this.chkPassband.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkPassband.Location = new System.Drawing.Point(870, 22);
+            this.chkPassband.Location = new System.Drawing.Point(748, 3);
             this.chkPassband.Name = "chkPassband";
             this.chkPassband.Size = new System.Drawing.Size(95, 17);
             this.chkPassband.TabIndex = 63;
@@ -1760,11 +1824,49 @@
             this.chkPassband.UseVisualStyleBackColor = true;
             this.chkPassband.CheckedChanged += new System.EventHandler(this.chkLowPassFilter_CheckedChanged);
             // 
+            // txtGain
+            // 
+            this.txtGain.Location = new System.Drawing.Point(939, 20);
+            this.txtGain.Name = "txtGain";
+            this.txtGain.Size = new System.Drawing.Size(50, 20);
+            this.txtGain.TabIndex = 64;
+            this.txtGain.Text = "1000";
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(911, 23);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(29, 13);
+            this.label6.TabIndex = 65;
+            this.label6.Text = "Gain";
+            // 
+            // txtFilterOrder
+            // 
+            this.txtFilterOrder.Location = new System.Drawing.Point(900, 0);
+            this.txtFilterOrder.Name = "txtFilterOrder";
+            this.txtFilterOrder.Size = new System.Drawing.Size(30, 20);
+            this.txtFilterOrder.TabIndex = 66;
+            this.txtFilterOrder.Text = "200";
+            // 
+            // label44
+            // 
+            this.label44.AutoSize = true;
+            this.label44.Location = new System.Drawing.Point(842, 4);
+            this.label44.Name = "label44";
+            this.label44.Size = new System.Drawing.Size(56, 13);
+            this.label44.TabIndex = 67;
+            this.label44.Text = "Filter order";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1287, 639);
+            this.Controls.Add(this.label44);
+            this.Controls.Add(this.txtFilterOrder);
+            this.Controls.Add(this.label6);
+            this.Controls.Add(this.txtGain);
             this.Controls.Add(this.chkPassband);
             this.Controls.Add(this.chkDb);
             this.Controls.Add(this.lblFFTAnalysis);
@@ -1776,7 +1878,6 @@
             this.Controls.Add(this.label5);
             this.Controls.Add(this.txtFFTLimit);
             this.Controls.Add(this.lblPeak);
-            this.Controls.Add(this.chkZeroPhase);
             this.Controls.Add(this.chkOrderTracking);
             this.Controls.Add(this.chkShowZ);
             this.Controls.Add(this.chkShowX);
@@ -1833,6 +1934,10 @@
             this.tabPage13.PerformLayout();
             this.tabPage6.ResumeLayout(false);
             this.tabPage6.PerformLayout();
+            this.tabPage15.ResumeLayout(false);
+            this.tabPage15.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridY)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridX)).EndInit();
             this.tabPage7.ResumeLayout(false);
             this.tabPage14.ResumeLayout(false);
             this.ResumeLayout(false);
@@ -1889,7 +1994,6 @@
         private System.Windows.Forms.ListBox lstPeakGlobalZ;
         private System.Windows.Forms.ListBox lstPeakGlobalY;
         private System.Windows.Forms.CheckBox chkOrderTracking;
-        private System.Windows.Forms.CheckBox chkZeroPhase;
         private System.Windows.Forms.Label lblPeak;
         private System.Windows.Forms.TextBox txtFFTLimit;
         private System.Windows.Forms.Label label5;
@@ -1998,6 +2102,17 @@
         private System.Windows.Forms.Label lblFFTAnalysis;
         private System.Windows.Forms.CheckBox chkDb;
         private System.Windows.Forms.CheckBox chkPassband;
+        private System.Windows.Forms.TextBox txtGain;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.TextBox txtFilterOrder;
+        private System.Windows.Forms.Label label44;
+        private System.Windows.Forms.TabPage tabPage15;
+        private System.Windows.Forms.DataGridView dataGridY;
+        private System.Windows.Forms.DataGridView dataGridX;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Column1;
+        private System.Windows.Forms.Button btnClearAnalysisHistory;
+        private System.Windows.Forms.Label label46;
+        private System.Windows.Forms.Label label45;
     }
 }
 

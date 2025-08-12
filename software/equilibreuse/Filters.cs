@@ -117,25 +117,28 @@ namespace equilibreuse
         {
             int halfOrder = 50;
             var coeffs = MathNet.Filtering.FIR.FirCoefficients.LowPass(sampleRate, cutoffFrequency, halfOrder);
-            var window = new MathNet.Filtering.Windowing.HammingWindow { Width = coeffs.Length }.CopyToArray();
-            for (int i = 0; i < coeffs.Length; i++)
-               coeffs[i] *= window[i];
+           // var window = new MathNet.Filtering.Windowing.HammingWindow { Width = coeffs.Length }.CopyToArray();
+          //  for (int i = 0; i < coeffs.Length; i++)
+          //     coeffs[i] *= window[i];
 
             var fir = new MathNet.Filtering.FIR.OnlineFirFilter(coeffs);
             for (int i = 0; i < signal.Length; i++)
                 signal[i] = fir.ProcessSample(signal[i]);
         }
-        public static void ApplyLowPassFilterZeroPhase(ref double[] signal, double cutoffFrequency, double sampleRate)
+
+        public static double[] ApplyLowPassFilterZeroPhase(double[] signal, double cutoffFrequency, double sampleRate, int filterOrder)
         {
-            int halfOrder = 50;
+            if (signal == null || signal.Length == 0)
+                return null;
+            int halfOrder = filterOrder;
 
             // Calcul des coefficients du filtre passe-bas
             var coeffs = FirCoefficients.LowPass(sampleRate, cutoffFrequency, halfOrder);
 
             // Application d'une fenêtre Hamming pour lisser les bords
-            var window = new HammingWindow { Width = coeffs.Length }.CopyToArray();
-            for (int i = 0; i < coeffs.Length; i++)
-                coeffs[i] *= window[i];
+          //  var window = new HammingWindow { Width = coeffs.Length }.CopyToArray();
+          //  for (int i = 0; i < coeffs.Length; i++)
+          //      coeffs[i] *= window[i];
 
             // Création du filtre FIR
             var fir = new OnlineFirFilter(coeffs);
@@ -159,17 +162,12 @@ namespace equilibreuse
             // Étape 4 : inversion finale
             Array.Reverse(backwardFiltered);
 
-            // Remplacement du signal original
-            Array.Copy(backwardFiltered, signal, signal.Length);
+            return backwardFiltered;
         }
-        public static double[] ApplyNarrowBandPassFilter(double[] signal, double centerFreq, double sampleRate, double bandwidth = 0.4)
+        public static double[] ApplyNarrowBandPassFilter(double[] signal, double centerFreq, double sampleRate, int filterOrder, double bandwidth = 0.4)
         {
-            int filterOrder = 100; // Assez élevé pour étroitesse
-            double nyquist = sampleRate / 2;
-
-            // Bord inférieur et supérieur
-            double low = (centerFreq - bandwidth / 2) / nyquist;
-            double high = (centerFreq + bandwidth / 2) / nyquist;
+            if (signal == null || signal.Length == 0)
+                return null;
 
             var coeffs = MathNet.Filtering.FIR.FirCoefficients.BandPass(sampleRate, centerFreq - bandwidth / 2, centerFreq + bandwidth / 2, filterOrder);
           //  var window = new MathNet.Filtering.Windowing.HammingWindow { Width = coeffs.Length }.CopyToArray();
@@ -191,6 +189,25 @@ namespace equilibreuse
             // 3. Reverse back to original time order
             Array.Reverse(backward);
             return backward;
+        }
+        public static double[] RemoveDCOffset(double[] signal)
+        {
+            if (signal == null || signal.Length == 0) return signal;
+
+            // Calcul de la moyenne (composante DC)
+            double mean = 0;
+            for (int i = 0; i < signal.Length; i++)
+            {
+                mean += signal[i];
+            }
+            mean /= signal.Length;
+
+            // Soustraction de la moyenne à chaque point
+            for (int i = 0; i < signal.Length; i++)
+            {
+                signal[i] -= mean;
+            }
+            return signal;
         }
 
     }
