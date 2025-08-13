@@ -482,10 +482,10 @@ namespace equilibreuse
              //   double[] outZ = new double[200];
              //   ResampleSectionAngularXYZ(analyzedX, analyzedY, analyzedZ, 200, 1.0 / sampleRate, outX, outY, outZ, 0);
 
-                FFTData dataX = EquilibrageHelper.CalculateFFT(analyzedX, sampleRate, cbxFFTSingle, chkDb.Checked,rpm);
-                FFTData dataY = EquilibrageHelper.CalculateFFT(analyzedY, sampleRate, cbxFFTSingle, chkDb.Checked, rpm);
-                FFTData dataZ = EquilibrageHelper.CalculateFFT(analyzedZ, sampleRate, cbxFFTSingle, chkDb.Checked, rpm);
-                FFTData dataResultante = EquilibrageHelper.CalculateFFT(resultante, sampleRate, cbxFFTSingle, chkDb.Checked, rpm);
+                FFTData dataX = EquilibrageHelper.CalculateFFT(analyzedX, sampleRate, cbxFFTSingle, chkDb.Checked,rpm,f_rot);
+                FFTData dataY = EquilibrageHelper.CalculateFFT(analyzedY, sampleRate, cbxFFTSingle, chkDb.Checked, rpm, f_rot);
+                FFTData dataZ = EquilibrageHelper.CalculateFFT(analyzedZ, sampleRate, cbxFFTSingle, chkDb.Checked, rpm, f_rot);
+                FFTData dataResultante = EquilibrageHelper.CalculateFFT(resultante, sampleRate, cbxFFTSingle, chkDb.Checked, rpm, f_rot);
                
                 formsPlotAnalysis.Plot.Clear();
                 lstPeakZCompiled.Items.Clear();
@@ -617,10 +617,10 @@ namespace equilibreuse
                 pkpkZ.Add(z.Max() - z.Min());
                 rmsX.Add(Statistics.RootMeanSquare(x));
                 rmsY.Add(Statistics.RootMeanSquare(y));
-                FFTData cmpX = EquilibrageHelper.CalculateFFT(x, sampleRate, cbxFFTSingle, chkDb.Checked, s.Rpm);
-                FFTData cmpY = EquilibrageHelper.CalculateFFT(y, sampleRate, cbxFFTSingle, chkDb.Checked, s.Rpm);
-                FFTData cmpZ = EquilibrageHelper.CalculateFFT(z, sampleRate, cbxFFTSingle, chkDb.Checked, s.Rpm);
-                FFTData cmpResultante = EquilibrageHelper.CalculateFFT(resultante, sampleRate, cbxFFTSingle, chkDb.Checked, s.Rpm);
+                FFTData cmpX = EquilibrageHelper.CalculateFFT(x, sampleRate, cbxFFTSingle, chkDb.Checked, s.Rpm, f_rot);
+                FFTData cmpY = EquilibrageHelper.CalculateFFT(y, sampleRate, cbxFFTSingle, chkDb.Checked, s.Rpm, f_rot);
+                FFTData cmpZ = EquilibrageHelper.CalculateFFT(z, sampleRate, cbxFFTSingle, chkDb.Checked, s.Rpm, f_rot);
+                FFTData cmpResultante = EquilibrageHelper.CalculateFFT(resultante, sampleRate, cbxFFTSingle, chkDb.Checked, s.Rpm, f_rot);
               
                 lstCR.Add(EquilibrageHelper.CompleteSimulation(null, "turn by turn", cmpX, cmpY, cmpZ, cmpResultante, sampleRate, f_rot));
             }
@@ -879,9 +879,9 @@ namespace equilibreuse
             }
             else
             {
-                FFTData cmpX = EquilibrageHelper.CalculateFFT(x, sampleRate, cbxFFTSingle, chkDb.Checked, s.Rpm);
-                FFTData cmpY = EquilibrageHelper.CalculateFFT(y, sampleRate, cbxFFTSingle, chkDb.Checked,s.Rpm);
-                FFTData cmpZ = EquilibrageHelper.CalculateFFT(z, sampleRate, cbxFFTSingle, chkDb.Checked,s.Rpm);
+                FFTData cmpX = EquilibrageHelper.CalculateFFT(x, sampleRate, cbxFFTSingle, chkDb.Checked, s.Rpm, f_rot);
+                FFTData cmpY = EquilibrageHelper.CalculateFFT(y, sampleRate, cbxFFTSingle, chkDb.Checked,s.Rpm, f_rot);
+                FFTData cmpZ = EquilibrageHelper.CalculateFFT(z, sampleRate, cbxFFTSingle, chkDb.Checked,s.Rpm, f_rot);
          
                 AnalyzeAxis("X", cmpX, sampleRate, lstPeakX, Color.Blue, formsPlotX, f_rot);
                 AnalyzeAxis("Y", cmpY, sampleRate, lstPeakY, Color.Blue, formsPlotY, f_rot);
@@ -1057,10 +1057,10 @@ namespace equilibreuse
             else
             {
 
-                FFTData cmpX = EquilibrageHelper.CalculateFFT(analyzedX, sampleRate, cbxFFT, chkDb.Checked, rpm);
-                FFTData cmpY = EquilibrageHelper.CalculateFFT(analyzedY, sampleRate, cbxFFT, chkDb.Checked, rpm);
-                FFTData cmpZ = EquilibrageHelper.CalculateFFT(analyzedZ, sampleRate, cbxFFT, chkDb.Checked, rpm);
-                FFTData cmpResultante = EquilibrageHelper.CalculateFFT(resultante, sampleRate, cbxFFT, chkDb.Checked, rpm);
+                FFTData cmpX = EquilibrageHelper.CalculateFFT(analyzedX, sampleRate, cbxFFT, chkDb.Checked, rpm, f_rot);
+                FFTData cmpY = EquilibrageHelper.CalculateFFT(analyzedY, sampleRate, cbxFFT, chkDb.Checked, rpm, f_rot);
+                FFTData cmpZ = EquilibrageHelper.CalculateFFT(analyzedZ, sampleRate, cbxFFT, chkDb.Checked, rpm, f_rot);
+                FFTData cmpResultante = EquilibrageHelper.CalculateFFT(resultante, sampleRate, cbxFFT, chkDb.Checked, rpm, f_rot);
               
                 formsPlotGlobal.Plot.Clear();
                 lstPeakGlobalX.Items.Clear();
@@ -1150,6 +1150,7 @@ namespace equilibreuse
                 double psd = (magnitude * magnitude) / analyzedX.Length;
 
                 lblFFTAnalysis.Text += "Global X Mag: " + magnitude.ToString("F4") + "\r\nBy turn count: " + magPerTurn.ToString("F4") + "\r\nPSD: " + psd.ToString("F4") + "\r\n";
+                lblFFTAnalysis.Text += "Global inverse FFT X: " + (cmpX.SignalFFTInverse.Max() - cmpX.SignalFFTInverse.Min()).ToString("F4") + "\r\n";
                 currentAnalysisX.gMagAvg = magnitude;
                 currentAnalysisX.gMagRatio = magPerTurn;
                 currentAnalysisX.gMagPSD = psd;
@@ -1158,12 +1159,15 @@ namespace equilibreuse
                 psd = (magnitude * magnitude) / analyzedY.Length;
 
                 lblFFTAnalysis.Text += "Global Y Mag: " + magnitude.ToString("F4") + "\r\nBy turn count: " + magPerTurn.ToString("F4") + "\r\nPSD: " + psd.ToString("F4") + "\r\n";
+                lblFFTAnalysis.Text += "Global inverse FFT Y: " + (cmpY.SignalFFTInverse.Max() - cmpY.SignalFFTInverse.Min()).ToString("F4");
                 currentAnalysisY.gMagAvg = magnitude;
                 currentAnalysisY.gMagRatio = magPerTurn;
                 currentAnalysisY.gMagPSD = psd;
 
                 currentAnalysisX.gAngle = calcResult.px[0].BestAngleDeg;
                 currentAnalysisY.gAngle = calcResult.py[0].BestAngleDeg;
+
+               
             }
             formsPlotGlobal.Render();
         }
@@ -1322,10 +1326,10 @@ namespace equilibreuse
             }
             else
             {
-                FFTData cmpX = EquilibrageHelper.CalculateFFT(analyzedX, sampleRate, cbxFFT, chkDb.Checked, rpm);
-                FFTData cmpY = EquilibrageHelper.CalculateFFT(analyzedY, sampleRate, cbxFFT, chkDb.Checked, rpm);
-                FFTData cmpZ = EquilibrageHelper.CalculateFFT(analyzedZ, sampleRate, cbxFFT, chkDb.Checked,rpm);
-                FFTData cmpResultante = EquilibrageHelper.CalculateFFT(resultante, sampleRate, cbxFFT, chkDb.Checked, rpm);
+                FFTData cmpX = EquilibrageHelper.CalculateFFT(analyzedX, sampleRate, cbxFFT, chkDb.Checked, rpm, f_rot);
+                FFTData cmpY = EquilibrageHelper.CalculateFFT(analyzedY, sampleRate, cbxFFT, chkDb.Checked, rpm, f_rot);
+                FFTData cmpZ = EquilibrageHelper.CalculateFFT(analyzedZ, sampleRate, cbxFFT, chkDb.Checked,rpm, f_rot);
+                FFTData cmpResultante = EquilibrageHelper.CalculateFFT(resultante, sampleRate, cbxFFT, chkDb.Checked, rpm, f_rot);
               
                 formsPlotGyro.Plot.Clear();
                 lstPeakGyroX.Items.Clear();
@@ -1584,8 +1588,8 @@ namespace equilibreuse
                 if (targetList != null)
                     targetList.Items.Add($"{name} Peak at {f:F2} Hz → {angleOffset:F0}° (mag {m:F3})");
             }
-           
 
+         //   plt.Plot.AddSignal(cmp.SignalFFTInverse, sampleRate, Color.Black);
             plt.Plot.AxisAuto();
         }
         private int[] GetPeakPerTurn(double[] data)

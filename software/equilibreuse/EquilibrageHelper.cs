@@ -15,6 +15,7 @@ namespace equilibreuse
         public double[] AngleDeg;
         public double[] Frequence;
         public double[] Magnitude;
+        public double[] SignalFFTInverse;
     }
     public class Fundamentale
     {
@@ -288,7 +289,7 @@ namespace equilibreuse
         }
 
      
-        internal static FFTData CalculateFFT(double[] signal, double sampleRate, ComboBox cbxFFT,bool bdB,double rpm)
+        internal static FFTData CalculateFFT(double[] signal, double sampleRate, ComboBox cbxFFT,bool bdB,double rpm, double f_rot)
         {        
             // Paramètres du zero-padding
             int count = signal.Count();
@@ -350,8 +351,24 @@ namespace equilibreuse
             }
             data.Magnitude[0] = Math.Abs(re[0]) / (omega * omega);
 
+            //calculate FFT inverse on fundamentale
+            var fund = EquilibrageHelper.GetFundamentalPhase(data.Frequence, data.Magnitude, data.AngleDeg, f_rot);
+            int k = fund.Index;
+            // 3. Conserver uniquement ce bin et son symétrique conjugué
+            for (int i = 0; i < fftSize; i++)
+            {
+                if (i != k && i != fftSize - k)
+                {
+                    re[i] = im[i] = 0;
+                }
+            }
+            new NWaves.Transforms.Fft(fftSize).Inverse(re, im);
+            data.SignalFFTInverse = new double[count];
+            for (int i = 0; i < count; i++)
+                data.SignalFFTInverse[i] = re[i];
             return data;
         }
+      
         public static string GetStatisticsFundamental(string sTitle, double totalSamples, double sampleRate, double magnitude, double numberoftours)
         {
 
