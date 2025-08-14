@@ -575,8 +575,8 @@ namespace equilibreuse
                 currentAnalysisY.coPkPkInverse = dataY.SignalFFTInverse.Max() - dataY.SignalFFTInverse.Min();
 
 
-                currentAnalysisX.coWeight = ((currentAnalysisX.coMagAvg - Convert.ToDouble(txtMagBalanced.Text)) * 100.0) / (Convert.ToDouble(txtMagUnbalanced.Text) - Convert.ToDouble(txtMagBalanced.Text));
-                currentAnalysisY.coWeight = ((currentAnalysisY.coMagAvg - Convert.ToDouble(txtMagBalanced.Text)) * 100.0) / (Convert.ToDouble(txtMagUnbalanced.Text) - Convert.ToDouble(txtMagBalanced.Text)); 
+                currentAnalysisX.coWeight = ((currentAnalysisX.coMagAvg - Convert.ToDouble(txtMagBalanced.Text)) * Convert.ToDouble(txtMagGrams.Text)) / (Convert.ToDouble(txtMagUnbalanced.Text) - Convert.ToDouble(txtMagBalanced.Text));
+                currentAnalysisY.coWeight = ((currentAnalysisY.coMagAvg - Convert.ToDouble(txtMagBalanced.Text)) * Convert.ToDouble(txtMagGrams.Text)) / (Convert.ToDouble(txtMagUnbalanced.Text) - Convert.ToDouble(txtMagBalanced.Text)); 
                 
             }
             formsPlotAnalysis.Render();
@@ -737,8 +737,8 @@ namespace equilibreuse
                     currentAnalysisX.ttMagAvg = lstMagnitudeX.Average(t => t.Item2);
                     currentAnalysisY.ttMagAvg = lstMagnitudeY.Average(t => t.Item2);
 
-                    currentAnalysisX.ttWeight = ((currentAnalysisX.ttMagAvg - Convert.ToDouble(txtMagBalanced.Text)) * 100.0) / (Convert.ToDouble(txtMagUnbalanced.Text) - Convert.ToDouble(txtMagBalanced.Text));
-                    currentAnalysisY.ttWeight = ((currentAnalysisY.ttMagAvg - Convert.ToDouble(txtMagBalanced.Text)) * 100.0) / (Convert.ToDouble(txtMagUnbalanced.Text) - Convert.ToDouble(txtMagBalanced.Text));
+                    currentAnalysisX.ttWeight = ((currentAnalysisX.ttMagAvg - Convert.ToDouble(txtMagBalanced.Text)) * Convert.ToDouble(txtMagGrams.Text)) / (Convert.ToDouble(txtMagUnbalanced.Text) - Convert.ToDouble(txtMagBalanced.Text));
+                    currentAnalysisY.ttWeight = ((currentAnalysisY.ttMagAvg - Convert.ToDouble(txtMagBalanced.Text)) * Convert.ToDouble(txtMagGrams.Text)) / (Convert.ToDouble(txtMagUnbalanced.Text) - Convert.ToDouble(txtMagBalanced.Text));
                 }
                 else if (i == 1)
                     DisplayTurnByTurnGraph(lstBestAngleInner, lstBestAngleOuter, lstBestAngleX, lstBestAngleY, formsPlotT2I, formsPlotT2O, formsPlotT2X, formsPlotT2Y);
@@ -1191,8 +1191,8 @@ namespace equilibreuse
                 currentAnalysisX.gAngle = calcResult.px[0].BestAngleDeg;
                 currentAnalysisY.gAngle = calcResult.py[0].BestAngleDeg;
 
-                currentAnalysisX.gWeight = ((currentAnalysisX.gMagRatio - Convert.ToDouble(txtMagBalanced.Text)) * 100.0) / (Convert.ToDouble(txtMagUnbalanced.Text) - Convert.ToDouble(txtMagBalanced.Text));
-                currentAnalysisY.gWeight = ((currentAnalysisY.gMagRatio - Convert.ToDouble(txtMagBalanced.Text)) * 100.0) / (Convert.ToDouble(txtMagUnbalanced.Text) - Convert.ToDouble(txtMagBalanced.Text));
+                currentAnalysisX.gWeight = ((currentAnalysisX.gMagRatio - Convert.ToDouble(txtMagBalanced.Text)) * Convert.ToDouble(txtMagGrams.Text)) / (Convert.ToDouble(txtMagUnbalanced.Text) - Convert.ToDouble(txtMagBalanced.Text));
+                currentAnalysisY.gWeight = ((currentAnalysisY.gMagRatio - Convert.ToDouble(txtMagBalanced.Text)) * Convert.ToDouble(txtMagGrams.Text)) / (Convert.ToDouble(txtMagUnbalanced.Text) - Convert.ToDouble(txtMagBalanced.Text));
             }
             formsPlotGlobal.Render();
         }

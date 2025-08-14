@@ -503,7 +503,60 @@ namespace equilibreuse
             masseCorrection = ((acceleration * 20.0 / 9.81) / ((vitesseAngular * vitesseAngular) * rayon));
             return masseCorrection * 1000;
         }
+        /// <summary>
+        /// Calcule la constante d’atténuation exponentielle k à partir d’un étalonnage.
+        /// </summary>
+        public static double CalculateAttenuationConstant(double initialMagnitude, double finalMagnitude, double mass)
+        {
+            if (initialMagnitude <= 0 || finalMagnitude <= 0 || mass <= 0)
+                throw new ArgumentException("Les magnitudes et la masse doivent être strictement positives.");
+            if (finalMagnitude >= initialMagnitude)
+                throw new ArgumentException("La magnitude finale doit être inférieure à la magnitude initiale.");
 
+            return (1.0 / mass) * Math.Log(initialMagnitude / finalMagnitude);
+        }
+
+        /// <summary>
+        /// Calcule la masse nécessaire pour réduire une magnitude actuelle à une cible, avec un k donné.
+        /// </summary>
+        public static double CalculateRequiredMass(double k, double currentMagnitude, double targetMagnitude)
+        {
+            if (currentMagnitude <= 0 || targetMagnitude <= 0)
+                throw new ArgumentException("Les magnitudes doivent être strictement positives.");
+            if (targetMagnitude >= currentMagnitude)
+                throw new ArgumentException("La magnitude cible doit être inférieure à la magnitude actuelle.");
+
+            return (1.0 / k) * Math.Log(currentMagnitude / targetMagnitude);
+        }
+
+        /// <summary>
+        /// Calcule k à partir de l'étalonnage, puis calcule combien de grammes il faut ajouter pour passer
+        /// d'une magnitude actuelle à une magnitude cible.
+        /// </summary>
+        public static void ComputeAttenuationFromCalibration()
+        {
+            // Étape 1 : Étape d'étalonnage
+            double calibrationInitialMagnitude = 13.38;
+            double calibrationFinalMagnitude = 4.0;
+            double calibrationMass = 40.0;
+
+            // Étape 2 : Objectif d’atténuation
+            double currentMagnitude = 7.0;
+            double targetMagnitude = 3.0;
+
+            try
+            {
+                double k = CalculateAttenuationConstant(calibrationInitialMagnitude, calibrationFinalMagnitude, calibrationMass);
+                Console.WriteLine($"Constante d'atténuation k calculée : {k:F4}");
+
+                double requiredMass = CalculateRequiredMass(k, currentMagnitude, targetMagnitude);
+                Console.WriteLine($"Masse à ajouter pour passer de {currentMagnitude} à {targetMagnitude} : {requiredMass:F2} g");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Erreur : " + ex.Message);
+            }
+        }
         public static void SaveWav(string filePath, double[] samples, int sampleRate)
         {
             int bitsPerSample = 16;

@@ -197,6 +197,8 @@
             this.txtMagBalanced = new System.Windows.Forms.TextBox();
             this.txtMagUnbalanced = new System.Windows.Forms.TextBox();
             this.label48 = new System.Windows.Forms.Label();
+            this.txtMagGrams = new System.Windows.Forms.TextBox();
+            this.label49 = new System.Windows.Forms.Label();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -1853,34 +1855,52 @@
             // 
             // txtMagBalanced
             // 
-            this.txtMagBalanced.Location = new System.Drawing.Point(1172, 3);
+            this.txtMagBalanced.Location = new System.Drawing.Point(1192, 3);
             this.txtMagBalanced.Name = "txtMagBalanced";
-            this.txtMagBalanced.Size = new System.Drawing.Size(88, 20);
+            this.txtMagBalanced.Size = new System.Drawing.Size(68, 20);
             this.txtMagBalanced.TabIndex = 69;
             this.txtMagBalanced.Text = "3.0";
             // 
             // txtMagUnbalanced
             // 
-            this.txtMagUnbalanced.Location = new System.Drawing.Point(1172, 31);
+            this.txtMagUnbalanced.Location = new System.Drawing.Point(1192, 29);
             this.txtMagUnbalanced.Name = "txtMagUnbalanced";
-            this.txtMagUnbalanced.Size = new System.Drawing.Size(88, 20);
+            this.txtMagUnbalanced.Size = new System.Drawing.Size(65, 20);
             this.txtMagUnbalanced.TabIndex = 71;
             this.txtMagUnbalanced.Text = "9.0";
             // 
             // label48
             // 
             this.label48.AutoSize = true;
-            this.label48.Location = new System.Drawing.Point(1018, 35);
+            this.label48.Location = new System.Drawing.Point(1018, 32);
             this.label48.Name = "label48";
-            this.label48.Size = new System.Drawing.Size(138, 13);
+            this.label48.Size = new System.Drawing.Size(111, 13);
             this.label48.TabIndex = 70;
-            this.label48.Text = "Global Mag Ratio with 100g";
+            this.label48.Text = "Global Mag Ratio with";
+            // 
+            // txtMagGrams
+            // 
+            this.txtMagGrams.Location = new System.Drawing.Point(1135, 29);
+            this.txtMagGrams.Name = "txtMagGrams";
+            this.txtMagGrams.Size = new System.Drawing.Size(32, 20);
+            this.txtMagGrams.TabIndex = 72;
+            // 
+            // label49
+            // 
+            this.label49.AutoSize = true;
+            this.label49.Location = new System.Drawing.Point(1171, 32);
+            this.label49.Name = "label49";
+            this.label49.Size = new System.Drawing.Size(13, 13);
+            this.label49.TabIndex = 73;
+            this.label49.Text = "g";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1287, 639);
+            this.Controls.Add(this.label49);
+            this.Controls.Add(this.txtMagGrams);
             this.Controls.Add(this.txtMagUnbalanced);
             this.Controls.Add(this.label48);
             this.Controls.Add(this.txtMagBalanced);
@@ -2135,6 +2155,8 @@
         private System.Windows.Forms.TextBox txtMagBalanced;
         private System.Windows.Forms.TextBox txtMagUnbalanced;
         private System.Windows.Forms.Label label48;
+        private System.Windows.Forms.TextBox txtMagGrams;
+        private System.Windows.Forms.Label label49;
     }
 }
 
