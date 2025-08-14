@@ -479,6 +479,31 @@ namespace equilibreuse
             // Convert kg to grams
             return massKg * 1000.0;
         }
+        public static double CalculerMasseCorrection(double acceleration, double wheelSize, double wheelWidth, double rpm)
+        {
+            //return acceleration * 5.0;
+            // Conversion de la taille et de la largeur de la jante de pouces à mètres (1 pouce = 0.0254 m)
+            double tailleJanteM = wheelSize  * 0.0254;
+            double largeurJanteM = wheelWidth * 0.0254;
+
+            // Calcul du rayon
+            double rayon = tailleJanteM / 2;
+
+            // Conversion de la vitesse en radians par seconde
+            double vitesseAngular = rpm * 2 * Math.PI / 60;
+
+            // Force centripète pour équilibrage (F = m * a)
+            // Ici, on considère également la largeur de la jante pour ajuster la force
+            double coefficientLargeur = 1.0 + (largeurJanteM / 1000.0); // Ajustement proportionnel selon la largeur
+            double forceCentrifuge = coefficientLargeur * acceleration * rayon;
+
+            // Calcul de la masse de correction (F = m * a, donc m = F / a)
+            double masseCorrection = forceCentrifuge / 9.81;
+
+            masseCorrection = ((acceleration * 20.0 / 9.81) / ((vitesseAngular * vitesseAngular) * rayon));
+            return masseCorrection * 1000;
+        }
+
         public static void SaveWav(string filePath, double[] samples, int sampleRate)
         {
             int bitsPerSample = 16;

@@ -52,7 +52,7 @@ namespace equilibreuse
             t1.Tick += T1_Tick;
             t1.Interval = 1000;
             cbxFFT.SelectedItem = "Hann";
-            cbxFFTSingle.SelectedItem = "None";
+            cbxFFTSingle.SelectedItem = "Hann";
             cbxSensor.SelectedIndex = 0; //mpu per default
             Help.FillHelp(richTextBox1);
             btnClearAnalysisHistory_Click(null, EventArgs.Empty);
@@ -411,7 +411,7 @@ namespace equilibreuse
             double f_rot = 1.0 / avgTourTime;
             ApplyFilters(sampleRate, f_rot, ref analyzedX, ref analyzedY, ref analyzedZ, ref resultante);
 
-            lblPeak.Text += $"X Pk-Pk (compiled) : {analyzedX.Max() - analyzedX.Min()}\r\nY Pk-Pk (compiled) : {analyzedY.Max() - analyzedY.Min()}\r\nZ Pk-Pk (compiled) : {analyzedZ.Max() - analyzedZ.Min()}";
+//            lblPeak.Text += $"X Pk-Pk (compiled) : {analyzedX.Max() - analyzedX.Min()}\r\nY Pk-Pk (compiled) : {analyzedY.Max() - analyzedY.Min()}\r\nZ Pk-Pk (compiled) : {analyzedZ.Max() - analyzedZ.Min()}";
             currentAnalysisX.coPkPk = analyzedX.Max() - analyzedX.Min();
             currentAnalysisX.coRMS = Statistics.RootMeanSquare(analyzedX);
             currentAnalysisY.coPkPk = analyzedY.Max() - analyzedY.Min();
@@ -565,12 +565,19 @@ namespace equilibreuse
                         formsPlotT5Y.Plot.AddVerticalLine(calcResult.py[i].BestAngleDeg, Color.Red, width: 3);
                     }
                 }
-                lblFFTAnalysis.Text += "Compiled X AVG Mag: " + calcResult.px[0].ActualAmplitude.ToString("F4") + "\r\n";
-                lblFFTAnalysis.Text += "Compiled Y AVG Mag: " + calcResult.py[0].ActualAmplitude.ToString("F4") + "\r\n";
+                //lblFFTAnalysis.Text += "Compiled X AVG Mag: " + calcResult.px[0].ActualAmplitude.ToString("F4") + "\r\n";
+                //lblFFTAnalysis.Text += "Compiled Y AVG Mag: " + calcResult.py[0].ActualAmplitude.ToString("F4") + "\r\n";
                 currentAnalysisX.coMagAvg = calcResult.px[0].ActualAmplitude;
                 currentAnalysisX.coAngle = calcResult.px[0].BestAngleDeg;
+                currentAnalysisX.coPkPkInverse = dataX.SignalFFTInverse.Max() - dataX.SignalFFTInverse.Min();
                 currentAnalysisY.coMagAvg = calcResult.py[0].ActualAmplitude;
                 currentAnalysisY.coAngle = calcResult.py[0].BestAngleDeg;
+                currentAnalysisY.coPkPkInverse = dataY.SignalFFTInverse.Max() - dataY.SignalFFTInverse.Min();
+
+
+                currentAnalysisX.coWeight = ((currentAnalysisX.coMagAvg - Convert.ToDouble(txtMagBalanced.Text)) * 100.0) / (Convert.ToDouble(txtMagUnbalanced.Text) - Convert.ToDouble(txtMagBalanced.Text));
+                currentAnalysisY.coWeight = ((currentAnalysisY.coMagAvg - Convert.ToDouble(txtMagBalanced.Text)) * 100.0) / (Convert.ToDouble(txtMagUnbalanced.Text) - Convert.ToDouble(txtMagBalanced.Text)); 
+                
             }
             formsPlotAnalysis.Render();
             if (selectedSections.Count > 0)
@@ -588,6 +595,8 @@ namespace equilibreuse
             List<double> pkpkZ = new List<double>();
             List<double> rmsX = new List<double>();
             List<double> rmsY = new List<double>();
+            List<double> pkpkXInv = new List<double>();
+            List<double> pkpkYInv = new List<double>();
             foreach (var s in selectedSections)
             {
                 double sampleRate = s.SamplingRate;
@@ -621,16 +630,24 @@ namespace equilibreuse
                 FFTData cmpY = EquilibrageHelper.CalculateFFT(y, sampleRate, cbxFFTSingle, chkDb.Checked, s.Rpm, f_rot);
                 FFTData cmpZ = EquilibrageHelper.CalculateFFT(z, sampleRate, cbxFFTSingle, chkDb.Checked, s.Rpm, f_rot);
                 FFTData cmpResultante = EquilibrageHelper.CalculateFFT(resultante, sampleRate, cbxFFTSingle, chkDb.Checked, s.Rpm, f_rot);
-              
-                lstCR.Add(EquilibrageHelper.CompleteSimulation(null, "turn by turn", cmpX, cmpY, cmpZ, cmpResultante, sampleRate, f_rot));
+
+                pkpkXInv.Add(cmpX.SignalFFTInverse.Max() - cmpX.SignalFFTInverse.Min());
+                pkpkYInv.Add(cmpY.SignalFFTInverse.Max() - cmpY.SignalFFTInverse.Min());
+                
+                
+                var cs = EquilibrageHelper.CompleteSimulation(null, "turn by turn", cmpX, cmpY, cmpZ, cmpResultante, sampleRate, f_rot);
+                lstCR.Add(cs);
             }
             //for the 5 orders, calculate the average and most possible value =
             
-            lblPeak.Text = $"X Pk-Pk (turn by turn) : {pkpkX.Average()}\r\nY Pk-Pk (turn by turn) : {pkpkY.Average()}\r\nZ Pk-Pk (turn by turn) : {pkpkZ.Average()}\r\n";
+//            lblPeak.Text = $"X Pk-Pk (turn by turn) : {pkpkX.Average()}\r\nY Pk-Pk (turn by turn) : {pkpkY.Average()}\r\nZ Pk-Pk (turn by turn) : {pkpkZ.Average()}\r\n";
             currentAnalysisX.ttPkPk = pkpkX.Average();
             currentAnalysisY.ttPkPk = pkpkY.Average();
+            currentAnalysisX.ttPkPkInverse = pkpkXInv.Average();
+            currentAnalysisY.ttPkPkInverse = pkpkYInv.Average();
             currentAnalysisX.ttRMS = rmsX.Average();
             currentAnalysisY.ttRMS = rmsY.Average();
+            
 
             for (int i = 0; i < 5; i++)
             {
@@ -682,7 +699,6 @@ namespace equilibreuse
                     lstMagnitudeY.Add(new Tuple<double, double>(cr.py[i].MinAmplitude, cr.py[i].ActualAmplitude));
                     lstMagnitudeZ.Add(new Tuple<double, double>(cr.pz[i].MinAmplitude, cr.pz[i].ActualAmplitude));
                     lstMagnitudeRes.Add(new Tuple<double, double>(cr.pResultante[i].MinAmplitude, cr.pResultante[i].ActualAmplitude));
-
                 }
                 //display info about the data
                 lstSimulationTurnByTurn.Items.Add($"Order {i} DYNAMIC AVG MagX {lstMagnitudeAngles.Average(t => t.Item1)} AVG MagY { lstMagnitudeAngles.Average(t => t.Item2)}");
@@ -710,14 +726,19 @@ namespace equilibreuse
                 CalculateStatistics("Z", i, lstBestAngleZ, ref mean, ref coeffVariation, ref variance, ref standardDeviation);
                 CalculateStatistics("Resultante", i, lstBestAngleRes, ref mean, ref coeffVariation, ref variance, ref standardDeviation);
 
+
+
                 if (i == 0)
                 {
                     DisplayTurnByTurnGraph(lstBestAngleInner, lstBestAngleOuter, lstBestAngleX, lstBestAngleY, formsPlotT1I, formsPlotT1O, formsPlotT1X, formsPlotT1Y);
                     lblTotalSelected.Text = $"Found Dynamic unbalance on {lstBestAngleInner.Count} turn of {lstSectionSelector.CheckedItems.Count} selected";
-                    lblFFTAnalysis.Text += "Turn by turn X AVG Mag: " + lstMagnitudeX.Average(t => t.Item2).ToString("F4") + "\r\n";
-                    lblFFTAnalysis.Text += "Turn by turn Y AVG Mag: " + lstMagnitudeY.Average(t => t.Item2).ToString("F4") + "\r\n";
+                //    lblFFTAnalysis.Text += "Turn by turn X AVG Mag: " + lstMagnitudeX.Average(t => t.Item2).ToString("F4") + "\r\n";
+                //    lblFFTAnalysis.Text += "Turn by turn Y AVG Mag: " + lstMagnitudeY.Average(t => t.Item2).ToString("F4") + "\r\n";
                     currentAnalysisX.ttMagAvg = lstMagnitudeX.Average(t => t.Item2);
                     currentAnalysisY.ttMagAvg = lstMagnitudeY.Average(t => t.Item2);
+
+                    currentAnalysisX.ttWeight = ((currentAnalysisX.ttMagAvg - Convert.ToDouble(txtMagBalanced.Text)) * 100.0) / (Convert.ToDouble(txtMagUnbalanced.Text) - Convert.ToDouble(txtMagBalanced.Text));
+                    currentAnalysisY.ttWeight = ((currentAnalysisY.ttMagAvg - Convert.ToDouble(txtMagBalanced.Text)) * 100.0) / (Convert.ToDouble(txtMagUnbalanced.Text) - Convert.ToDouble(txtMagBalanced.Text));
                 }
                 else if (i == 1)
                     DisplayTurnByTurnGraph(lstBestAngleInner, lstBestAngleOuter, lstBestAngleX, lstBestAngleY, formsPlotT2I, formsPlotT2O, formsPlotT2X, formsPlotT2Y);
@@ -728,7 +749,7 @@ namespace equilibreuse
                 else if (i == 4)
                     DisplayTurnByTurnGraph(lstBestAngleInner, lstBestAngleOuter, lstBestAngleX, lstBestAngleY, formsPlotT5I, formsPlotT5O, formsPlotT5X, formsPlotT5Y);
 
-               
+                
             }
          
         }
@@ -980,7 +1001,7 @@ namespace equilibreuse
 
             ApplyFilters(sampleRate, f_rot, ref analyzedX, ref analyzedY, ref analyzedZ, ref resultante);
           
-            lblPeak.Text += $"\r\nX Pk-Pk (global) : {analyzedX.Max() - analyzedX.Min()}\r\nY Pk-Pk (global) : {analyzedY.Max() - analyzedY.Min()}\r\nZ Pk-Pk (global) : {analyzedZ.Max() - analyzedZ.Min()}";
+//            lblPeak.Text += $"\r\nX Pk-Pk (global) : {analyzedX.Max() - analyzedX.Min()}\r\nY Pk-Pk (global) : {analyzedY.Max() - analyzedY.Min()}\r\nZ Pk-Pk (global) : {analyzedZ.Max() - analyzedZ.Min()}";
             currentAnalysisX.gPkPk = analyzedX.Max() - analyzedX.Min();
             currentAnalysisY.gPkPk = analyzedY.Max() - analyzedY.Min();
             currentAnalysisX.gRMS = Statistics.RootMeanSquare(analyzedX);
@@ -1149,25 +1170,29 @@ namespace equilibreuse
                 double magPerTurn = magnitude / selectedSections.Count;
                 double psd = (magnitude * magnitude) / analyzedX.Length;
 
-                lblFFTAnalysis.Text += "Global X Mag: " + magnitude.ToString("F4") + "\r\nBy turn count: " + magPerTurn.ToString("F4") + "\r\nPSD: " + psd.ToString("F4") + "\r\n";
-                lblFFTAnalysis.Text += "Global inverse FFT X: " + (cmpX.SignalFFTInverse.Max() - cmpX.SignalFFTInverse.Min()).ToString("F4") + "\r\n";
+                //lblFFTAnalysis.Text += "Global X Mag: " + magnitude.ToString("F4") + "\r\nBy turn count: " + magPerTurn.ToString("F4") + "\r\nPSD: " + psd.ToString("F4") + "\r\n";
                 currentAnalysisX.gMagAvg = magnitude;
                 currentAnalysisX.gMagRatio = magPerTurn;
                 currentAnalysisX.gMagPSD = psd;
+                currentAnalysisX.gPkPkInverse = (cmpX.SignalFFTInverse.Max() - cmpX.SignalFFTInverse.Min());
+                currentAnalysisX.gPkPkInverseRatio = (cmpX.SignalFFTInverse.Max() - cmpX.SignalFFTInverse.Min()) / selectedSections.Count;
                 magnitude = calcResult.py[0].ActualAmplitude;
                 magPerTurn = magnitude / selectedSections.Count;
                 psd = (magnitude * magnitude) / analyzedY.Length;
 
-                lblFFTAnalysis.Text += "Global Y Mag: " + magnitude.ToString("F4") + "\r\nBy turn count: " + magPerTurn.ToString("F4") + "\r\nPSD: " + psd.ToString("F4") + "\r\n";
-                lblFFTAnalysis.Text += "Global inverse FFT Y: " + (cmpY.SignalFFTInverse.Max() - cmpY.SignalFFTInverse.Min()).ToString("F4");
+                //lblFFTAnalysis.Text += "Global Y Mag: " + magnitude.ToString("F4") + "\r\nBy turn count: " + magPerTurn.ToString("F4") + "\r\nPSD: " + psd.ToString("F4") + "\r\n";
+                
                 currentAnalysisY.gMagAvg = magnitude;
                 currentAnalysisY.gMagRatio = magPerTurn;
                 currentAnalysisY.gMagPSD = psd;
+                currentAnalysisY.gPkPkInverse = (cmpY.SignalFFTInverse.Max() - cmpY.SignalFFTInverse.Min());
+                currentAnalysisY.gPkPkInverseRatio = (cmpY.SignalFFTInverse.Max() - cmpY.SignalFFTInverse.Min()) / selectedSections.Count;
 
                 currentAnalysisX.gAngle = calcResult.px[0].BestAngleDeg;
                 currentAnalysisY.gAngle = calcResult.py[0].BestAngleDeg;
 
-               
+                currentAnalysisX.gWeight = ((currentAnalysisX.gMagRatio - Convert.ToDouble(txtMagBalanced.Text)) * 100.0) / (Convert.ToDouble(txtMagUnbalanced.Text) - Convert.ToDouble(txtMagBalanced.Text));
+                currentAnalysisY.gWeight = ((currentAnalysisY.gMagRatio - Convert.ToDouble(txtMagBalanced.Text)) * 100.0) / (Convert.ToDouble(txtMagUnbalanced.Text) - Convert.ToDouble(txtMagBalanced.Text));
             }
             formsPlotGlobal.Render();
         }
@@ -1706,7 +1731,7 @@ namespace equilibreuse
             currentAnalysisX.numberOfTurn = selectedSections.Count;
             currentAnalysisY.numberOfTurn = selectedSections.Count;
 
-            lblFFTAnalysis.Text = String.Empty;
+//            lblFFTAnalysis.Text = String.Empty;
             formsPlotT1X.Plot.Clear(); formsPlotT1Y.Plot.Clear(); formsPlotT1O.Plot.Clear(); formsPlotT1I.Plot.Clear();
             formsPlotT2X.Plot.Clear(); formsPlotT2Y.Plot.Clear(); formsPlotT2O.Plot.Clear(); formsPlotT2I.Plot.Clear();
             formsPlotT3X.Plot.Clear(); formsPlotT3Y.Plot.Clear(); formsPlotT3O.Plot.Clear(); formsPlotT3I.Plot.Clear();
@@ -2225,6 +2250,10 @@ namespace equilibreuse
                 new DataGridViewColumn(){ HeaderText = "Global Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Turn-Turn Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Compiled Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Global FFT inverse Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Global FFT inverse Ratio Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Turn-Turn FFT inverse Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Compiled FFT inverse Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Global RMS", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Turn-Turn RMS", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Compiled RMS", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
@@ -2249,6 +2278,10 @@ namespace equilibreuse
                 new DataGridViewColumn(){ HeaderText = "Global Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Turn-Turn Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Compiled Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Global FFT inverse Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Global FFT inverse Ratio Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Turn-Turn FFT inverse Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Compiled FFT inverse Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Global RMS", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Turn-Turn RMS", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Compiled RMS", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
@@ -2398,38 +2431,50 @@ namespace equilibreuse
         public double gRMS;
         public double ttRMS;
         public double coRMS;
+        public double gPkPkInverse;
+        public double gPkPkInverseRatio;
+        public double coPkPkInverse;
+        public double ttPkPkInverse;
         public String[] toArray()
         {
 
-        /*   new DataGridViewColumn() { HeaderText = "CSV File", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells } ,
-                   new DataGridViewColumn() { HeaderText = "Selected Nb of turn", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells },
-                   new DataGridViewColumn() { HeaderText = "Global Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells },
-                   new DataGridViewColumn() { HeaderText = "Turn-Turn Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells },
-                   new DataGridViewColumn() { HeaderText = "Compiled Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells },
-                   new DataGridViewColumn() { HeaderText = "Global RMS", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells },
-                   new DataGridViewColumn() { HeaderText = "Turn-Turn RMS", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells },
-                   new DataGridViewColumn() { HeaderText = "Compiled RMS", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells },
-                   new DataGridViewColumn() { HeaderText = "Global Mag Avg", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells },
-                   new DataGridViewColumn() { HeaderText = "Global Mag PSD", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells },
-                   new DataGridViewColumn() { HeaderText = "Global Mag Ratio", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells },              
-                   new DataGridViewColumn() { HeaderText = "Turn-Turn Mag AVG", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells },
-                   new DataGridViewColumn() { HeaderText = "Compiled Mag AVG", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells },
-                   new DataGridViewColumn() { HeaderText = "Global Angle estimate", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells },
-                   new DataGridViewColumn() { HeaderText = "Compiled Angle Estimate", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells },
-                   new DataGridViewColumn() { HeaderText = "Turn-Turn Angle Estimate", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells },
-                   new DataGridViewColumn() { HeaderText = "AVG Angle estimate", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells },
-                   new DataGridViewColumn() { HeaderText = "Global Weight Estimate", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells },
-                   new DataGridViewColumn() { HeaderText = "Compiled Weight Estimate", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells },
-                   new DataGridViewColumn() { HeaderText = "Turn-Turn Weight Estimate", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells },
-                   new DataGridViewColumn() { HeaderText = "AVG Weight Estimate", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells }
-               };*/
-        List<String> s = new List<string>()
+            /*   new DataGridViewColumn(){ HeaderText = "CSV File", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells} ,
+                    new DataGridViewColumn(){ HeaderText = "Selected Nb of turn", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                    new DataGridViewColumn(){ HeaderText = "Global Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                    new DataGridViewColumn(){ HeaderText = "Turn-Turn Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                    new DataGridViewColumn(){ HeaderText = "Compiled Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                    new DataGridViewColumn(){ HeaderText = "Global FFT inverse Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                    new DataGridViewColumn(){ HeaderText = "Global FFT inverse Ratio Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                    new DataGridViewColumn(){ HeaderText = "Turn-Turn FFT inverse Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                    new DataGridViewColumn(){ HeaderText = "Compiled FFT inverse Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                    new DataGridViewColumn(){ HeaderText = "Global RMS", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                    new DataGridViewColumn(){ HeaderText = "Turn-Turn RMS", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                    new DataGridViewColumn(){ HeaderText = "Compiled RMS", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                    new DataGridViewColumn(){ HeaderText = "Global Mag Avg", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                    new DataGridViewColumn(){ HeaderText = "Global Mag PSD", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                    new DataGridViewColumn(){ HeaderText = "Global Mag Ratio" , CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},              
+                    new DataGridViewColumn(){ HeaderText = "Turn-Turn Mag AVG", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                    new DataGridViewColumn(){ HeaderText = "Compiled Mag AVG", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                    new DataGridViewColumn(){ HeaderText = "Global Angle estimate", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                    new DataGridViewColumn(){ HeaderText = "Compiled Angle Estimate", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                    new DataGridViewColumn(){ HeaderText = "Turn-Turn Angle Estimate", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                    new DataGridViewColumn(){ HeaderText = "AVG Angle estimate", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                    new DataGridViewColumn(){ HeaderText = "Global Weight Estimate", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                    new DataGridViewColumn(){ HeaderText = "Compiled Weight Estimate", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                    new DataGridViewColumn(){ HeaderText = "Turn-Turn Weight Estimate", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                    new DataGridViewColumn(){ HeaderText = "AVG Weight Estimate", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells}
+                   };*/
+            List<String> s = new List<string>()
             {
                 Path.GetFileName(csvFile),
                 numberOfTurn.ToString(),
                 gPkPk.ToString("F4"),
                 ttPkPk.ToString("F4"),
                 coPkPk.ToString("F4"),
+                gPkPkInverse.ToString("F4"),
+                gPkPkInverseRatio.ToString("F4"),
+                ttPkPkInverse.ToString("F4"),
+                coPkPkInverse.ToString("F4"),
                 gRMS.ToString("F4"),
                 ttRMS.ToString("F4"),
                 coRMS.ToString("F4"),

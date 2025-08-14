@@ -179,7 +179,6 @@
             this.tabPage14 = new System.Windows.Forms.TabPage();
             this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.chkOrderTracking = new System.Windows.Forms.CheckBox();
-            this.lblPeak = new System.Windows.Forms.Label();
             this.txtFFTLimit = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
             this.chkShowResultante = new System.Windows.Forms.CheckBox();
@@ -188,13 +187,16 @@
             this.cbxSensor = new System.Windows.Forms.ComboBox();
             this.cbxFFTSingle = new System.Windows.Forms.ComboBox();
             this.chkFFTSingle = new System.Windows.Forms.CheckBox();
-            this.lblFFTAnalysis = new System.Windows.Forms.Label();
             this.chkDb = new System.Windows.Forms.CheckBox();
             this.chkPassband = new System.Windows.Forms.CheckBox();
             this.txtGain = new System.Windows.Forms.TextBox();
             this.label6 = new System.Windows.Forms.Label();
             this.txtFilterOrder = new System.Windows.Forms.TextBox();
             this.label44 = new System.Windows.Forms.Label();
+            this.label47 = new System.Windows.Forms.Label();
+            this.txtMagBalanced = new System.Windows.Forms.TextBox();
+            this.txtMagUnbalanced = new System.Windows.Forms.TextBox();
+            this.label48 = new System.Windows.Forms.Label();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -1698,15 +1700,6 @@
             this.chkOrderTracking.UseVisualStyleBackColor = true;
             this.chkOrderTracking.CheckedChanged += new System.EventHandler(this.chkOrderTracking_CheckedChanged);
             // 
-            // lblPeak
-            // 
-            this.lblPeak.AutoSize = true;
-            this.lblPeak.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblPeak.Location = new System.Drawing.Point(1137, 2);
-            this.lblPeak.Name = "lblPeak";
-            this.lblPeak.Size = new System.Drawing.Size(0, 12);
-            this.lblPeak.TabIndex = 48;
-            // 
             // txtFFTLimit
             // 
             this.txtFFTLimit.Location = new System.Drawing.Point(765, 60);
@@ -1793,15 +1786,6 @@
             this.chkFFTSingle.UseVisualStyleBackColor = true;
             this.chkFFTSingle.CheckedChanged += new System.EventHandler(this.chkFFT_CheckedChanged);
             // 
-            // lblFFTAnalysis
-            // 
-            this.lblFFTAnalysis.AutoSize = true;
-            this.lblFFTAnalysis.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblFFTAnalysis.Location = new System.Drawing.Point(998, 2);
-            this.lblFFTAnalysis.Name = "lblFFTAnalysis";
-            this.lblFFTAnalysis.Size = new System.Drawing.Size(0, 12);
-            this.lblFFTAnalysis.TabIndex = 61;
-            // 
             // chkDb
             // 
             this.chkDb.AutoSize = true;
@@ -1858,18 +1842,55 @@
             this.label44.TabIndex = 67;
             this.label44.Text = "Filter order";
             // 
+            // label47
+            // 
+            this.label47.AutoSize = true;
+            this.label47.Location = new System.Drawing.Point(1018, 7);
+            this.label47.Name = "label47";
+            this.label47.Size = new System.Drawing.Size(136, 13);
+            this.label47.TabIndex = 68;
+            this.label47.Text = "Global Mag Ratio balanced";
+            // 
+            // txtMagBalanced
+            // 
+            this.txtMagBalanced.Location = new System.Drawing.Point(1172, 3);
+            this.txtMagBalanced.Name = "txtMagBalanced";
+            this.txtMagBalanced.Size = new System.Drawing.Size(88, 20);
+            this.txtMagBalanced.TabIndex = 69;
+            this.txtMagBalanced.Text = "3.0";
+            // 
+            // txtMagUnbalanced
+            // 
+            this.txtMagUnbalanced.Location = new System.Drawing.Point(1172, 31);
+            this.txtMagUnbalanced.Name = "txtMagUnbalanced";
+            this.txtMagUnbalanced.Size = new System.Drawing.Size(88, 20);
+            this.txtMagUnbalanced.TabIndex = 71;
+            this.txtMagUnbalanced.Text = "9.0";
+            // 
+            // label48
+            // 
+            this.label48.AutoSize = true;
+            this.label48.Location = new System.Drawing.Point(1018, 35);
+            this.label48.Name = "label48";
+            this.label48.Size = new System.Drawing.Size(138, 13);
+            this.label48.TabIndex = 70;
+            this.label48.Text = "Global Mag Ratio with 100g";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1287, 639);
+            this.Controls.Add(this.txtMagUnbalanced);
+            this.Controls.Add(this.label48);
+            this.Controls.Add(this.txtMagBalanced);
+            this.Controls.Add(this.label47);
             this.Controls.Add(this.label44);
             this.Controls.Add(this.txtFilterOrder);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.txtGain);
             this.Controls.Add(this.chkPassband);
             this.Controls.Add(this.chkDb);
-            this.Controls.Add(this.lblFFTAnalysis);
             this.Controls.Add(this.cbxFFTSingle);
             this.Controls.Add(this.chkFFTSingle);
             this.Controls.Add(this.cbxSensor);
@@ -1877,7 +1898,6 @@
             this.Controls.Add(this.chkShowResultante);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.txtFFTLimit);
-            this.Controls.Add(this.lblPeak);
             this.Controls.Add(this.chkOrderTracking);
             this.Controls.Add(this.chkShowZ);
             this.Controls.Add(this.chkShowX);
@@ -1994,7 +2014,6 @@
         private System.Windows.Forms.ListBox lstPeakGlobalZ;
         private System.Windows.Forms.ListBox lstPeakGlobalY;
         private System.Windows.Forms.CheckBox chkOrderTracking;
-        private System.Windows.Forms.Label lblPeak;
         private System.Windows.Forms.TextBox txtFFTLimit;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.TabPage tabPage4;
@@ -2099,7 +2118,6 @@
         private System.Windows.Forms.RichTextBox richTextBox1;
         private System.Windows.Forms.ComboBox cbxFFTSingle;
         private System.Windows.Forms.CheckBox chkFFTSingle;
-        private System.Windows.Forms.Label lblFFTAnalysis;
         private System.Windows.Forms.CheckBox chkDb;
         private System.Windows.Forms.CheckBox chkPassband;
         private System.Windows.Forms.TextBox txtGain;
@@ -2113,6 +2131,10 @@
         private System.Windows.Forms.Button btnClearAnalysisHistory;
         private System.Windows.Forms.Label label46;
         private System.Windows.Forms.Label label45;
+        private System.Windows.Forms.Label label47;
+        private System.Windows.Forms.TextBox txtMagBalanced;
+        private System.Windows.Forms.TextBox txtMagUnbalanced;
+        private System.Windows.Forms.Label label48;
     }
 }
 
