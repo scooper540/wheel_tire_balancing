@@ -165,6 +165,29 @@
             this.dataGridY = new System.Windows.Forms.DataGridView();
             this.dataGridX = new System.Windows.Forms.DataGridView();
             this.tabPage7 = new System.Windows.Forms.TabPage();
+            this.txtCorrectAngleY = new System.Windows.Forms.TextBox();
+            this.txtCorrectAngleX = new System.Windows.Forms.TextBox();
+            this.chkUseYGyro = new System.Windows.Forms.CheckBox();
+            this.chkUseXGyro = new System.Windows.Forms.CheckBox();
+            this.btnSaveData = new System.Windows.Forms.Button();
+            this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.label53 = new System.Windows.Forms.Label();
+            this.txtXMagExt = new System.Windows.Forms.TextBox();
+            this.label50 = new System.Windows.Forms.Label();
+            this.label51 = new System.Windows.Forms.Label();
+            this.txtXMagBalanced = new System.Windows.Forms.TextBox();
+            this.label52 = new System.Windows.Forms.Label();
+            this.txtXMagGrams = new System.Windows.Forms.TextBox();
+            this.txtXMagInt = new System.Windows.Forms.TextBox();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.label54 = new System.Windows.Forms.Label();
+            this.txtYMagExt = new System.Windows.Forms.TextBox();
+            this.label47 = new System.Windows.Forms.Label();
+            this.label49 = new System.Windows.Forms.Label();
+            this.txtYMagBalanced = new System.Windows.Forms.TextBox();
+            this.label48 = new System.Windows.Forms.Label();
+            this.txtYMagGrams = new System.Windows.Forms.TextBox();
+            this.txtYMagInt = new System.Windows.Forms.TextBox();
             this.btnExportWAV = new System.Windows.Forms.Button();
             this.btn240250 = new System.Windows.Forms.Button();
             this.btn250300 = new System.Windows.Forms.Button();
@@ -193,12 +216,9 @@
             this.label6 = new System.Windows.Forms.Label();
             this.txtFilterOrder = new System.Windows.Forms.TextBox();
             this.label44 = new System.Windows.Forms.Label();
-            this.label47 = new System.Windows.Forms.Label();
-            this.txtMagBalanced = new System.Windows.Forms.TextBox();
-            this.txtMagUnbalanced = new System.Windows.Forms.TextBox();
-            this.label48 = new System.Windows.Forms.Label();
-            this.txtMagGrams = new System.Windows.Forms.TextBox();
-            this.label49 = new System.Windows.Forms.Label();
+            this.lblStatX = new System.Windows.Forms.Label();
+            this.lblStatY = new System.Windows.Forms.Label();
+            this.chkScaleGyro = new System.Windows.Forms.CheckBox();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -217,6 +237,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.dataGridY)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridX)).BeginInit();
             this.tabPage7.SuspendLayout();
+            this.groupBox2.SuspendLayout();
+            this.groupBox1.SuspendLayout();
             this.tabPage14.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -885,7 +907,7 @@
             this.label42.AutoSize = true;
             this.label42.Location = new System.Drawing.Point(577, 250);
             this.label42.Name = "label42";
-            this.label42.Size = new System.Drawing.Size(251, 52);
+            this.label42.Size = new System.Drawing.Size(252, 52);
             this.label42.TabIndex = 71;
             this.label42.Text = "Coeff variation\r\nCV < 0.1 → données très proches (faible dispersion)\r\n0.1 ≤ CV < " +
     "0.3 → données modérément dispersées\r\nCV ≥ 0.3 → données très dispersées";
@@ -1526,6 +1548,7 @@
             // 
             // dataGridY
             // 
+            this.dataGridY.ClipboardCopyMode = System.Windows.Forms.DataGridViewClipboardCopyMode.EnableAlwaysIncludeHeaderText;
             this.dataGridY.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridY.Location = new System.Drawing.Point(6, 255);
             this.dataGridY.Name = "dataGridY";
@@ -1534,6 +1557,7 @@
             // 
             // dataGridX
             // 
+            this.dataGridX.ClipboardCopyMode = System.Windows.Forms.DataGridViewClipboardCopyMode.EnableAlwaysIncludeHeaderText;
             this.dataGridX.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridX.Location = new System.Drawing.Point(6, 36);
             this.dataGridX.Name = "dataGridX";
@@ -1542,6 +1566,14 @@
             // 
             // tabPage7
             // 
+            this.tabPage7.Controls.Add(this.chkScaleGyro);
+            this.tabPage7.Controls.Add(this.txtCorrectAngleY);
+            this.tabPage7.Controls.Add(this.txtCorrectAngleX);
+            this.tabPage7.Controls.Add(this.chkUseYGyro);
+            this.tabPage7.Controls.Add(this.chkUseXGyro);
+            this.tabPage7.Controls.Add(this.btnSaveData);
+            this.tabPage7.Controls.Add(this.groupBox2);
+            this.tabPage7.Controls.Add(this.groupBox1);
             this.tabPage7.Controls.Add(this.btnExportWAV);
             this.tabPage7.Controls.Add(this.btn240250);
             this.tabPage7.Controls.Add(this.btn250300);
@@ -1560,6 +1592,216 @@
             this.tabPage7.TabIndex = 6;
             this.tabPage7.Text = "Section selector";
             this.tabPage7.UseVisualStyleBackColor = true;
+            // 
+            // txtCorrectAngleY
+            // 
+            this.txtCorrectAngleY.Location = new System.Drawing.Point(802, 353);
+            this.txtCorrectAngleY.Name = "txtCorrectAngleY";
+            this.txtCorrectAngleY.Size = new System.Drawing.Size(100, 20);
+            this.txtCorrectAngleY.TabIndex = 80;
+            this.txtCorrectAngleY.Text = "90";
+            // 
+            // txtCorrectAngleX
+            // 
+            this.txtCorrectAngleX.Location = new System.Drawing.Point(802, 330);
+            this.txtCorrectAngleX.Name = "txtCorrectAngleX";
+            this.txtCorrectAngleX.Size = new System.Drawing.Size(100, 20);
+            this.txtCorrectAngleX.TabIndex = 79;
+            this.txtCorrectAngleX.Text = "0";
+            // 
+            // chkUseYGyro
+            // 
+            this.chkUseYGyro.AutoSize = true;
+            this.chkUseYGyro.Location = new System.Drawing.Point(546, 355);
+            this.chkUseYGyro.Name = "chkUseYGyro";
+            this.chkUseYGyro.Size = new System.Drawing.Size(246, 17);
+            this.chkUseYGyro.TabIndex = 78;
+            this.chkUseYGyro.Text = "Use Y gyro instead of accel, correct angle with";
+            this.chkUseYGyro.UseVisualStyleBackColor = true;
+            // 
+            // chkUseXGyro
+            // 
+            this.chkUseXGyro.AutoSize = true;
+            this.chkUseXGyro.Location = new System.Drawing.Point(546, 332);
+            this.chkUseXGyro.Name = "chkUseXGyro";
+            this.chkUseXGyro.Size = new System.Drawing.Size(246, 17);
+            this.chkUseXGyro.TabIndex = 77;
+            this.chkUseXGyro.Text = "Use X gyro instead of accel, correct angle with";
+            this.chkUseXGyro.UseVisualStyleBackColor = true;
+            // 
+            // btnSaveData
+            // 
+            this.btnSaveData.Location = new System.Drawing.Point(793, 275);
+            this.btnSaveData.Name = "btnSaveData";
+            this.btnSaveData.Size = new System.Drawing.Size(152, 23);
+            this.btnSaveData.TabIndex = 76;
+            this.btnSaveData.Text = "Save calibration data";
+            this.btnSaveData.UseVisualStyleBackColor = true;
+            this.btnSaveData.Click += new System.EventHandler(this.btnSaveData_Click);
+            // 
+            // groupBox2
+            // 
+            this.groupBox2.Controls.Add(this.label53);
+            this.groupBox2.Controls.Add(this.txtXMagExt);
+            this.groupBox2.Controls.Add(this.label50);
+            this.groupBox2.Controls.Add(this.label51);
+            this.groupBox2.Controls.Add(this.txtXMagBalanced);
+            this.groupBox2.Controls.Add(this.label52);
+            this.groupBox2.Controls.Add(this.txtXMagGrams);
+            this.groupBox2.Controls.Add(this.txtXMagInt);
+            this.groupBox2.Location = new System.Drawing.Point(542, 125);
+            this.groupBox2.Name = "groupBox2";
+            this.groupBox2.Size = new System.Drawing.Size(311, 144);
+            this.groupBox2.TabIndex = 75;
+            this.groupBox2.TabStop = false;
+            this.groupBox2.Text = "X calibration";
+            // 
+            // label53
+            // 
+            this.label53.AutoSize = true;
+            this.label53.Location = new System.Drawing.Point(36, 77);
+            this.label53.Name = "label53";
+            this.label53.Size = new System.Drawing.Size(106, 13);
+            this.label53.TabIndex = 75;
+            this.label53.Text = "Global Mag Ratio ext";
+            // 
+            // txtXMagExt
+            // 
+            this.txtXMagExt.Location = new System.Drawing.Point(225, 77);
+            this.txtXMagExt.Name = "txtXMagExt";
+            this.txtXMagExt.Size = new System.Drawing.Size(50, 20);
+            this.txtXMagExt.TabIndex = 74;
+            // 
+            // label50
+            // 
+            this.label50.AutoSize = true;
+            this.label50.Location = new System.Drawing.Point(36, 29);
+            this.label50.Name = "label50";
+            this.label50.Size = new System.Drawing.Size(136, 13);
+            this.label50.TabIndex = 68;
+            this.label50.Text = "Global Mag Ratio balanced";
+            // 
+            // label51
+            // 
+            this.label51.AutoSize = true;
+            this.label51.Location = new System.Drawing.Point(189, 54);
+            this.label51.Name = "label51";
+            this.label51.Size = new System.Drawing.Size(13, 13);
+            this.label51.TabIndex = 73;
+            this.label51.Text = "g";
+            // 
+            // txtXMagBalanced
+            // 
+            this.txtXMagBalanced.Location = new System.Drawing.Point(210, 25);
+            this.txtXMagBalanced.Name = "txtXMagBalanced";
+            this.txtXMagBalanced.Size = new System.Drawing.Size(68, 20);
+            this.txtXMagBalanced.TabIndex = 69;
+            this.txtXMagBalanced.Text = "2.5";
+            // 
+            // label52
+            // 
+            this.label52.AutoSize = true;
+            this.label52.Location = new System.Drawing.Point(36, 54);
+            this.label52.Name = "label52";
+            this.label52.Size = new System.Drawing.Size(103, 13);
+            this.label52.TabIndex = 70;
+            this.label52.Text = "Global Mag Ratio int";
+            // 
+            // txtXMagGrams
+            // 
+            this.txtXMagGrams.Location = new System.Drawing.Point(153, 51);
+            this.txtXMagGrams.Name = "txtXMagGrams";
+            this.txtXMagGrams.Size = new System.Drawing.Size(32, 20);
+            this.txtXMagGrams.TabIndex = 72;
+            // 
+            // txtXMagInt
+            // 
+            this.txtXMagInt.Location = new System.Drawing.Point(225, 51);
+            this.txtXMagInt.Name = "txtXMagInt";
+            this.txtXMagInt.Size = new System.Drawing.Size(50, 20);
+            this.txtXMagInt.TabIndex = 71;
+            // 
+            // groupBox1
+            // 
+            this.groupBox1.Controls.Add(this.label54);
+            this.groupBox1.Controls.Add(this.txtYMagExt);
+            this.groupBox1.Controls.Add(this.label47);
+            this.groupBox1.Controls.Add(this.label49);
+            this.groupBox1.Controls.Add(this.txtYMagBalanced);
+            this.groupBox1.Controls.Add(this.label48);
+            this.groupBox1.Controls.Add(this.txtYMagGrams);
+            this.groupBox1.Controls.Add(this.txtYMagInt);
+            this.groupBox1.Location = new System.Drawing.Point(881, 125);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(311, 116);
+            this.groupBox1.TabIndex = 74;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "Y calibration";
+            // 
+            // label54
+            // 
+            this.label54.AutoSize = true;
+            this.label54.Location = new System.Drawing.Point(36, 77);
+            this.label54.Name = "label54";
+            this.label54.Size = new System.Drawing.Size(106, 13);
+            this.label54.TabIndex = 74;
+            this.label54.Text = "Global Mag Ratio ext";
+            // 
+            // txtYMagExt
+            // 
+            this.txtYMagExt.Location = new System.Drawing.Point(210, 76);
+            this.txtYMagExt.Name = "txtYMagExt";
+            this.txtYMagExt.Size = new System.Drawing.Size(65, 20);
+            this.txtYMagExt.TabIndex = 75;
+            // 
+            // label47
+            // 
+            this.label47.AutoSize = true;
+            this.label47.Location = new System.Drawing.Point(36, 29);
+            this.label47.Name = "label47";
+            this.label47.Size = new System.Drawing.Size(136, 13);
+            this.label47.TabIndex = 68;
+            this.label47.Text = "Global Mag Ratio balanced";
+            // 
+            // label49
+            // 
+            this.label49.AutoSize = true;
+            this.label49.Location = new System.Drawing.Point(189, 54);
+            this.label49.Name = "label49";
+            this.label49.Size = new System.Drawing.Size(13, 13);
+            this.label49.TabIndex = 73;
+            this.label49.Text = "g";
+            // 
+            // txtYMagBalanced
+            // 
+            this.txtYMagBalanced.Location = new System.Drawing.Point(210, 25);
+            this.txtYMagBalanced.Name = "txtYMagBalanced";
+            this.txtYMagBalanced.Size = new System.Drawing.Size(68, 20);
+            this.txtYMagBalanced.TabIndex = 69;
+            this.txtYMagBalanced.Text = "2.5";
+            // 
+            // label48
+            // 
+            this.label48.AutoSize = true;
+            this.label48.Location = new System.Drawing.Point(36, 54);
+            this.label48.Name = "label48";
+            this.label48.Size = new System.Drawing.Size(103, 13);
+            this.label48.TabIndex = 70;
+            this.label48.Text = "Global Mag Ratio int";
+            // 
+            // txtYMagGrams
+            // 
+            this.txtYMagGrams.Location = new System.Drawing.Point(153, 51);
+            this.txtYMagGrams.Name = "txtYMagGrams";
+            this.txtYMagGrams.Size = new System.Drawing.Size(32, 20);
+            this.txtYMagGrams.TabIndex = 72;
+            // 
+            // txtYMagInt
+            // 
+            this.txtYMagInt.Location = new System.Drawing.Point(210, 51);
+            this.txtYMagInt.Name = "txtYMagInt";
+            this.txtYMagInt.Size = new System.Drawing.Size(65, 20);
+            this.txtYMagInt.TabIndex = 71;
             // 
             // btnExportWAV
             // 
@@ -1844,67 +2086,45 @@
             this.label44.TabIndex = 67;
             this.label44.Text = "Filter order";
             // 
-            // label47
+            // lblStatX
             // 
-            this.label47.AutoSize = true;
-            this.label47.Location = new System.Drawing.Point(1018, 7);
-            this.label47.Name = "label47";
-            this.label47.Size = new System.Drawing.Size(136, 13);
-            this.label47.TabIndex = 68;
-            this.label47.Text = "Global Mag Ratio balanced";
+            this.lblStatX.AutoSize = true;
+            this.lblStatX.Font = new System.Drawing.Font("Bernard MT Condensed", 9F);
+            this.lblStatX.ForeColor = System.Drawing.Color.Red;
+            this.lblStatX.Location = new System.Drawing.Point(1024, 7);
+            this.lblStatX.Name = "lblStatX";
+            this.lblStatX.Size = new System.Drawing.Size(0, 15);
+            this.lblStatX.TabIndex = 68;
             // 
-            // txtMagBalanced
+            // lblStatY
             // 
-            this.txtMagBalanced.Location = new System.Drawing.Point(1192, 3);
-            this.txtMagBalanced.Name = "txtMagBalanced";
-            this.txtMagBalanced.Size = new System.Drawing.Size(68, 20);
-            this.txtMagBalanced.TabIndex = 69;
-            this.txtMagBalanced.Text = "3.0";
+            this.lblStatY.AutoSize = true;
+            this.lblStatY.Font = new System.Drawing.Font("Bernard MT Condensed", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblStatY.ForeColor = System.Drawing.Color.Red;
+            this.lblStatY.Location = new System.Drawing.Point(1148, 7);
+            this.lblStatY.Name = "lblStatY";
+            this.lblStatY.Size = new System.Drawing.Size(0, 15);
+            this.lblStatY.TabIndex = 69;
             // 
-            // txtMagUnbalanced
+            // chkScaleGyro
             // 
-            this.txtMagUnbalanced.Location = new System.Drawing.Point(1192, 29);
-            this.txtMagUnbalanced.Name = "txtMagUnbalanced";
-            this.txtMagUnbalanced.Size = new System.Drawing.Size(65, 20);
-            this.txtMagUnbalanced.TabIndex = 71;
-            this.txtMagUnbalanced.Text = "9.0";
-            // 
-            // label48
-            // 
-            this.label48.AutoSize = true;
-            this.label48.Location = new System.Drawing.Point(1018, 32);
-            this.label48.Name = "label48";
-            this.label48.Size = new System.Drawing.Size(111, 13);
-            this.label48.TabIndex = 70;
-            this.label48.Text = "Global Mag Ratio with";
-            // 
-            // txtMagGrams
-            // 
-            this.txtMagGrams.Location = new System.Drawing.Point(1135, 29);
-            this.txtMagGrams.Name = "txtMagGrams";
-            this.txtMagGrams.Size = new System.Drawing.Size(32, 20);
-            this.txtMagGrams.TabIndex = 72;
-            // 
-            // label49
-            // 
-            this.label49.AutoSize = true;
-            this.label49.Location = new System.Drawing.Point(1171, 32);
-            this.label49.Name = "label49";
-            this.label49.Size = new System.Drawing.Size(13, 13);
-            this.label49.TabIndex = 73;
-            this.label49.Text = "g";
+            this.chkScaleGyro.AutoSize = true;
+            this.chkScaleGyro.Checked = true;
+            this.chkScaleGyro.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkScaleGyro.Location = new System.Drawing.Point(546, 379);
+            this.chkScaleGyro.Name = "chkScaleGyro";
+            this.chkScaleGyro.Size = new System.Drawing.Size(102, 17);
+            this.chkScaleGyro.TabIndex = 81;
+            this.chkScaleGyro.Text = "Scale Gyro Mag";
+            this.chkScaleGyro.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1287, 639);
-            this.Controls.Add(this.label49);
-            this.Controls.Add(this.txtMagGrams);
-            this.Controls.Add(this.txtMagUnbalanced);
-            this.Controls.Add(this.label48);
-            this.Controls.Add(this.txtMagBalanced);
-            this.Controls.Add(this.label47);
+            this.Controls.Add(this.lblStatY);
+            this.Controls.Add(this.lblStatX);
             this.Controls.Add(this.label44);
             this.Controls.Add(this.txtFilterOrder);
             this.Controls.Add(this.label6);
@@ -1979,6 +2199,11 @@
             ((System.ComponentModel.ISupportInitialize)(this.dataGridY)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridX)).EndInit();
             this.tabPage7.ResumeLayout(false);
+            this.tabPage7.PerformLayout();
+            this.groupBox2.ResumeLayout(false);
+            this.groupBox2.PerformLayout();
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
             this.tabPage14.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -2152,11 +2377,31 @@
         private System.Windows.Forms.Label label46;
         private System.Windows.Forms.Label label45;
         private System.Windows.Forms.Label label47;
-        private System.Windows.Forms.TextBox txtMagBalanced;
-        private System.Windows.Forms.TextBox txtMagUnbalanced;
+        private System.Windows.Forms.TextBox txtYMagBalanced;
+        private System.Windows.Forms.TextBox txtYMagInt;
         private System.Windows.Forms.Label label48;
-        private System.Windows.Forms.TextBox txtMagGrams;
+        private System.Windows.Forms.TextBox txtYMagGrams;
         private System.Windows.Forms.Label label49;
+        private System.Windows.Forms.GroupBox groupBox2;
+        private System.Windows.Forms.Label label50;
+        private System.Windows.Forms.Label label51;
+        private System.Windows.Forms.TextBox txtXMagBalanced;
+        private System.Windows.Forms.Label label52;
+        private System.Windows.Forms.TextBox txtXMagGrams;
+        private System.Windows.Forms.TextBox txtXMagInt;
+        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.Button btnSaveData;
+        private System.Windows.Forms.Label label53;
+        private System.Windows.Forms.TextBox txtXMagExt;
+        private System.Windows.Forms.Label label54;
+        private System.Windows.Forms.TextBox txtYMagExt;
+        private System.Windows.Forms.Label lblStatX;
+        private System.Windows.Forms.Label lblStatY;
+        private System.Windows.Forms.TextBox txtCorrectAngleY;
+        private System.Windows.Forms.TextBox txtCorrectAngleX;
+        private System.Windows.Forms.CheckBox chkUseYGyro;
+        private System.Windows.Forms.CheckBox chkUseXGyro;
+        private System.Windows.Forms.CheckBox chkScaleGyro;
     }
 }
 

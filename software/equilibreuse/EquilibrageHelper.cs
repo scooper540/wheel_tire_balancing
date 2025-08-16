@@ -57,7 +57,7 @@ namespace equilibreuse
     public class PolarSeriesResult
     {
         public double MinAmplitude;
-        public double BestAngleDeg;
+        public double UnbalanceAngleDeg;
         public double ActualAmplitude;
     }
     public static class EquilibrageHelper
@@ -112,21 +112,21 @@ namespace equilibreuse
 
             if (magX >= minMagnitude && magY >= minMagnitude)
             {
-            if (Math.Abs(fundaX.Freq - fundaY.Freq) > 3.0)
-                return new DynamicImbalanceResult
-                {
-                    IsDynamic = false,
-                    FrequencyHzX = 0,
-                    FrequencyHzY = 0,
-                            MagnitudeX = 0,
-                            MagnitudeY = 0,
-                            PhaseDifferenceDeg = 0
-                        }; ;
+                if (Math.Abs(fundaX.Freq - fundaY.Freq) > 3.0)
+                    return new DynamicImbalanceResult
+                    {
+                        IsDynamic = false,
+                        FrequencyHzX = 0,
+                        FrequencyHzY = 0,
+                                MagnitudeX = 0,
+                                MagnitudeY = 0,
+                                PhaseDifferenceDeg = 0
+                    };
                 
                 double phaseDiffDeg = Math.Abs((fundaX.Angle - fundaY.Angle));
                 if (phaseDiffDeg > 180) phaseDiffDeg = 360 - phaseDiffDeg;
 
-                bool isDynamic = phaseDiffDeg >= (90 - phaseDiffTolDeg) && phaseDiffDeg <= (90 + phaseDiffTolDeg);
+                bool isDynamic = true;// phaseDiffDeg >= (90 - phaseDiffTolDeg) && phaseDiffDeg <= (90 + phaseDiffTolDeg);
 
                 return new DynamicImbalanceResult
                 {
@@ -210,7 +210,7 @@ namespace equilibreuse
             PolarSeriesResult res = new PolarSeriesResult();
            
             res.MinAmplitude = funda.Magnitude;
-            res.BestAngleDeg = (funda.Angle + 180) % 360;
+            res.UnbalanceAngleDeg = (funda.Angle) % 360;
             res.ActualAmplitude = funda.Magnitude;
             return res;
         }
@@ -263,10 +263,10 @@ namespace equilibreuse
                 cr.dir[i - 1] = EquilibrageHelper.HasDynamicImbalance(x, y, sampleRate, fRot * i);
                 if (lstData != null)
                 {
-                    lstData.Items.Add($"STATIC {diagram} X : Order {i} Angle determiné {px.BestAngleDeg} Freq {fRot * i} Amplitude {px.MinAmplitude}");
-                    lstData.Items.Add($"STATIC {diagram} Y : Order {i} Angle determiné {py.BestAngleDeg} Freq {fRot * i} Amplitude {py.MinAmplitude}");
-                    lstData.Items.Add($"STATIC {diagram} Z : Order {i}Angle determiné {pz.BestAngleDeg} Freq {fRot * i} Amplitude {pz.MinAmplitude}");
-                    lstData.Items.Add($"STATIC {diagram} Resultante : Order {i} Angle determiné {pr.BestAngleDeg} Freq {fRot * i} Amplitude {pr.MinAmplitude}");
+                    lstData.Items.Add($"STATIC {diagram} X : Order {i} Angle determiné balourd {px.UnbalanceAngleDeg} Freq {fRot * i} Amplitude {px.MinAmplitude}");
+                    lstData.Items.Add($"STATIC {diagram} Y : Order {i} Angle determiné balourd {py.UnbalanceAngleDeg} Freq {fRot * i} Amplitude {py.MinAmplitude}");
+                    lstData.Items.Add($"STATIC {diagram} Z : Order {i} Angle determiné balourd {pz.UnbalanceAngleDeg} Freq {fRot * i} Amplitude {pz.MinAmplitude}");
+                    lstData.Items.Add($"STATIC {diagram} Resultante : Order {i} Angle determiné {pr.UnbalanceAngleDeg} Freq {fRot * i} Amplitude {pr.MinAmplitude}");
 
                     lstData.Items.Add($"Global dynamic imbalance (X and Y) order {i} : {cr.dir[i - 1].ToString()}");
                 }
@@ -509,11 +509,11 @@ namespace equilibreuse
         public static double CalculateAttenuationConstant(double initialMagnitude, double finalMagnitude, double mass)
         {
             if (initialMagnitude <= 0 || finalMagnitude <= 0 || mass <= 0)
-                throw new ArgumentException("Les magnitudes et la masse doivent être strictement positives.");
-            if (finalMagnitude >= initialMagnitude)
-                throw new ArgumentException("La magnitude finale doit être inférieure à la magnitude initiale.");
-
-            return (1.0 / mass) * Math.Log(initialMagnitude / finalMagnitude);
+                return 0;
+            
+            double max = Math.Max(initialMagnitude, finalMagnitude);
+            double min = Math.Min(initialMagnitude, finalMagnitude);
+            return (1.0 / mass) * Math.Log(max / min);
         }
 
         /// <summary>
@@ -522,41 +522,14 @@ namespace equilibreuse
         public static double CalculateRequiredMass(double k, double currentMagnitude, double targetMagnitude)
         {
             if (currentMagnitude <= 0 || targetMagnitude <= 0)
-                throw new ArgumentException("Les magnitudes doivent être strictement positives.");
+                return 0;
             if (targetMagnitude >= currentMagnitude)
-                throw new ArgumentException("La magnitude cible doit être inférieure à la magnitude actuelle.");
+                return 0;
 
             return (1.0 / k) * Math.Log(currentMagnitude / targetMagnitude);
         }
 
-        /// <summary>
-        /// Calcule k à partir de l'étalonnage, puis calcule combien de grammes il faut ajouter pour passer
-        /// d'une magnitude actuelle à une magnitude cible.
-        /// </summary>
-        public static void ComputeAttenuationFromCalibration()
-        {
-            // Étape 1 : Étape d'étalonnage
-            double calibrationInitialMagnitude = 13.38;
-            double calibrationFinalMagnitude = 4.0;
-            double calibrationMass = 40.0;
-
-            // Étape 2 : Objectif d’atténuation
-            double currentMagnitude = 7.0;
-            double targetMagnitude = 3.0;
-
-            try
-            {
-                double k = CalculateAttenuationConstant(calibrationInitialMagnitude, calibrationFinalMagnitude, calibrationMass);
-                Console.WriteLine($"Constante d'atténuation k calculée : {k:F4}");
-
-                double requiredMass = CalculateRequiredMass(k, currentMagnitude, targetMagnitude);
-                Console.WriteLine($"Masse à ajouter pour passer de {currentMagnitude} à {targetMagnitude} : {requiredMass:F2} g");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Erreur : " + ex.Message);
-            }
-        }
+       
         public static void SaveWav(string filePath, double[] samples, int sampleRate)
         {
             int bitsPerSample = 16;
@@ -599,7 +572,225 @@ namespace equilibreuse
                 }
             }
         }
+        //new methode
+        /// <summary>
+        /// Estime les masses et angles de correction pour les plans intérieur et extérieur.
+        /// </summary>
+        public static MassCorrectionResult EstimateMassCorrection(
+            double magX, double phaseXDeg,
+            double magY, double phaseYDeg,
+            double kExtX, double kExtY,
+            double kIntX, double kIntY)
+        {
+            // Convertir les phases en radians
+            double phaseXRad = phaseXDeg * Math.PI / 180.0;
+            double phaseYRad = phaseYDeg * Math.PI / 180.0;
 
-       
+            // Vecteur de vibration mesuré
+            double Rx = magX * Math.Cos(phaseXRad) + magY * Math.Cos(phaseYRad);
+            double Ry = magX * Math.Sin(phaseXRad) + magY * Math.Sin(phaseYRad);
+
+            // Système à résoudre : R = Kext * Mext + Kint * Mint
+            // --> [KextX  KintX]   [Mext]   = [Rx]
+            //     [KextY  KintY]   [Mint]     [Ry]
+
+            double det = kExtX * kIntY - kIntX * kExtY;
+            if (Math.Abs(det) < 1e-6)
+                throw new Exception("Système non inversible (les vecteurs K sont colinéaires).");
+
+            double invDet = 1.0 / det;
+
+            // Inversion 2x2
+            double mExt = invDet * (kIntY * Rx - kIntX * Ry);
+            double mInt = invDet * (-kExtY * Rx + kExtX * Ry);
+
+            // Calcul des angles pour poser les masses (à l'opposé du vecteur produit)
+            double angleExt = Math.Atan2(kExtY, kExtX) * 180.0 / Math.PI;
+            double angleInt = Math.Atan2(kIntY, kIntX) * 180.0 / Math.PI;
+
+            // Inverser de 180° pour corriger le balourd
+            angleExt = (angleExt + 180.0) % 360.0;
+            angleInt = (angleInt + 180.0) % 360.0;
+
+            return new MassCorrectionResult
+            {
+                MassExt = mExt,
+                AngleExtDeg = angleExt,
+                MassInt = mInt,
+                AngleIntDeg = angleInt
+            };
+        }
+
+   
+        /// <summary>
+        /// Calcule les coefficients d'atténuation Kext et Kint pour les axes X, Y et la magnitude totale.
+        /// </summary>
+        public static AttenuationConstants CalculateAttenuationConstantsXY(
+            double massExt, double xBefore, double yBefore, double xAfterExt, double yAfterExt,
+            double massInt, double xAfterInt, double yAfterInt)
+        {
+            if (massExt <= 0 || massInt <= 0)
+                throw new ArgumentException("Les masses doivent être positives.");
+
+            // Magnitudes vectorielles
+            double magBefore = Math.Sqrt(xBefore * xBefore + yBefore * yBefore);
+            double magAfterExt = Math.Sqrt(xAfterExt * xAfterExt + yAfterExt * yAfterExt);
+            double magAfterInt = Math.Sqrt(xAfterInt * xAfterInt + yAfterInt * yAfterInt);
+
+            if (magBefore <= 0 || magAfterExt <= 0 || magAfterInt <= 0)
+                throw new ArgumentException("Les magnitudes doivent être strictement positives.");
+
+            var result = new AttenuationConstants
+            {
+                // K_ext
+                KextX = (1.0 / massExt) * Math.Log(xAfterExt / xBefore),
+                KextY = (1.0 / massExt) * Math.Log(yAfterExt / yBefore),
+                KextTotal = (1.0 / massExt) * Math.Log(magAfterExt / magBefore),
+
+                // K_int
+                KintX = (1.0 / massInt) * Math.Log(xAfterInt / xBefore),
+                KintY = (1.0 / massInt) * Math.Log(yAfterInt / yBefore),
+                KintTotal = (1.0 / massInt) * Math.Log(magAfterInt / magBefore)
+            };
+
+            return result;
+        }
+      
+        public static DynamicCorrectionResult2 EstimateDynamicBalancing(
+            double magX, double phaseXDeg,
+            double magY, double phaseYDeg,
+            double kExt, double kInt)
+        {
+            // 1. Convertir les phases en radians
+            double phaseXRad = phaseXDeg * Math.PI / 180.0;
+            double phaseYRad = phaseYDeg * Math.PI / 180.0;
+
+            // 2. Calcul du vecteur total de balourd (somme des deux composantes)
+            double fx = magX * Math.Cos(phaseXRad) + magY * Math.Cos(phaseYRad);
+            double fy = magX * Math.Sin(phaseXRad) + magY * Math.Sin(phaseYRad);
+
+            // 3. Angle du balourd (en degrés, dans [0-360[)
+            double balourdAngle = Math.Atan2(fy, fx) * 180.0 / Math.PI;
+            balourdAngle = (balourdAngle + 360.0) % 360.0;
+
+            // 4. Placer les masses à ±90° du balourd
+            double angleOuter = (balourdAngle - 90 + 360) % 360.0;
+            double angleInner = (balourdAngle + 90) % 360.0;
+
+            // 5. Résolution du système : F = K_ext * m_ext + K_int * m_int
+            // Les vecteurs de placement :
+            double kExtX = kExt * Math.Cos(angleOuter * Math.PI / 180.0);
+            double kExtY = kExt * Math.Sin(angleOuter * Math.PI / 180.0);
+
+            double kIntX = kInt * Math.Cos(angleInner * Math.PI / 180.0);
+            double kIntY = kInt * Math.Sin(angleInner * Math.PI / 180.0);
+
+            // Résultat mesuré (Fx, Fy)
+            double Fx = fx;
+            double Fy = fy;
+
+            // Résolution du système linéaire 2x2
+            double det = kExtX * kIntY - kIntX * kExtY;
+            if (Math.Abs(det) < 1e-6)
+                throw new Exception("Système non inversible : K_ext et K_int sont colinéaires.");
+
+            double invDet = 1.0 / det;
+
+            double mExt = invDet * (kIntY * Fx - kIntX * Fy);
+            double mInt = invDet * (-kExtY * Fx + kExtX * Fy);
+
+            return new DynamicCorrectionResult2
+            {
+                AngleInnerDeg = angleInner,
+                AngleOuterDeg = angleOuter,
+                MassInner = mInt,
+                MassOuter = mExt
+            };
+        }
+  
+
+        public static MassCorrectionResult EstimateDynamicBalancing(
+            double magX, double phaseXDeg,
+            double magY, double phaseYDeg,
+            double kExtX, double kExtY,
+            double kIntX, double kIntY)
+        {
+            // Convertir phases en radians
+            double phaseXRad = (phaseXDeg > 180 ? phaseXDeg - 360 : phaseXDeg) * Math.PI / 180.0;
+            double phaseYRad = (phaseYDeg > 180 ? phaseYDeg - 360 : phaseYDeg) * Math.PI / 180.0;
+
+            // Vecteur vibration mesuré dans le plan XY
+            double Rx = magX * Math.Cos(phaseXRad);
+            double Ry = magX * Math.Sin(phaseXRad);
+            double Wx = magY * Math.Cos(phaseYRad);
+            double Wy = magY * Math.Sin(phaseYRad);
+
+            // Différence vecteurs X et Y -> effort dynamique à corriger
+            double dx = Rx - Wx;
+            double dy = Ry - Wy;
+
+            // Résolution du système :
+            // [kExtX  kIntX] [Mext] = [dx]
+            // [kExtY  kIntY] [Mint]   [dy]
+            double det = kExtX * kIntY - kIntX * kExtY;
+            if (Math.Abs(det) < 1e-12)
+                throw new Exception("Système non inversible (vecteurs k colinéaires)");
+
+            double invDet = 1.0 / det;
+
+            // Calcul masses extérieure et intérieure
+            double massExt = invDet * (kIntY * dx - kIntX * dy);
+            double massInt = invDet * (-kExtY * dx + kExtX * dy);
+
+            // Calcul vecteurs forces corrélées aux masses (utile pour angles)
+            double forceExtX = massExt * kExtX;
+            double forceExtY = massExt * kExtY;
+            double forceIntX = massInt * kIntX;
+            double forceIntY = massInt * kIntY;
+
+            // Angle du vecteur dynamique
+            double angleEffortRad = Math.Atan2(dy, dx);
+            double angleEffortDeg = (angleEffortRad * 180.0 / Math.PI + 360.0) % 360.0;
+
+            // Angles des masses à corriger ±90°
+            double angleExtDeg = (angleEffortDeg - 90 + 360.0) % 360.0;
+            double angleIntDeg = (angleEffortDeg + 90) % 360.0;
+
+            return new MassCorrectionResult
+            {
+                MassExt = massExt,
+                AngleExtDeg = angleExtDeg,
+                MassInt = massInt,
+                AngleIntDeg = angleIntDeg
+            };
+        }
+
+
     }
+
 }
+public class AttenuationConstants
+{
+    public double KextX;
+    public double KextY;
+    public double KextTotal;
+
+    public double KintX;
+    public double KintY;
+    public double KintTotal;
+}
+public class MassCorrectionResult
+    {
+        public double MassExt;
+        public double AngleExtDeg;
+        public double MassInt;
+        public double AngleIntDeg;
+}
+public class DynamicCorrectionResult2
+{
+    public double AngleInnerDeg { get; set; }
+    public double AngleOuterDeg { get; set; }
+    public double MassInner { get; set; }
+    public double MassOuter { get; set; }
+}
+

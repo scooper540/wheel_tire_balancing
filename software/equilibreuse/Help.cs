@@ -72,6 +72,7 @@ namespace equilibreuse
             richTextBox.AppendText("   - Check global data statitics if the magnitude ratio and PSD decrease.\n");
             richTextBox.AppendText("A flat FFT curve on the fundamental and early harmonics means your wheel is properly balanced ✅\n\n");
             richTextBox.AppendText("Peak-to-Peak and RMS analysis could need to apply a filter to see if the values decreases (less vibrations).\n");
+            richTextBox.AppendText("calibration: take a balanced wheel, add x grams on outer at Y + 180 deg and report the values in the textbox for X and Y\n");
 
             richTextBox.SelectionFont = new Font("Segoe UI", 10, FontStyle.Bold);
             richTextBox.AppendText("⚙️ Advanced Analysis Options\n");
