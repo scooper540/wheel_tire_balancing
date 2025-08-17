@@ -165,6 +165,7 @@
             this.dataGridY = new System.Windows.Forms.DataGridView();
             this.dataGridX = new System.Windows.Forms.DataGridView();
             this.tabPage7 = new System.Windows.Forms.TabPage();
+            this.chkScaleGyro = new System.Windows.Forms.CheckBox();
             this.txtCorrectAngleY = new System.Windows.Forms.TextBox();
             this.txtCorrectAngleX = new System.Windows.Forms.TextBox();
             this.chkUseYGyro = new System.Windows.Forms.CheckBox();
@@ -218,7 +219,6 @@
             this.label44 = new System.Windows.Forms.Label();
             this.lblStatX = new System.Windows.Forms.Label();
             this.lblStatY = new System.Windows.Forms.Label();
-            this.chkScaleGyro = new System.Windows.Forms.CheckBox();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -1593,6 +1593,18 @@
             this.tabPage7.Text = "Section selector";
             this.tabPage7.UseVisualStyleBackColor = true;
             // 
+            // chkScaleGyro
+            // 
+            this.chkScaleGyro.AutoSize = true;
+            this.chkScaleGyro.Checked = true;
+            this.chkScaleGyro.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkScaleGyro.Location = new System.Drawing.Point(546, 379);
+            this.chkScaleGyro.Name = "chkScaleGyro";
+            this.chkScaleGyro.Size = new System.Drawing.Size(102, 17);
+            this.chkScaleGyro.TabIndex = 81;
+            this.chkScaleGyro.Text = "Scale Gyro Mag";
+            this.chkScaleGyro.UseVisualStyleBackColor = true;
+            // 
             // txtCorrectAngleY
             // 
             this.txtCorrectAngleY.Location = new System.Drawing.Point(802, 353);
@@ -1614,9 +1626,9 @@
             this.chkUseYGyro.AutoSize = true;
             this.chkUseYGyro.Location = new System.Drawing.Point(546, 355);
             this.chkUseYGyro.Name = "chkUseYGyro";
-            this.chkUseYGyro.Size = new System.Drawing.Size(246, 17);
+            this.chkUseYGyro.Size = new System.Drawing.Size(256, 17);
             this.chkUseYGyro.TabIndex = 78;
-            this.chkUseYGyro.Text = "Use Y gyro instead of accel, correct angle with";
+            this.chkUseYGyro.Text = "Use Y gyro instead of accel X, correct angle with";
             this.chkUseYGyro.UseVisualStyleBackColor = true;
             // 
             // chkUseXGyro
@@ -1624,9 +1636,9 @@
             this.chkUseXGyro.AutoSize = true;
             this.chkUseXGyro.Location = new System.Drawing.Point(546, 332);
             this.chkUseXGyro.Name = "chkUseXGyro";
-            this.chkUseXGyro.Size = new System.Drawing.Size(246, 17);
+            this.chkUseXGyro.Size = new System.Drawing.Size(256, 17);
             this.chkUseXGyro.TabIndex = 77;
-            this.chkUseXGyro.Text = "Use X gyro instead of accel, correct angle with";
+            this.chkUseXGyro.Text = "Use X gyro instead of accel Y, correct angle with";
             this.chkUseXGyro.UseVisualStyleBackColor = true;
             // 
             // btnSaveData
@@ -2105,18 +2117,6 @@
             this.lblStatY.Name = "lblStatY";
             this.lblStatY.Size = new System.Drawing.Size(0, 15);
             this.lblStatY.TabIndex = 69;
-            // 
-            // chkScaleGyro
-            // 
-            this.chkScaleGyro.AutoSize = true;
-            this.chkScaleGyro.Checked = true;
-            this.chkScaleGyro.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkScaleGyro.Location = new System.Drawing.Point(546, 379);
-            this.chkScaleGyro.Name = "chkScaleGyro";
-            this.chkScaleGyro.Size = new System.Drawing.Size(102, 17);
-            this.chkScaleGyro.TabIndex = 81;
-            this.chkScaleGyro.Text = "Scale Gyro Mag";
-            this.chkScaleGyro.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 

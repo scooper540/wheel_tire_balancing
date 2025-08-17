@@ -281,8 +281,8 @@ namespace equilibreuse
             var fundCandidate = freq
                 .Select((f, i) => new { Freq = f, Mag = mags[i], Angle=angle[i], Index = i })
                 .Where(x => ((x.Freq > freqMin) && (Math.Abs(x.Freq - f_rot) <= tolerance)))
-                .OrderBy(x => Math.Abs(x.Freq - f_rot)) //order by freq
-                //.OrderByDescending(x => x.Mag) // order by magnitude
+                //.OrderBy(x => Math.Abs(x.Freq - f_rot)) //order by freq
+                .OrderByDescending(x => x.Mag) // order by magnitude
                 .FirstOrDefault();
             if (fundCandidate == null) return new Fundamentale() { Freq = 0, Index = 0, Magnitude = 0, Angle = 0};
             return new Fundamentale() { Freq = fundCandidate.Freq, Index = fundCandidate.Index, Magnitude = fundCandidate.Mag , Angle= fundCandidate.Angle};
@@ -294,7 +294,7 @@ namespace equilibreuse
             // Paramètres du zero-padding
             int count = signal.Count();
 
-            int zeroPadFactor = 8;
+            int zeroPadFactor = 12;
             int fftSize = count * zeroPadFactor;
             fftSize = NextPowerOfTwo(fftSize);
             // Application de la fenêtre si sélectionnée
@@ -368,7 +368,65 @@ namespace equilibreuse
                 data.SignalFFTInverse[i] = re[i];
             return data;
         }
-      
+
+        public static (double amplitude, double phaseDegrees) DetectPhase(double[] signal, double sampleRateHz, double targetFreqHz)
+        {
+            // 1. Préparation des signaux de référence
+            double[] t = Enumerable.Range(0, signal.Length)
+                                 .Select(i => i / sampleRateHz)
+                                 .ToArray();
+
+            // 2. Génération des références sin/cos
+            var referenceSin = t.Select(x => Math.Sin(2 * Math.PI * targetFreqHz * x)).ToArray();
+            var referenceCos = t.Select(x => Math.Cos(2 * Math.PI * targetFreqHz * x)).ToArray();
+
+            // 3. Calcul des composantes I (In-Phase) et Q (Quadrature)
+            double I = 0, Q = 0;
+            for (int i = 0; i < signal.Length; i++)
+            {
+                I += signal[i] * referenceSin[i];
+                Q += signal[i] * referenceCos[i];
+            }
+            I *= 2.0 / signal.Length; // Normalisation
+            Q *= 2.0 / signal.Length;
+
+            // 4. Calcul amplitude et phase
+            double amplitude = Math.Sqrt(I * I + Q * Q);
+            double phaseRad = Math.Atan2(Q, I); // [-π, π]
+            double phaseDeg = ((phaseRad * 180 / Math.PI) + 360) % 360;
+
+            return (amplitude, phaseDeg);
+        }
+        public static (double amplitude, double phaseDegrees) DetectPhaseWithSweep(
+                double[] signal,
+                double sampleRateHz,
+                double centerFreqHz,
+                double sweepRangeHz = 0, // ±1 Hz par défaut
+                int steps = 1)            // Nombre de points de scan
+        {
+            double maxAmplitude = 0;
+            double bestPhaseDeg = 0;
+            double bestFreqHz = centerFreqHz;
+
+            // 1. Balayage linéaire autour de la fréquence cible
+            for (int i = 0; i <= steps; i++)
+            {
+                double currentFreqHz = centerFreqHz - sweepRangeHz + (2 * sweepRangeHz * i / steps);
+
+                var f = DetectPhase(signal, sampleRateHz, currentFreqHz);
+                double amplitude = f.amplitude;
+                // 3. Mise à jour du meilleur résultat
+                if (amplitude > maxAmplitude)
+                {
+                    maxAmplitude = amplitude;
+                    bestPhaseDeg = f.phaseDegrees;
+                    bestFreqHz = currentFreqHz;
+                }
+            }
+
+           // Console.WriteLine($"Fréquence optimale trouvée : {bestFreqHz:F3} Hz");
+            return (maxAmplitude, bestPhaseDeg);
+        }
         public static string GetStatisticsFundamental(string sTitle, double totalSamples, double sampleRate, double magnitude, double numberoftours)
         {
 
@@ -639,7 +697,21 @@ namespace equilibreuse
 
             if (magBefore <= 0 || magAfterExt <= 0 || magAfterInt <= 0)
                 throw new ArgumentException("Les magnitudes doivent être strictement positives.");
+/*
+            return new AttenuationConstants
+            {
+                KextX = (xAfterExt - xBefore) / massExt,
+                KextY = (yAfterExt - yBefore) / massExt,
+                KextTotal = (Math.Sqrt(Math.Pow(xAfterExt, 2) + Math.Pow(yAfterExt, 2)) -
+                     Math.Sqrt(Math.Pow(xBefore, 2) + Math.Pow(yBefore, 2))) / massExt,
 
+                KintX = (xAfterInt - xBefore) / massInt,
+                KintY = (yAfterInt - yBefore) / massInt,
+                KintTotal = (Math.Sqrt(Math.Pow(xAfterInt, 2) + Math.Pow(yAfterInt, 2)) -
+                      Math.Sqrt(Math.Pow(xBefore, 2) + Math.Pow(yBefore, 2))) / massInt
+            };
+
+    */
             var result = new AttenuationConstants
             {
                 // K_ext
@@ -716,8 +788,13 @@ namespace equilibreuse
             double kIntX, double kIntY)
         {
             // Convertir phases en radians
-            double phaseXRad = (phaseXDeg > 180 ? phaseXDeg - 360 : phaseXDeg) * Math.PI / 180.0;
-            double phaseYRad = (phaseYDeg > 180 ? phaseYDeg - 360 : phaseYDeg) * Math.PI / 180.0;
+            //double phaseXRad = (phaseXDeg > 180 ? phaseXDeg - 360 : phaseXDeg) * Math.PI / 180.0;
+            //double phaseYRad = (phaseYDeg > 180 ? phaseYDeg - 360 : phaseYDeg) * Math.PI / 180.0;
+
+            double phaseXRad = phaseXDeg * Math.PI / 180.0;
+            double phaseYRad = phaseYDeg * Math.PI / 180.0;
+            // Conversion phase depuis repère à 0° = haut, sens horaire
+         
 
             // Vecteur vibration mesuré dans le plan XY
             double Rx = magX * Math.Cos(phaseXRad);
@@ -738,10 +815,14 @@ namespace equilibreuse
 
             double invDet = 1.0 / det;
 
+            // Résolution du système avec attention aux plans
+
+
             // Calcul masses extérieure et intérieure
             double massExt = invDet * (kIntY * dx - kIntX * dy);
             double massInt = invDet * (-kExtY * dx + kExtX * dy);
-
+            massInt = invDet * (kExtY * Rx - kExtX * Ry);
+            massExt = invDet * (-kIntY * Rx + kIntX * Ry);
             // Calcul vecteurs forces corrélées aux masses (utile pour angles)
             double forceExtX = massExt * kExtX;
             double forceExtY = massExt * kExtY;
