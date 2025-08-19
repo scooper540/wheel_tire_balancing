@@ -7,6 +7,7 @@ using MathNet.Numerics.IntegralTransforms;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using MathNet.Numerics.LinearAlgebra;
 
 namespace equilibreuse
 {
@@ -427,7 +428,80 @@ namespace equilibreuse
            // Console.WriteLine($"Fréquence optimale trouvée : {bestFreqHz:F3} Hz");
             return (maxAmplitude, bestPhaseDeg);
         }
-        public static string GetStatisticsFundamental(string sTitle, double totalSamples, double sampleRate, double magnitude, double numberoftours)
+        public static double[] ComputePhaseHilbert(double[] signal, double samplingRate)
+        {
+            // 1. Calcul de la FFT
+            Complex32[] fft = new Complex32[signal.Length];
+            for (int i = 0; i < signal.Length; i++)
+                fft[i] = new Complex32((float)signal[i], 0);
+
+            Fourier.Forward(fft, FourierOptions.Default);
+
+            // 2. Application de la transformée de Hilbert (déphasage de 90°)
+            for (int i = 1; i < fft.Length / 2; i++)
+                fft[i] *= Complex32.FromPolarCoordinates(1, (float)(-Math.PI / 2)); // -90°
+
+            // 3. FFT inverse
+            Fourier.Inverse(fft, FourierOptions.Default);
+
+            // 4. Extraction de la phase
+            double[] phase = new double[signal.Length];
+            for (int i = 0; i < signal.Length; i++)
+                phase[i] = Math.Atan2(fft[i].Imaginary, signal[i]) * 180 / Math.PI; // en degrés
+
+            return phase;
+        }
+
+
+        public static double ComputeLockInPhase(double[] signal, double freqFundamental, double samplingRate)
+        {
+            double[] referenceSin = GenerateSineWave(freqFundamental, samplingRate, signal.Length, 0);
+            double[] referenceCos = GenerateSineWave(freqFundamental, samplingRate, signal.Length, 90);
+
+            // Multiplier et intégrer (moyenne)
+            double I = 0, Q = 0;
+            for (int i = 0; i < signal.Length; i++)
+            {
+                I += signal[i] * referenceSin[i];
+                Q += signal[i] * referenceCos[i];
+            }
+            I /= signal.Length;
+            Q /= signal.Length;
+
+            return ((Math.Atan2(Q, I) * 180 / Math.PI)+360)%360; // Phase en degrés
+        }
+
+        private static double[] GenerateSineWave(double freq, double samplingRate, int length, double phaseDeg)
+        {
+            double[] wave = new double[length];
+            double phaseRad = phaseDeg * Math.PI / 180;
+            for (int i = 0; i < length; i++)
+                wave[i] = Math.Sin(2 * Math.PI * freq * i / samplingRate + phaseRad);
+            return wave;
+        }
+
+
+
+
+    public static double FitSinusoidPhase(double[] signal, double freqFundamental, double samplingRate)
+    {
+        // Construction de la matrice A = [sin(2πft), cos(2πft)]
+        var A = Matrix<double>.Build.Dense(signal.Length, 2);
+        for (int i = 0; i < signal.Length; i++)
+        {
+            double t = i / samplingRate;
+            A[i, 0] = Math.Sin(2 * Math.PI * freqFundamental * t);
+            A[i, 1] = Math.Cos(2 * Math.PI * freqFundamental * t);
+        }
+
+        // Résolution Ax = b (b = signal)
+        var b = MathNet.Numerics.LinearAlgebra.Vector<double>.Build.Dense(signal);
+        var x = A.TransposeThisAndMultiply(A).Inverse() * A.TransposeThisAndMultiply(b);
+
+        // Phase = atan2(cos_coeff, sin_coeff)
+        return ((Math.Atan2(x[1], x[0]) * 180 / Math.PI)+360)%360;
+    }
+    public static string GetStatisticsFundamental(string sTitle, double totalSamples, double sampleRate, double magnitude, double numberoftours)
         {
 
             // 1. Durée du signal (s)
@@ -667,8 +741,8 @@ namespace equilibreuse
             double angleInt = Math.Atan2(kIntY, kIntX) * 180.0 / Math.PI;
 
             // Inverser de 180° pour corriger le balourd
-            angleExt = (angleExt + 180.0) % 360.0;
-            angleInt = (angleInt + 180.0) % 360.0;
+            angleExt = (angleExt + 180.0 + 360.0) % 360.0;
+            angleInt = (angleInt + 180.0 + 360.0) % 360.0;
 
             return new MassCorrectionResult
             {
@@ -746,8 +820,8 @@ namespace equilibreuse
             balourdAngle = (balourdAngle + 360.0) % 360.0;
 
             // 4. Placer les masses à ±90° du balourd
-            double angleOuter = (balourdAngle - 90 + 360) % 360.0;
-            double angleInner = (balourdAngle + 90) % 360.0;
+            double angleOuter = (balourdAngle - 45 + 360) % 360.0;
+            double angleInner = (balourdAngle + 45 + 360) % 360.0;
 
             // 5. Résolution du système : F = K_ext * m_ext + K_int * m_int
             // Les vecteurs de placement :
@@ -834,8 +908,8 @@ namespace equilibreuse
             double angleEffortDeg = (angleEffortRad * 180.0 / Math.PI + 360.0) % 360.0;
 
             // Angles des masses à corriger ±90°
-            double angleExtDeg = (angleEffortDeg - 90 + 360.0) % 360.0;
-            double angleIntDeg = (angleEffortDeg + 90) % 360.0;
+            double angleExtDeg = (angleEffortDeg - 45.0 + 360.0) % 360.0;
+            double angleIntDeg = (angleEffortDeg + 45.0 + 360.0) % 360.0;
 
             return new MassCorrectionResult
             {

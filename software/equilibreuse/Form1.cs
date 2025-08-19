@@ -429,6 +429,16 @@ namespace equilibreuse
             currentAnalysisX.coRMS = Statistics.RootMeanSquare(analyzedX);
             currentAnalysisY.coPkPk = analyzedY.Max() - analyzedY.Min();
             currentAnalysisY.coRMS = Statistics.RootMeanSquare(analyzedY);
+
+            var maxValue = analyzedX.Max();
+            int maxIndex = analyzedX.ToList().IndexOf(maxValue);
+            //add timing of the max value
+            currentAnalysisX.coPkTiming = (maxIndex * 360.0 / countX);
+             maxValue = analyzedY.Max();
+            maxIndex = analyzedY.ToList().IndexOf(maxValue);
+            //add timing of the max value
+            currentAnalysisY.coPkTiming = (maxIndex * 360.0 / countX);
+
             formsPlotAnalysis.Plot.Clear();
             if (!chkFFTSingle.Checked)
             {
@@ -597,7 +607,7 @@ namespace equilibreuse
                      k = EquilibrageHelper.CalculateAttenuationConstant(Convert.ToDouble(txtYMagExt.Text), Convert.ToDouble(txtYMagInt.Text), Convert.ToDouble(txtYMagGrams.Text));
                      currentAnalysisY.coWeight = EquilibrageHelper.CalculateRequiredMass(k, currentAnalysisY.coMagAvg, Convert.ToDouble(txtYMagBalanced.Text));
                      */
-                var result = EquilibrageHelper.CalculateAttenuationConstantsXY(Convert.ToDouble(txtXMagGrams.Text) / 1000.0,
+             /*   var result = EquilibrageHelper.CalculateAttenuationConstantsXY(Convert.ToDouble(txtXMagGrams.Text) / 1000.0,
                                          Convert.ToDouble(txtXMagBalanced.Text),
                                          Convert.ToDouble(txtYMagBalanced.Text),
                                          Convert.ToDouble(txtXMagExt.Text),
@@ -606,10 +616,12 @@ namespace equilibreuse
                                          Convert.ToDouble(txtXMagInt.Text),
                                          Convert.ToDouble(txtYMagInt.Text));
                 var res = EquilibrageHelper.EstimateMassCorrection(currentAnalysisX.coMagAvg, (currentAnalysisX.coAngle + 180) % 360, currentAnalysisY.coMagAvg, (currentAnalysisY.coAngle + 180) % 360, result.KextX, result.KextY, result.KintX, result.KintY);
+
                 currentAnalysisX.coAngleDynamicComplex = res.AngleIntDeg;
                 currentAnalysisY.coAngleDynamicComplex = res.AngleExtDeg;
                 currentAnalysisX.coWeight = res.MassInt;
                 currentAnalysisY.coWeight = res.MassExt;
+             */
             }
             formsPlotAnalysis.Render();
             if (selectedSections.Count > 0)
@@ -629,6 +641,8 @@ namespace equilibreuse
             List<double> rmsY = new List<double>();
             List<double> pkpkXInv = new List<double>();
             List<double> pkpkYInv = new List<double>();
+            List<double> pkXTiming = new List<double>();
+            List<double> pkYTiming = new List<double>();
             foreach (var s in selectedSections)
             {
                 double sampleRate = s.SamplingRate;
@@ -658,6 +672,14 @@ namespace equilibreuse
                 pkpkZ.Add(z.Max() - z.Min());
                 rmsX.Add(Statistics.RootMeanSquare(x));
                 rmsY.Add(Statistics.RootMeanSquare(y));
+
+                var maxValue = x.Max();
+                int maxIndex = x.ToList().IndexOf(maxValue);
+                //add timing of the max value
+                pkXTiming.Add(maxIndex * 360.0 / count);
+                maxValue = y.Max();
+                maxIndex = y.ToList().IndexOf(maxValue);
+                pkYTiming.Add(maxIndex*360.0 / count);
                 FFTData cmpX = EquilibrageHelper.CalculateFFT(x, sampleRate, cbxFFTSingle, chkDb.Checked, s.Rpm, f_rot);
                 FFTData cmpY = EquilibrageHelper.CalculateFFT(y, sampleRate, cbxFFTSingle, chkDb.Checked, s.Rpm, f_rot);
                 FFTData cmpZ = EquilibrageHelper.CalculateFFT(z, sampleRate, cbxFFTSingle, chkDb.Checked, s.Rpm, f_rot);
@@ -679,7 +701,8 @@ namespace equilibreuse
             currentAnalysisY.ttPkPkInverse = pkpkYInv.Average();
             currentAnalysisX.ttRMS = rmsX.Average();
             currentAnalysisY.ttRMS = rmsY.Average();
-            
+            currentAnalysisX.ttPkTiming = pkXTiming.Average();
+            currentAnalysisY.ttPkTiming = pkYTiming.Average();
 
             for (int i = 0; i < 5; i++)
             {
@@ -781,7 +804,7 @@ namespace equilibreuse
 
                      k = EquilibrageHelper.CalculateAttenuationConstant(Convert.ToDouble(txtYMagExt.Text), Convert.ToDouble(txtYMagInt.Text), Convert.ToDouble(txtYMagGrams.Text));
                      currentAnalysisY.ttWeight = EquilibrageHelper.CalculateRequiredMass(k, currentAnalysisY.ttMagAvg, Convert.ToDouble(txtYMagBalanced.Text));
-                     */
+                     
                     var result = EquilibrageHelper.CalculateAttenuationConstantsXY(Convert.ToDouble(txtXMagGrams.Text) / 1000.0,
                                             Convert.ToDouble(txtXMagBalanced.Text),
                                             Convert.ToDouble(txtYMagBalanced.Text),
@@ -794,7 +817,7 @@ namespace equilibreuse
                     currentAnalysisX.ttAngleDynamicComplex = res.AngleIntDeg;
                     currentAnalysisY.ttAngleDynamicComplex = res.AngleExtDeg;
                     currentAnalysisX.ttWeight = res.MassInt;
-                    currentAnalysisY.ttWeight = res.MassExt;
+                    currentAnalysisY.ttWeight = res.MassExt;*/
                 }
                 else if (i == 1)
                     DisplayTurnByTurnGraph(lstBestAngleInner, lstBestAngleOuter, lstBestAngleX, lstBestAngleY, formsPlotT2I, formsPlotT2O, formsPlotT2X, formsPlotT2Y);
@@ -856,7 +879,26 @@ namespace equilibreuse
                 return;
             resultante = resultante.Select(r => r * gain).ToArray();
         }
-        
+        private double CalculateMeanAngle(double[] angles)
+        {
+            int totalOccurrences = angles.Length;
+
+            double sommeCos = 0;
+            double sommeSin = 0;
+
+            for(int i = 0; i < totalOccurrences;i++)
+            {
+                double angle = angles[i];
+                double radian = angle * (Math.PI / 180); // Conversion en radians
+                sommeCos += Math.Cos(radian);
+                sommeSin += Math.Sin(radian);
+            }
+
+            double moyenneRad = Math.Atan2(sommeSin, sommeCos); // Calcul de l'angle moyen en radians
+            var mean = moyenneRad * (180 / Math.PI); // Conversion en degrés
+            mean = (mean + 360) % 360;
+            return mean;
+        }
         private void CalculateStatistics(string data, int i, Dictionary<int, int> lstData, ref double mean, ref double coeffVariation, ref double variance, ref double standardDeviation)
         {
             int totalOccurrences = lstData.Values.Sum();
@@ -1069,8 +1111,58 @@ namespace equilibreuse
             double f_rot = 1.0 / avgTourTime;
 
             ApplyFilters(sampleRate, f_rot, ref analyzedX, ref analyzedY, ref analyzedZ, ref resultante);
-          
-//            lblPeak.Text += $"\r\nX Pk-Pk (global) : {analyzedX.Max() - analyzedX.Min()}\r\nY Pk-Pk (global) : {analyzedY.Max() - analyzedY.Min()}\r\nZ Pk-Pk (global) : {analyzedZ.Max() - analyzedZ.Min()}";
+
+            //split filtered signal by removing first and last section and analyze one by one
+            var dataX = GetSegments(analyzedX, whiteLine);
+            var dataY = GetSegments(analyzedY, whiteLine);
+            List<double> fftAvgX = new List<double>();
+            List<double> fftAvgY = new List<double>();
+            List<double> calcx1 = new List<double>();
+            List<double> calcy1 = new List<double>();
+            List<double> calcx2 = new List<double>();
+            List<double> calcy2 = new List<double>();
+            List<double> calcx3 = new List<double>();
+            List<double> calcy3 = new List<double>();
+            List<double> maxTempX = new List<double>();
+            List<double> maxTempY = new List<double>();
+            for (int i = 0; i < dataX.whiteLineSegments.Count; i++)
+            {
+                var signalX = dataX.dataSegments[i];
+                var signalY = dataY.dataSegments[i];
+                var maxValue = signalX.Max();
+                int maxIndex = signalX.ToList().IndexOf(maxValue);
+                //add timing of the max value
+                maxTempX.Add(maxIndex * 360.0 / signalX.Length);
+                maxValue = signalY.Max();
+                maxIndex = signalY.ToList().IndexOf(maxValue);
+                //add timing of the max value
+                maxTempY.Add(maxIndex * 360.0 / signalY.Length);
+
+                calcx1.Add(EquilibrageHelper.ComputeLockInPhase(signalX, f_rot, sampleRate));
+                calcy1.Add(EquilibrageHelper.ComputeLockInPhase(signalY, f_rot, sampleRate));
+                var dx3 = EquilibrageHelper.ComputePhaseHilbert(signalX, sampleRate);
+                var dy3 = EquilibrageHelper.ComputePhaseHilbert(signalY, sampleRate);
+                calcx2.Add(EquilibrageHelper.FitSinusoidPhase(signalX, f_rot, sampleRate));
+                calcy2.Add(EquilibrageHelper.FitSinusoidPhase(signalY, f_rot, sampleRate));
+
+                var fftX = EquilibrageHelper.CalculateFFT(signalX, sampleRate, cbxFFT, chkDb.Checked, rpm, f_rot);
+                var fftY = EquilibrageHelper.CalculateFFT(signalY, sampleRate, cbxFFT, chkDb.Checked, rpm, f_rot);
+
+                var fund = EquilibrageHelper.GetFundamentalPhase(fftX.Frequence, fftX.Magnitude, fftX.AngleDeg, f_rot);
+                fftAvgX.Add(fund.Angle);
+                fund = EquilibrageHelper.GetFundamentalPhase(fftY.Frequence, fftY.Magnitude, fftY.AngleDeg, f_rot);
+                fftAvgY.Add(fund.Angle);
+            }
+            var x1 = CalculateMeanAngle(maxTempX.ToArray());
+            var x2 = CalculateMeanAngle(calcx1.ToArray());
+            var x3 = CalculateMeanAngle(calcx2.ToArray());
+            var x4 = CalculateMeanAngle(fftAvgX.ToArray());
+            var y1 = CalculateMeanAngle(maxTempY.ToArray());
+            var y2 = CalculateMeanAngle(calcy1.ToArray());
+            var y3 = CalculateMeanAngle(calcy2.ToArray());
+            var y4 = CalculateMeanAngle(fftAvgY.ToArray());
+
+            //            lblPeak.Text += $"\r\nX Pk-Pk (global) : {analyzedX.Max() - analyzedX.Min()}\r\nY Pk-Pk (global) : {analyzedY.Max() - analyzedY.Min()}\r\nZ Pk-Pk (global) : {analyzedZ.Max() - analyzedZ.Min()}";
             currentAnalysisX.gPkPk = analyzedX.Max() - analyzedX.Min();
             currentAnalysisY.gPkPk = analyzedY.Max() - analyzedY.Min();
             currentAnalysisX.gRMS = Statistics.RootMeanSquare(analyzedX);
@@ -1133,7 +1225,7 @@ namespace equilibreuse
                     max = Math.Max(max, resultante.Max());
                 }
                 max += 5;
-                for (int i = 0; i < iCount; i++)
+                for (int i = 0; i < whiteLine.Length; i++)
                 {
                     if(whiteLine[i] == 10)
                         whiteLine[i] = max;
@@ -1261,6 +1353,12 @@ namespace equilibreuse
                 currentAnalysisY.gPkPkInverseRatio = (cmpY.SignalFFTInverse.Max() - cmpY.SignalFFTInverse.Min()) / selectedSections.Count;
                 currentAnalysisY.gAngle = calcResult.py[0].UnbalanceAngleDeg;
 
+                var dx2 = EquilibrageHelper.ComputeLockInPhase(analyzedX, f_rot, sampleRate);
+                var dy2 = EquilibrageHelper.ComputeLockInPhase(analyzedY, f_rot, sampleRate);
+                var dx3 = EquilibrageHelper.ComputePhaseHilbert(analyzedX, sampleRate);
+                var dy3 = EquilibrageHelper.ComputePhaseHilbert(analyzedY, sampleRate);
+                var dx4 = EquilibrageHelper.FitSinusoidPhase(analyzedX, f_rot, sampleRate);
+                var dy4 = EquilibrageHelper.FitSinusoidPhase(analyzedY, f_rot, sampleRate);
                 var dx = EquilibrageHelper.DetectPhaseWithSweep(analyzedX, sampleRate, f_rot);
                 var dy = EquilibrageHelper.DetectPhaseWithSweep(analyzedY, sampleRate, f_rot);
                 currentAnalysisX.gAngleAlternatif = dx.phaseDegrees;
@@ -1469,7 +1567,8 @@ namespace equilibreuse
 
                 lstSimulationGyro.Items.Clear();
                 
-                var calcResult = EquilibrageHelper.CompleteSimulation(lstSimulationGyro, "Gyroscope", cmpX, cmpY, cmpZ, cmpResultante, sampleRate, f_rot, 1);
+                //X and Y are inversed on GYRO
+                var calcResult = EquilibrageHelper.CompleteSimulation(lstSimulationGyro, "Gyroscope", cmpY, cmpX, cmpZ, cmpResultante, sampleRate, f_rot, 1);
                 for (int i = 0; i < 5; i++)
                 {
                     if (i == 0)
@@ -1539,8 +1638,9 @@ namespace equilibreuse
                     currentAnalysisY.gMagPSD = psd;
                     currentAnalysisY.gPkPkInverse = (cmpX.SignalFFTInverse.Max() - cmpX.SignalFFTInverse.Min());
                     currentAnalysisY.gPkPkInverseRatio = (cmpX.SignalFFTInverse.Max() - cmpX.SignalFFTInverse.Min()) / selectedSections.Count;
-                    currentAnalysisY.gAngleGyro = calcResult.px[0].UnbalanceAngleDeg;
+                    
                 }
+                currentAnalysisY.gAngleGyro = calcResult.px[0].UnbalanceAngleDeg;
                 if (chkUseYGyro.Checked)
                 {
                     var magnitude = calcResult.py[0].ActualAmplitude;
@@ -1554,8 +1654,9 @@ namespace equilibreuse
                     currentAnalysisX.gMagPSD = psd;
                     currentAnalysisX.gPkPkInverse = (cmpY.SignalFFTInverse.Max() - cmpY.SignalFFTInverse.Min());
                     currentAnalysisX.gPkPkInverseRatio = (cmpY.SignalFFTInverse.Max() - cmpY.SignalFFTInverse.Min()) / selectedSections.Count;
-                    currentAnalysisX.gAngleGyro = calcResult.py[0].UnbalanceAngleDeg;
+                    
                 }
+                currentAnalysisX.gAngleGyro = calcResult.py[0].UnbalanceAngleDeg;
             }
             formsPlotGyro.Render();
         }
@@ -1881,12 +1982,22 @@ namespace equilibreuse
             formsPlotT4X.Render(); formsPlotT4Y.Render(); formsPlotT4O.Render(); formsPlotT4I.Render();
             formsPlotT5X.Render(); formsPlotT5Y.Render(); formsPlotT5O.Render(); formsPlotT5I.Render();
 
-            var xCorrect = Convert.ToDouble(txtCorrectAngleX.Text);
+         /*   var xCorrect = Convert.ToDouble(txtCorrectAngleX.Text);
             currentAnalysisX.gAngle = (currentAnalysisX.gAngle + xCorrect) % 360;
+            currentAnalysisX.gAngleAlternatif = (currentAnalysisX.gAngleAlternatif+ xCorrect) % 360;
+            currentAnalysisX.ttPkTiming = (currentAnalysisX.ttPkTiming + xCorrect) % 360;
+            currentAnalysisX.ttAngle = (currentAnalysisX.ttAngle + xCorrect) % 360;
             var yCorrect = Convert.ToDouble(txtCorrectAngleY.Text);
             currentAnalysisY.gAngle = (currentAnalysisY.gAngle + yCorrect) % 360;
+            currentAnalysisY.gAngleAlternatif = (currentAnalysisY.gAngleAlternatif + yCorrect) % 360;
+            currentAnalysisY.ttPkTiming = (currentAnalysisY.ttPkTiming + yCorrect) % 360;
+            currentAnalysisY.ttAngle = (currentAnalysisY.ttAngle + yCorrect) % 360;
+
+
             currentAnalysisY.gAngleGyro = (currentAnalysisY.gAngleGyro + 180) % 360;
             currentAnalysisX.gAngleGyro = (currentAnalysisX.gAngleGyro + 90) % 360;
+
+            */
             if (chkUseXGyro.Checked && chkScaleGyro.Checked) //scale X Gyro
             {
                 currentAnalysisY.gMagRatio *= 0.1;
@@ -1895,7 +2006,7 @@ namespace equilibreuse
             {
                 currentAnalysisX.gMagRatio *= 0.1; 
             }
-            var result = EquilibrageHelper.CalculateAttenuationConstantsXY(Convert.ToDouble(txtXMagGrams.Text) / 1000.0,
+            /*var result = EquilibrageHelper.CalculateAttenuationConstantsXY(Convert.ToDouble(txtXMagGrams.Text) / 1000.0,
                                       Convert.ToDouble(txtXMagBalanced.Text),
                                       Convert.ToDouble(txtYMagBalanced.Text),
                                       Convert.ToDouble(txtXMagExt.Text),
@@ -1908,7 +2019,7 @@ namespace equilibreuse
             currentAnalysisY.gAngleDynamicComplex = res.AngleExtDeg;
             currentAnalysisX.gWeight = res.MassInt;
             currentAnalysisY.gWeight = res.MassExt;
-
+            */
             dataGridX.Rows.Add(currentAnalysisX.toArray());
             dataGridY.Rows.Add(currentAnalysisY.toArray());
 
@@ -1921,7 +2032,7 @@ namespace equilibreuse
             //if not enough selected data, display warning
             if (Math.Abs(currentAnalysisX.gAngle - currentAnalysisX.gAngleGyro) > 45 || Math.Abs(currentAnalysisY.gAngle - currentAnalysisY.gAngleGyro) > 45)
             {
-                MessageBox.Show("Be carefull, X or Y angles have more than 45° between Global and Gyro ! results may not be good");
+           //     MessageBox.Show("Be carefull, X or Y angles have more than 45° between Global and Gyro ! results may not be good");
             }
         }
 
@@ -2435,7 +2546,9 @@ namespace equilibreuse
                 new DataGridViewColumn(){ HeaderText = "Global Angle Alternatif FFT", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Global Angle Gyro FFT", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Compiled Angle FFT", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Compiled Angle Max Temporal", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Turn-Turn Angle FFT", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Turn-Turn Angle Max Temporal", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
 
                 new DataGridViewColumn(){ HeaderText = "Turn-Turn Mag AVG", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Compiled Mag AVG", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
@@ -2481,7 +2594,9 @@ namespace equilibreuse
                 new DataGridViewColumn(){ HeaderText = "Global Angle Alternatif FFT", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Global Angle Gyro FFT", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Compiled Angle FFT", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Compiled Angle Max Temporal", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Turn-Turn Angle FFT", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Turn-Turn Angle Max Temporal", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
 
                 new DataGridViewColumn(){ HeaderText = "Turn-Turn Mag AVG", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Compiled Mag AVG", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
@@ -2537,7 +2652,40 @@ namespace equilibreuse
                     lstSectionSelector.SetItemChecked(i, true);
             }
         }
-    
+
+        private (List<double[]> dataSegments, List<double[]> whiteLineSegments) GetSegments(double[] data, double[] whiteLine)
+        {
+            // Étape 1 : Trouver les indices de début de segment (valeur == 10 dans whiteLine)
+            var segmentStartIndices = whiteLine
+                .Select((value, index) => new { value, index })
+                .Where(x => x.value == 10)
+                .Select(x => x.index)
+                .ToList();
+
+            // Étape 2 : Ignorer le premier et le dernier segment
+            if (segmentStartIndices.Count < 3)
+                return (new List<double[]>(), new List<double[]>()); // Pas assez de segments valides
+
+            var validStarts = segmentStartIndices.Skip(1).Take(segmentStartIndices.Count - 2).ToList();
+
+            var dataSegments = new List<double[]>();
+            var whiteLineSegments = new List<double[]>();
+
+            for (int i = 0; i < validStarts.Count - 1; i++)
+            {
+                int start = validStarts[i];
+                int end = validStarts[i + 1];
+
+                var dataSegment = data.Skip(start).Take(end - start).ToArray();
+                var whiteLineSegment = whiteLine.Skip(start).Take(end - start).ToArray();
+
+                dataSegments.Add(dataSegment);
+                whiteLineSegments.Add(whiteLineSegment);
+            }
+
+            return (dataSegments, whiteLineSegments);
+        }
+
     }
     [Delimiter(",")]
     public class xyz
@@ -2641,7 +2789,8 @@ namespace equilibreuse
         public double ttMagAvg;
         public double coPkPk;
         public double coMagAvg;
-        
+        public double ttPkTiming;
+        public double coPkTiming;
         public double gWeight;
         public double ttAngle;
         public double ttWeight;
@@ -2720,8 +2869,10 @@ namespace equilibreuse
                 gAngleAlternatif.ToString("F4"),
                 gAngleGyro.ToString("F4"),
                 coAngle.ToString("F4"),
+                coPkTiming.ToString("F4"),
                 ttAngle.ToString("F4"),
-                 ttMagAvg.ToString("F4"),
+                ttPkTiming.ToString("F4"),
+                ttMagAvg.ToString("F4"),
                 coMagAvg.ToString("F4"),
                 gAngleDynamicSimple.ToString("F4"),
                 coAngleDynamicSimple.ToString("F4"),
