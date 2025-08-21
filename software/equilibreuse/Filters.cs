@@ -1,5 +1,8 @@
 ﻿using MathNet.Filtering.FIR;
 using MathNet.Filtering.Windowing;
+using NWaves.Filters.Base;
+using NWaves.Filters.Fda;
+using NWaves.Signals;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -170,9 +173,9 @@ namespace equilibreuse
                 return null;
 
             var coeffs = MathNet.Filtering.FIR.FirCoefficients.BandPass(sampleRate, centerFreq - bandwidth / 2, centerFreq + bandwidth / 2, filterOrder);
-          //  var window = new MathNet.Filtering.Windowing.HammingWindow { Width = coeffs.Length }.CopyToArray();
-          //  for (int i = 0; i < coeffs.Length; i++)
-          //      coeffs[i] *= window[i];
+            var window = new MathNet.Filtering.Windowing.HammingWindow { Width = coeffs.Length }.CopyToArray();
+            for (int i = 0; i < coeffs.Length; i++)
+                coeffs[i] *= window[i];
 
             var filter = new MathNet.Filtering.FIR.OnlineFirFilter(coeffs);
            
@@ -189,6 +192,39 @@ namespace equilibreuse
             // 3. Reverse back to original time order
             Array.Reverse(backward);
             return backward;
+        }
+        public static DiscreteSignal ApplySavitzkyGolayFilter(double[] signal, double sampleRate, double f_rot,int filterOrder)
+        {
+            var filter = new NWaves.Filters.SavitzkyGolayFilter(filterOrder);
+            var filtered = filter.ApplyTo(new DiscreteSignal((int)sampleRate, signal.Select(s => (float)s).ToArray()));
+            return filtered;
+
+        }
+        public static DiscreteSignal ApplyFilter(double[] signal, double sampleRate, double f_rot, int filterOrder)
+        {
+            var freq = f_rot / sampleRate;
+            double fLow = (f_rot-0.1)/ sampleRate; // normalize frequency onto [0, 0.5] range
+            double fHigh = (f_rot + 0.1) / sampleRate; // normalize frequency onto [0, 0.5] range
+                                                       /*var filter = new NWaves.Filters.Butterworth.BandPassFilter(fLow, fHigh, filterOrder);
+                                                        var sos = DesignFilter.TfToSos(filter.Tf);
+                                                        var filters = new FilterChain(sos);
+
+                                                        // =========== filtering ==============
+
+                                                        var gain = filters.EstimateGain();
+                                                        var filteredSignal = filters.ApplyTo(new DiscreteSignal((int)sampleRate, signal.Select(s => (float)s).ToArray()), gain);
+                                                        **/
+            var filter = new NWaves.Filters.Elliptic.BandPassFilter(fLow, fHigh, filterOrder);
+            //var filter = new NWaves.Filters.BiQuad.PeakFilter(freq, 100, 100);
+            var filteredSignal = filter.ApplyTo(new DiscreteSignal((int)sampleRate, signal.Select(s => (float)s).ToArray()));
+            var filter2 = new NWaves.Filters.MovingAverageFilter();
+            //SavitzkyGolayFilter(31,0);
+            filteredSignal = filter2.ApplyTo(new DiscreteSignal((int)sampleRate, filteredSignal.Samples), FilteringMethod.Auto);
+
+
+
+            return filteredSignal;
+
         }
         public static double[] RemoveDCOffset(double[] signal)
         {

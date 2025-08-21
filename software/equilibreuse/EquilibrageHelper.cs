@@ -11,6 +11,15 @@ using MathNet.Numerics.LinearAlgebra;
 
 namespace equilibreuse
 {
+    public class PhaseAnalysis
+    {
+        public double rMaxTemporal;
+        public double rPhaseLockIn;
+        public double rFitSinusoid;
+        public double rDetectPhase;
+        public double rFFT;
+
+    }
     public class FFTData
     {
         public double[] AngleDeg;
@@ -63,6 +72,22 @@ namespace equilibreuse
     }
     public static class EquilibrageHelper
     {
+        public static PhaseAnalysis AnalyzeSignal(double[] signal, double sampleRate, double f_rot, ComboBox cbxFFT, CheckBox chkDb, double rpm)
+        {
+            var res = new PhaseAnalysis();
+            //max temporal value
+            var maxValue = signal.Max();
+            int maxIndex = signal.ToList().IndexOf(maxValue);
+            //add timing of the max value
+            res.rMaxTemporal = (maxIndex * 360.0 / signal.Length);
+            res.rPhaseLockIn = EquilibrageHelper.ComputeLockInPhase(signal, f_rot, sampleRate);
+            res.rFitSinusoid = EquilibrageHelper.FitSinusoidPhase(signal, f_rot, sampleRate);
+            res.rDetectPhase = EquilibrageHelper.DetectPhase(signal, sampleRate, f_rot).phaseDegrees;
+            var fft = EquilibrageHelper.CalculateFFT(signal, sampleRate, cbxFFT, chkDb.Checked, rpm, f_rot);
+            var fund = EquilibrageHelper.GetFundamentalPhase(fft.Frequence, fft.Magnitude, fft.AngleDeg, f_rot);
+            res.rFFT = fund.Angle;
+            return res;
+        }
         public static DynamicCorrectionResult EstimateDynamicImbalanceCorrection(double phaseX, double magX,double phaseY, double magY)
         {
             // 1. Décomposition en vecteurs

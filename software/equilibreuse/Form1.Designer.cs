@@ -165,6 +165,9 @@
             this.dataGridY = new System.Windows.Forms.DataGridView();
             this.dataGridX = new System.Windows.Forms.DataGridView();
             this.tabPage7 = new System.Windows.Forms.TabPage();
+            this.lstAnglesY = new System.Windows.Forms.ListBox();
+            this.lstAnglesX = new System.Windows.Forms.ListBox();
+            this.btnFindAngles = new System.Windows.Forms.Button();
             this.chkScaleGyro = new System.Windows.Forms.CheckBox();
             this.txtCorrectAngleY = new System.Windows.Forms.TextBox();
             this.txtCorrectAngleX = new System.Windows.Forms.TextBox();
@@ -219,6 +222,8 @@
             this.label44 = new System.Windows.Forms.Label();
             this.lblStatX = new System.Windows.Forms.Label();
             this.lblStatY = new System.Windows.Forms.Label();
+            this.formsPlotBestAngleX = new ScottPlot.FormsPlot();
+            this.formsPlotBestAngleY = new ScottPlot.FormsPlot();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -1566,6 +1571,11 @@
             // 
             // tabPage7
             // 
+            this.tabPage7.Controls.Add(this.formsPlotBestAngleY);
+            this.tabPage7.Controls.Add(this.formsPlotBestAngleX);
+            this.tabPage7.Controls.Add(this.lstAnglesY);
+            this.tabPage7.Controls.Add(this.lstAnglesX);
+            this.tabPage7.Controls.Add(this.btnFindAngles);
             this.tabPage7.Controls.Add(this.chkScaleGyro);
             this.tabPage7.Controls.Add(this.txtCorrectAngleY);
             this.tabPage7.Controls.Add(this.txtCorrectAngleX);
@@ -1593,12 +1603,38 @@
             this.tabPage7.Text = "Section selector";
             this.tabPage7.UseVisualStyleBackColor = true;
             // 
+            // lstAnglesY
+            // 
+            this.lstAnglesY.FormattingEnabled = true;
+            this.lstAnglesY.Location = new System.Drawing.Point(772, 111);
+            this.lstAnglesY.Name = "lstAnglesY";
+            this.lstAnglesY.Size = new System.Drawing.Size(241, 134);
+            this.lstAnglesY.TabIndex = 84;
+            // 
+            // lstAnglesX
+            // 
+            this.lstAnglesX.FormattingEnabled = true;
+            this.lstAnglesX.Location = new System.Drawing.Point(520, 112);
+            this.lstAnglesX.Name = "lstAnglesX";
+            this.lstAnglesX.Size = new System.Drawing.Size(241, 134);
+            this.lstAnglesX.TabIndex = 83;
+            // 
+            // btnFindAngles
+            // 
+            this.btnFindAngles.Location = new System.Drawing.Point(725, 6);
+            this.btnFindAngles.Name = "btnFindAngles";
+            this.btnFindAngles.Size = new System.Drawing.Size(75, 23);
+            this.btnFindAngles.TabIndex = 82;
+            this.btnFindAngles.Text = "Find angles";
+            this.btnFindAngles.UseVisualStyleBackColor = true;
+            this.btnFindAngles.Click += new System.EventHandler(this.btnFindAngles_Click);
+            // 
             // chkScaleGyro
             // 
             this.chkScaleGyro.AutoSize = true;
             this.chkScaleGyro.Checked = true;
             this.chkScaleGyro.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkScaleGyro.Location = new System.Drawing.Point(546, 379);
+            this.chkScaleGyro.Location = new System.Drawing.Point(546, 488);
             this.chkScaleGyro.Name = "chkScaleGyro";
             this.chkScaleGyro.Size = new System.Drawing.Size(102, 17);
             this.chkScaleGyro.TabIndex = 81;
@@ -1607,7 +1643,7 @@
             // 
             // txtCorrectAngleY
             // 
-            this.txtCorrectAngleY.Location = new System.Drawing.Point(802, 353);
+            this.txtCorrectAngleY.Location = new System.Drawing.Point(802, 462);
             this.txtCorrectAngleY.Name = "txtCorrectAngleY";
             this.txtCorrectAngleY.Size = new System.Drawing.Size(100, 20);
             this.txtCorrectAngleY.TabIndex = 80;
@@ -1615,7 +1651,7 @@
             // 
             // txtCorrectAngleX
             // 
-            this.txtCorrectAngleX.Location = new System.Drawing.Point(802, 330);
+            this.txtCorrectAngleX.Location = new System.Drawing.Point(802, 439);
             this.txtCorrectAngleX.Name = "txtCorrectAngleX";
             this.txtCorrectAngleX.Size = new System.Drawing.Size(100, 20);
             this.txtCorrectAngleX.TabIndex = 79;
@@ -1624,7 +1660,7 @@
             // chkUseYGyro
             // 
             this.chkUseYGyro.AutoSize = true;
-            this.chkUseYGyro.Location = new System.Drawing.Point(546, 355);
+            this.chkUseYGyro.Location = new System.Drawing.Point(546, 464);
             this.chkUseYGyro.Name = "chkUseYGyro";
             this.chkUseYGyro.Size = new System.Drawing.Size(256, 17);
             this.chkUseYGyro.TabIndex = 78;
@@ -1634,7 +1670,7 @@
             // chkUseXGyro
             // 
             this.chkUseXGyro.AutoSize = true;
-            this.chkUseXGyro.Location = new System.Drawing.Point(546, 332);
+            this.chkUseXGyro.Location = new System.Drawing.Point(546, 441);
             this.chkUseXGyro.Name = "chkUseXGyro";
             this.chkUseXGyro.Size = new System.Drawing.Size(256, 17);
             this.chkUseXGyro.TabIndex = 77;
@@ -1643,7 +1679,7 @@
             // 
             // btnSaveData
             // 
-            this.btnSaveData.Location = new System.Drawing.Point(793, 275);
+            this.btnSaveData.Location = new System.Drawing.Point(793, 389);
             this.btnSaveData.Name = "btnSaveData";
             this.btnSaveData.Size = new System.Drawing.Size(152, 23);
             this.btnSaveData.TabIndex = 76;
@@ -1661,9 +1697,9 @@
             this.groupBox2.Controls.Add(this.label52);
             this.groupBox2.Controls.Add(this.txtXMagGrams);
             this.groupBox2.Controls.Add(this.txtXMagInt);
-            this.groupBox2.Location = new System.Drawing.Point(542, 125);
+            this.groupBox2.Location = new System.Drawing.Point(542, 251);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(311, 144);
+            this.groupBox2.Size = new System.Drawing.Size(311, 116);
             this.groupBox2.TabIndex = 75;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "X calibration";
@@ -1743,7 +1779,7 @@
             this.groupBox1.Controls.Add(this.label48);
             this.groupBox1.Controls.Add(this.txtYMagGrams);
             this.groupBox1.Controls.Add(this.txtYMagInt);
-            this.groupBox1.Location = new System.Drawing.Point(881, 125);
+            this.groupBox1.Location = new System.Drawing.Point(881, 251);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(311, 116);
             this.groupBox1.TabIndex = 74;
@@ -1989,8 +2025,6 @@
             // chkRemoveDC
             // 
             this.chkRemoveDC.AutoSize = true;
-            this.chkRemoveDC.Checked = true;
-            this.chkRemoveDC.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkRemoveDC.Location = new System.Drawing.Point(788, 23);
             this.chkRemoveDC.Name = "chkRemoveDC";
             this.chkRemoveDC.Size = new System.Drawing.Size(84, 17);
@@ -2087,7 +2121,7 @@
             this.txtFilterOrder.Name = "txtFilterOrder";
             this.txtFilterOrder.Size = new System.Drawing.Size(30, 20);
             this.txtFilterOrder.TabIndex = 66;
-            this.txtFilterOrder.Text = "200";
+            this.txtFilterOrder.Text = "1";
             // 
             // label44
             // 
@@ -2117,6 +2151,20 @@
             this.lblStatY.Name = "lblStatY";
             this.lblStatY.Size = new System.Drawing.Size(0, 15);
             this.lblStatY.TabIndex = 69;
+            // 
+            // formsPlotBestAngleX
+            // 
+            this.formsPlotBestAngleX.Location = new System.Drawing.Point(992, 7);
+            this.formsPlotBestAngleX.Name = "formsPlotBestAngleX";
+            this.formsPlotBestAngleX.Size = new System.Drawing.Size(254, 173);
+            this.formsPlotBestAngleX.TabIndex = 85;
+            // 
+            // formsPlotBestAngleY
+            // 
+            this.formsPlotBestAngleY.Location = new System.Drawing.Point(1008, 174);
+            this.formsPlotBestAngleY.Name = "formsPlotBestAngleY";
+            this.formsPlotBestAngleY.Size = new System.Drawing.Size(254, 173);
+            this.formsPlotBestAngleY.TabIndex = 86;
             // 
             // Form1
             // 
@@ -2402,6 +2450,11 @@
         private System.Windows.Forms.CheckBox chkUseYGyro;
         private System.Windows.Forms.CheckBox chkUseXGyro;
         private System.Windows.Forms.CheckBox chkScaleGyro;
+        private System.Windows.Forms.ListBox lstAnglesY;
+        private System.Windows.Forms.ListBox lstAnglesX;
+        private System.Windows.Forms.Button btnFindAngles;
+        private ScottPlot.FormsPlot formsPlotBestAngleY;
+        private ScottPlot.FormsPlot formsPlotBestAngleX;
     }
 }
 
