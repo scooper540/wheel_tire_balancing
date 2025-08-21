@@ -22,8 +22,9 @@ namespace equilibreuse
     {
         private LtiFilter _filter;
 
-        private DiscreteSignal _signal;
-        private DiscreteSignal _filteredSignal;
+        public DiscreteSignal _signal;
+        public DiscreteSignal _filteredSignal;
+        public double _f_rot;
 
         private readonly Stft _stft = new Stft(256);
 
@@ -884,7 +885,7 @@ namespace equilibreuse
 
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var ofd = new OpenFileDialog();
+           /* var ofd = new OpenFileDialog();
             if (ofd.ShowDialog() != DialogResult.OK)
             {
                 return;
@@ -898,7 +899,7 @@ namespace equilibreuse
                 _bitDepth = waveFile.WaveFmt.BitsPerSample;
                 _signal = waveFile[Channels.Left];
             }
-
+            */
             signalBeforeFilteringPanel.Signal = _signal;
             spectrogramBeforeFilteringPanel.Spectrogram = _stft.Spectrogram(_signal);
         }

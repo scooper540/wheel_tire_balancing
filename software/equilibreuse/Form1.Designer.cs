@@ -165,6 +165,8 @@
             this.dataGridY = new System.Windows.Forms.DataGridView();
             this.dataGridX = new System.Windows.Forms.DataGridView();
             this.tabPage7 = new System.Windows.Forms.TabPage();
+            this.formsPlotBestAngleY = new ScottPlot.FormsPlot();
+            this.formsPlotBestAngleX = new ScottPlot.FormsPlot();
             this.lstAnglesY = new System.Windows.Forms.ListBox();
             this.lstAnglesX = new System.Windows.Forms.ListBox();
             this.btnFindAngles = new System.Windows.Forms.Button();
@@ -222,8 +224,7 @@
             this.label44 = new System.Windows.Forms.Label();
             this.lblStatX = new System.Windows.Forms.Label();
             this.lblStatY = new System.Windows.Forms.Label();
-            this.formsPlotBestAngleX = new ScottPlot.FormsPlot();
-            this.formsPlotBestAngleY = new ScottPlot.FormsPlot();
+            this.filterTypesComboBox = new System.Windows.Forms.ComboBox();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -912,7 +913,7 @@
             this.label42.AutoSize = true;
             this.label42.Location = new System.Drawing.Point(577, 250);
             this.label42.Name = "label42";
-            this.label42.Size = new System.Drawing.Size(252, 52);
+            this.label42.Size = new System.Drawing.Size(251, 52);
             this.label42.TabIndex = 71;
             this.label42.Text = "Coeff variation\r\nCV < 0.1 → données très proches (faible dispersion)\r\n0.1 ≤ CV < " +
     "0.3 → données modérément dispersées\r\nCV ≥ 0.3 → données très dispersées";
@@ -1603,6 +1604,20 @@
             this.tabPage7.Text = "Section selector";
             this.tabPage7.UseVisualStyleBackColor = true;
             // 
+            // formsPlotBestAngleY
+            // 
+            this.formsPlotBestAngleY.Location = new System.Drawing.Point(1008, 174);
+            this.formsPlotBestAngleY.Name = "formsPlotBestAngleY";
+            this.formsPlotBestAngleY.Size = new System.Drawing.Size(254, 173);
+            this.formsPlotBestAngleY.TabIndex = 86;
+            // 
+            // formsPlotBestAngleX
+            // 
+            this.formsPlotBestAngleX.Location = new System.Drawing.Point(992, 7);
+            this.formsPlotBestAngleX.Name = "formsPlotBestAngleX";
+            this.formsPlotBestAngleX.Size = new System.Drawing.Size(254, 173);
+            this.formsPlotBestAngleX.TabIndex = 85;
+            // 
             // lstAnglesY
             // 
             this.lstAnglesY.FormattingEnabled = true;
@@ -2135,7 +2150,7 @@
             // lblStatX
             // 
             this.lblStatX.AutoSize = true;
-            this.lblStatX.Font = new System.Drawing.Font("Bernard MT Condensed", 9F);
+            this.lblStatX.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F);
             this.lblStatX.ForeColor = System.Drawing.Color.Red;
             this.lblStatX.Location = new System.Drawing.Point(1024, 7);
             this.lblStatX.Name = "lblStatX";
@@ -2145,32 +2160,61 @@
             // lblStatY
             // 
             this.lblStatY.AutoSize = true;
-            this.lblStatY.Font = new System.Drawing.Font("Bernard MT Condensed", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblStatY.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblStatY.ForeColor = System.Drawing.Color.Red;
             this.lblStatY.Location = new System.Drawing.Point(1148, 7);
             this.lblStatY.Name = "lblStatY";
             this.lblStatY.Size = new System.Drawing.Size(0, 15);
             this.lblStatY.TabIndex = 69;
             // 
-            // formsPlotBestAngleX
+            // filterTypesComboBox
             // 
-            this.formsPlotBestAngleX.Location = new System.Drawing.Point(992, 7);
-            this.formsPlotBestAngleX.Name = "formsPlotBestAngleX";
-            this.formsPlotBestAngleX.Size = new System.Drawing.Size(254, 173);
-            this.formsPlotBestAngleX.TabIndex = 85;
-            // 
-            // formsPlotBestAngleY
-            // 
-            this.formsPlotBestAngleY.Location = new System.Drawing.Point(1008, 174);
-            this.formsPlotBestAngleY.Name = "formsPlotBestAngleY";
-            this.formsPlotBestAngleY.Size = new System.Drawing.Size(254, 173);
-            this.formsPlotBestAngleY.TabIndex = 86;
+            this.filterTypesComboBox.FormattingEnabled = true;
+            this.filterTypesComboBox.Items.AddRange(new object[] {
+            "None",
+            "Custom FIR",
+            "BiQuad LP",
+            "BiQuad HP",
+            "BiQuad BP",
+            "BiQuad notch",
+            "BiQuad allpass",
+            "BiQuad peaking",
+            "BiQuad lowshelf",
+            "BiQuad highshelf",
+            "One-pole LP",
+            "One-pole HP",
+            "Comb feed-forward",
+            "Comb feed-back",
+            "Moving average",
+            "Moving average recursive",
+            "Savitzky-Golay",
+            "Pre-emphasis",
+            "De-emphasis",
+            "DC removal",
+            "RASTA",
+            "Butterworth",
+            "Chebyshev-I",
+            "Chebyshev-II",
+            "Elliptic",
+            "Bessel",
+            "Thiran",
+            "Equiripple LP",
+            "Equiripple BS",
+            "Custom LP/HP",
+            "Custom BP/BR"});
+            this.filterTypesComboBox.Location = new System.Drawing.Point(939, 0);
+            this.filterTypesComboBox.Margin = new System.Windows.Forms.Padding(2);
+            this.filterTypesComboBox.Name = "filterTypesComboBox";
+            this.filterTypesComboBox.Size = new System.Drawing.Size(144, 21);
+            this.filterTypesComboBox.TabIndex = 70;
+            this.filterTypesComboBox.Text = "None";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1287, 639);
+            this.Controls.Add(this.filterTypesComboBox);
             this.Controls.Add(this.lblStatY);
             this.Controls.Add(this.lblStatX);
             this.Controls.Add(this.label44);
@@ -2455,6 +2499,7 @@
         private System.Windows.Forms.Button btnFindAngles;
         private ScottPlot.FormsPlot formsPlotBestAngleY;
         private ScottPlot.FormsPlot formsPlotBestAngleX;
+        private System.Windows.Forms.ComboBox filterTypesComboBox;
     }
 }
 

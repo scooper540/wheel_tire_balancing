@@ -869,15 +869,17 @@ namespace equilibreuse
             }
             else
             {
-
-                var xFilter = LowPassFilter.ApplyFilter(x, sampleRate, f_rot, filterOrder);
-                x = xFilter.Samples.Select(d => (double)d).ToArray();
-                var yFilter = LowPassFilter.ApplyFilter(y, sampleRate, f_rot, filterOrder);
-                y = yFilter.Samples.Select(d => (double)d).ToArray();
-                var zFilter = LowPassFilter.ApplyFilter(z, sampleRate, f_rot, filterOrder);
-                z = zFilter.Samples.Select(d => (double)d).ToArray();
-                var resultanteFilter = LowPassFilter.ApplyFilter(resultante, sampleRate, f_rot, filterOrder);
-                resultante = resultanteFilter.Samples.Select(d => (double)d).ToArray();
+                if (filterTypesComboBox.SelectedItem.ToString() != "None")
+                {
+                    var xFilter = LowPassFilter.ApplyFilter(x, sampleRate, f_rot, filterOrder, filterTypesComboBox.SelectedItem.ToString(), Convert.ToDouble(txtFilter.Text));
+                    x = xFilter.Samples.Select(d => (double)d).ToArray();
+                    var yFilter = LowPassFilter.ApplyFilter(y, sampleRate, f_rot, filterOrder, filterTypesComboBox.SelectedItem.ToString(), Convert.ToDouble(txtFilter.Text));
+                    y = yFilter.Samples.Select(d => (double)d).ToArray();
+                    var zFilter = LowPassFilter.ApplyFilter(z, sampleRate, f_rot, filterOrder, filterTypesComboBox.SelectedItem.ToString(), Convert.ToDouble(txtFilter.Text));
+                    z = zFilter.Samples.Select(d => (double)d).ToArray();
+                    var resultanteFilter = LowPassFilter.ApplyFilter(resultante, sampleRate, f_rot, filterOrder, filterTypesComboBox.SelectedItem.ToString(), Convert.ToDouble(txtFilter.Text));
+                    resultante = resultanteFilter.Samples.Select(d => (double)d).ToArray();
+                }
             }
               if(chkRemoveDC.Checked)
               {
@@ -1148,6 +1150,11 @@ namespace equilibreuse
             double avgTourTime = countTotal / sampleRate / selectedSections.Count;  // en secondes  
             double f_rot = 1.0 / avgTourTime;
 
+            /*FiltersForm f = new FiltersForm();
+            f._signal = new DiscreteSignal((int)sampleRate, analyzedX.Select(s => (float)s).ToArray());
+            f._f_rot = f_rot;
+            f.ShowDialog();
+            */
             ApplyFilters(sampleRate, f_rot, ref analyzedX, ref analyzedY, ref analyzedZ, ref resultante);
             countTotal = analyzedX.Length;
             //split filtered signal by removing first and last section and analyze one by one
@@ -1283,10 +1290,10 @@ namespace equilibreuse
                 lstAnglesY.Items.Add("Angle FFT Global complete: " + (fundY.Angle + Convert.ToDouble(txtCorrectAngleY.Text)) % 360);
                 lstAngleXAnalysis.Add((globalX.rFFT + Convert.ToDouble(txtCorrectAngleX.Text)) % 360);
               //  lstAngleXAnalysis.Add((ttX.rFFT + Convert.ToDouble(txtCorrectAngleX.Text)) % 360);
-                lstAngleXAnalysis.Add((fundX.Angle + Convert.ToDouble(txtCorrectAngleX.Text)) % 360);
+                //lstAngleXAnalysis.Add((fundX.Angle + Convert.ToDouble(txtCorrectAngleX.Text)) % 360);
                 lstAngleYAnalysis.Add((globalY.rFFT + Convert.ToDouble(txtCorrectAngleY.Text)) % 360);
               //  lstAngleYAnalysis.Add((ttY.rFFT + Convert.ToDouble(txtCorrectAngleY.Text)) % 360);
-                lstAngleYAnalysis.Add((fundY.Angle + Convert.ToDouble(txtCorrectAngleY.Text)) % 360);
+                //lstAngleYAnalysis.Add((fundY.Angle + Convert.ToDouble(txtCorrectAngleY.Text)) % 360);
 
                 formsPlotGlobal.Plot.Clear();
                 lstPeakGlobalX.Items.Clear();
@@ -1826,64 +1833,70 @@ namespace equilibreuse
 
         private void AnalyzeAxis(string name, FFTData cmp, double sampleRate, ListBox targetList, Color plotColor, ScottPlot.FormsPlot plt, double f_rot)
         {
-
-            double filterFFT = Convert.ToDouble(txtFFTLimit.Text);
-            // Filtrer pour ne garder que les fréquences < filterFFT Hz
-            var filtered = cmp.Frequence
-                .Select((f, i) => new { Freq = f, Mag = cmp.Magnitude[i], Index = i, Angle = cmp.AngleDeg[i] })
-                .Where(x => x.Freq < filterFFT)
-                .ToArray();
-
-            // Extraction des fréquences et magnitudes filtrées
-            var filteredFreqs = filtered.Select(x => x.Freq).ToArray();
-            var filteredMags = filtered.Select(x => x.Mag).ToArray();
-            var filteredAngle = filtered.Select(x => x.Angle).ToArray();
-            var scatter = plt.Plot.AddScatter(filteredFreqs, filteredMags, color: plotColor, label: name);
-            scatter = plt.Plot.AddScatter(filteredFreqs, filteredAngle, color: plotColor, label: "ANGLE" + name);
-            scatter.IsVisible = false;
-            //find and draw first 5 harmonics
-            for (int i = 0; i < 5; i++)
+            try
             {
-                Fundamentale fundCandidate = EquilibrageHelper.GetFundamentalPhase(filteredFreqs, filteredMags, filteredAngle, f_rot * (i + 1));
+                double filterFFT = Convert.ToDouble(txtFFTLimit.Text);
+                // Filtrer pour ne garder que les fréquences < filterFFT Hz
+                var filtered = cmp.Frequence
+                    .Select((f, i) => new { Freq = f, Mag = cmp.Magnitude[i], Index = i, Angle = cmp.AngleDeg[i] })
+                    .Where(x => x.Freq < filterFFT)
+                    .ToArray();
 
-                if (fundCandidate != null)
+                // Extraction des fréquences et magnitudes filtrées
+                var filteredFreqs = filtered.Select(x => x.Freq).ToArray();
+                var filteredMags = filtered.Select(x => x.Mag).ToArray();
+                var filteredAngle = filtered.Select(x => x.Angle).ToArray();
+                var scatter = plt.Plot.AddScatter(filteredFreqs, filteredMags, color: plotColor, label: name);
+                scatter = plt.Plot.AddScatter(filteredFreqs, filteredAngle, color: plotColor, label: "ANGLE" + name);
+                scatter.IsVisible = false;
+                //find and draw first 5 harmonics
+                for (int i = 0; i < 5; i++)
                 {
-                    int idxFund = fundCandidate.Index;
-                    double f = fundCandidate.Freq;
-                    double m = fundCandidate.Magnitude;
-                    double angleOffset = fundCandidate.Angle;
-                    plt.Plot.AddPoint(f, m, Color.Magenta, 8);
-                    plt.Plot.AddText($"{name}: {f:F2}Hz\n{angleOffset:F0}°", f, m, color: Color.DarkGreen);
-                    if (targetList != null)
-                        targetList.Items.Add($"{name} ordre {i + 1} à {f:F2} Hz → angle ≈ {angleOffset:F0}° (mag {m:F3})");
+                    Fundamentale fundCandidate = EquilibrageHelper.GetFundamentalPhase(filteredFreqs, filteredMags, filteredAngle, f_rot * (i + 1));
+
+                    if (fundCandidate != null)
+                    {
+                        int idxFund = fundCandidate.Index;
+                        double f = fundCandidate.Freq;
+                        double m = fundCandidate.Magnitude;
+                        double angleOffset = fundCandidate.Angle;
+                        plt.Plot.AddPoint(f, m, Color.Magenta, 8);
+                        plt.Plot.AddText($"{name}: {f:F2}Hz\n{angleOffset:F0}°", f, m, color: Color.DarkGreen);
+                        if (targetList != null)
+                            targetList.Items.Add($"{name} ordre {i + 1} à {f:F2} Hz → angle ≈ {angleOffset:F0}° (mag {m:F3})");
+                    }
+                    else
+                    {
+                        if (targetList != null)
+                            targetList.Items.Add($"{name} ordre {i + 1} (~{f_rot:F2} Hz) non trouvé");
+                    }
                 }
-                else
+                //find max peaks
+                int range = 7;
+                double threshold = filteredMags.Average() * 0.02;
+                var peaks = FindPeaks(filteredMags, range, threshold)
+                             .OrderByDescending(i => filteredMags[i])
+                             .Take(5);
+
+                foreach (int idx in peaks)
                 {
+                    double f = filteredFreqs[idx];
+                    double m = filteredMags[idx];
+                    double angleOffset = filteredAngle[idx];
+                    //targetList.Items.Add($"{name} {f:F2} Hz → a={a:F3} m/s² → v_peak≈{vPeak:F1} mm/s, v_rms≈{vRms:F1} mm/s");
+                    // plt.Plot.PlotPoint(f, m, Color.Magenta, 8);
+                    //plt.Plot.PlotText($"{name}: {f:F2}Hz\n{angleOffset:F0}°",f, m, color: Color.DarkGreen);
                     if (targetList != null)
-                        targetList.Items.Add($"{name} ordre {i + 1} (~{f_rot:F2} Hz) non trouvé");
+                        targetList.Items.Add($"{name} Peak at {f:F2} Hz → {angleOffset:F0}° (mag {m:F3})");
                 }
+
+                //   plt.Plot.AddSignal(cmp.SignalFFTInverse, sampleRate, Color.Black);
+                plt.Plot.AxisAuto();
             }
-            //find max peaks
-            int range = 7;
-            double threshold = filteredMags.Average() * 0.02;
-            var peaks = FindPeaks(filteredMags, range, threshold)
-                         .OrderByDescending(i => filteredMags[i])
-                         .Take(5);
-
-            foreach (int idx in peaks)
+            catch
             {
-                double f = filteredFreqs[idx];
-                double m = filteredMags[idx];
-                double angleOffset = filteredAngle[idx];
-                //targetList.Items.Add($"{name} {f:F2} Hz → a={a:F3} m/s² → v_peak≈{vPeak:F1} mm/s, v_rms≈{vRms:F1} mm/s");
-                // plt.Plot.PlotPoint(f, m, Color.Magenta, 8);
-                //plt.Plot.PlotText($"{name}: {f:F2}Hz\n{angleOffset:F0}°",f, m, color: Color.DarkGreen);
-                if (targetList != null)
-                    targetList.Items.Add($"{name} Peak at {f:F2} Hz → {angleOffset:F0}° (mag {m:F3})");
-            }
 
-            //   plt.Plot.AddSignal(cmp.SignalFFTInverse, sampleRate, Color.Black);
-            plt.Plot.AxisAuto();
+            }
         }
         private int[] GetPeakPerTurn(double[] data)
         {
@@ -1987,6 +2000,8 @@ namespace equilibreuse
                 return;
             if (lstSectionSelector.CheckedIndices.Count < 3)
                 return;
+
+
             lstSimulationTurnByTurn.Items.Clear();
             selectedSections.Clear();
             iTotalRecordsInCSV = 0;

@@ -1,6 +1,8 @@
 ﻿using MathNet.Filtering.FIR;
 using MathNet.Filtering.Windowing;
+using NWaves.Filters;
 using NWaves.Filters.Base;
+using NWaves.Filters.BiQuad;
 using NWaves.Filters.Fda;
 using NWaves.Signals;
 using System;
@@ -200,11 +202,88 @@ namespace equilibreuse
             return filtered;
 
         }
-        public static DiscreteSignal ApplyFilter(double[] signal, double sampleRate, double f_rot, int filterOrder)
+        public static DiscreteSignal ApplyFilter(double[] signal, double sampleRate, double f_rot, int filterOrder, string filterName, double lowpass)
         {
             var freq = f_rot / sampleRate;
-            double fLow = (f_rot-0.1)/ sampleRate; // normalize frequency onto [0, 0.5] range
+            double fLow = (f_rot - 0.1) / sampleRate; // normalize frequency onto [0, 0.5] range
             double fHigh = (f_rot + 0.1) / sampleRate; // normalize frequency onto [0, 0.5] range
+
+            LtiFilter filter = new NWaves.Filters.BiQuad.PeakFilter(f_rot, 100, 100);
+            switch (filterName)
+            {
+                case "Custom IIR":
+                    filter = AnalyzeCustomIirFilter();
+                    break;
+                case "Custom FIR":                    
+                    break;
+                case "BiQuad LP":
+                case "BiQuad HP":
+                case "BiQuad BP":
+                case "BiQuad notch":
+                case "BiQuad allpass":
+                case "BiQuad peaking":
+                case "BiQuad lowshelf":
+                case "BiQuad highshelf":
+                    filter = AnalyzeBiQuadFilter(filterName, fLow, fHigh, freq, lowpass/sampleRate);
+                    break;
+                case "One-pole LP":
+                    filter = new NWaves.Filters.OnePole.LowPassFilter(lowpass);
+                    break;
+                case "One-pole HP":
+                    filter = new NWaves.Filters.OnePole.HighPassFilter(lowpass);
+                    break;
+                case "Comb feed-forward":
+                    filter = new CombFeedforwardFilter(500);
+                    break;
+                case "Comb feed-back":
+                    filter = new CombFeedbackFilter(1800);
+                    break;
+                case "Moving average":
+                    filter = AnalyzeMovingAverageFilter();
+                    break;
+                case "Moving average recursive":
+                    filter = AnalyzeRecursiveMovingAverageFilter();
+                    break;
+                case "Savitzky-Golay":
+                    filter = AnalyzeSavitzkyGolayFilter();
+                    break;
+                case "Pre-emphasis":
+                    filter = AnalyzePreemphasisFilter();
+                    break;
+                case "De-emphasis":
+                    filter = new DeEmphasisFilter();
+                    break;
+                case "DC removal":
+                    filter = new DcRemovalFilter();
+                    break;
+                case "RASTA":
+                    filter = new RastaFilter();
+                    break;
+                case "Butterworth":
+                    filter = AnalyzeButterworthFilter(fLow, fHigh, filterOrder);
+                    break;
+                case "Elliptic":
+                    filter = AnalyzeEllipticFilter(freq, filterOrder);
+                    break;
+                case "Chebyshev-I":
+                    filter = AnalyzeChebyshevIFilter(fLow, fHigh, filterOrder);
+                    break;
+                case "Chebyshev-II":
+                    filter = AnalyzeChebyshevIIFilter(fLow, fHigh, filterOrder);
+                    break;
+                case "Bessel":
+                    filter = AnalyzeBesselFilter(fLow, fHigh, filterOrder);
+                    break;
+                case "Thiran":
+                    filter = AnalyzeThiranFilter();
+                    break;
+                case "Equiripple LP":
+                    filter = AnalyzeEquirippleLpFilter();
+                    break;
+                case "Equiripple BS":
+                    filter = AnalyzeEquirippleBsFilter();
+                    break;
+            }
                                                        /*var filter = new NWaves.Filters.Butterworth.BandPassFilter(fLow, fHigh, filterOrder);
                                                         var sos = DesignFilter.TfToSos(filter.Tf);
                                                         var filters = new FilterChain(sos);
@@ -214,13 +293,13 @@ namespace equilibreuse
                                                         var gain = filters.EstimateGain();
                                                         var filteredSignal = filters.ApplyTo(new DiscreteSignal((int)sampleRate, signal.Select(s => (float)s).ToArray()), gain);
                                                         **/
-            var filter = new NWaves.Filters.Elliptic.BandPassFilter(fLow, fHigh, filterOrder);
+            //var filter = new NWaves.Filters.Elliptic.BandPassFilter(fLow, fHigh, filterOrder);
             //var filter = new NWaves.Filters.BiQuad.PeakFilter(freq, 100, 100);
             var filteredSignal = filter.ApplyTo(new DiscreteSignal((int)sampleRate, signal.Select(s => (float)s).ToArray()));
-            var filter2 = new NWaves.Filters.MovingAverageFilter();
+       /*     var filter2 = new NWaves.Filters.MovingAverageFilter();
             //SavitzkyGolayFilter(31,0);
             filteredSignal = filter2.ApplyTo(new DiscreteSignal((int)sampleRate, filteredSignal.Samples), FilteringMethod.Auto);
-
+            */
 
 
             return filteredSignal;
@@ -245,6 +324,200 @@ namespace equilibreuse
             }
             return signal;
         }
+
+
+        #region filter analysis
+
+        private static LtiFilter AnalyzeCustomIirFilter()
+        {
+            var b = new List<double>();
+            var a = new List<double>();
+
+          b.AddRange(new[] { 1, -0.4, 0.6 });
+          a.AddRange(new[] { 1, 0.4, 0.2 });
+          
+            // lose some precision:
+
+            return new IirFilter(b, a);
+        }
+
+        
+
+        private static LtiFilter AnalyzeBiQuadFilter(string filterType, double f_low, double f_high, double f_rot, double f_lowpassfilter)
+        {    
+            var q = 100.0;
+            var gain = 100.0;
+            
+         
+            LtiFilter _filter = new NWaves.Filters.BiQuad.LowPassFilter(f_lowpassfilter, q);
+
+            switch (filterType)
+            {
+                case "BiQuad LP":
+                    _filter = new NWaves.Filters.BiQuad.LowPassFilter(f_lowpassfilter, q);
+                    break;
+                case "BiQuad HP":
+                    _filter = new HighPassFilter(f_lowpassfilter, q);
+                    break;
+                case "BiQuad BP":
+                    _filter = new NWaves.Filters.BiQuad.BandPassFilter(f_rot, q);
+                    break;
+                case "BiQuad notch":
+                    _filter = new NotchFilter(f_rot, q);
+                    break;
+                case "BiQuad allpass":
+                    _filter = new AllPassFilter(f_rot, q);
+                    break;
+                case "BiQuad peaking":
+                    _filter = new PeakFilter(f_rot, q, gain);
+                    break;
+                case "BiQuad lowshelf":
+                    _filter = new LowShelfFilter(f_lowpassfilter, q, gain);
+                
+                    break;
+                case "BiQuad highshelf":
+                    _filter = new HighShelfFilter(f_lowpassfilter, q, gain);
+                
+                    break;
+            }
+
+            return _filter;
+        }
+
+        private static LtiFilter AnalyzeMovingAverageFilter()
+        {
+            var size = 3;
+          
+            return new MovingAverageFilter(size);
+
+            
+        }
+
+        private static LtiFilter AnalyzeRecursiveMovingAverageFilter()
+        {
+            var size = 3;
+            
+
+            return new MovingAverageRecursiveFilter(size);
+            
+        }
+
+        private static LtiFilter AnalyzeSavitzkyGolayFilter()
+        {
+            var size = 9;
+            return new SavitzkyGolayFilter(size);
+            
+        }
+
+        private static LtiFilter AnalyzePreemphasisFilter()
+        {
+            var pre = 0.95;
+           return new PreEmphasisFilter(pre);
+
+    
+        }
+
+        private static LtiFilter AnalyzeButterworthFilter(double f_low,double f_high, int orderfilter)
+        {
+    
+            var bw = new NWaves.Filters.Butterworth.BandPassFilter(f_low, f_high, orderfilter);
+            //var df = DesignFilter.TfToSos(bw.Tf);
+            return new IirFilter(bw.Tf);
+
+            // =========== filtering ==============           
+        }
+
+        private static LtiFilter AnalyzeEllipticFilter(double f_rot, int orderfilter)
+        {
+            
+            // example how to convert linear scale specifications to decibel scale:
+
+            var deltaPass = 0.96;
+            var deltaStop = 0.04;
+
+            var ripplePassDb = NWaves.Utils.Scale.ToDecibel(1 / deltaPass);
+            var attenuateDb = NWaves.Utils.Scale.ToDecibel(1 / deltaStop);
+
+            return new NWaves.Filters.Elliptic.LowPassFilter(f_rot, orderfilter, ripplePassDb, attenuateDb);
+
+        }
+
+        private static LtiFilter AnalyzeChebyshevIFilter(double f_low, double f_high, int order)
+        {
+
+            return new NWaves.Filters.ChebyshevI.BandPassFilter(f_low, f_high, order);
+            
+        }
+
+        private static LtiFilter AnalyzeChebyshevIIFilter(double f_low, double f_high, int order)
+        {
+            
+            return new NWaves.Filters.ChebyshevII.BandPassFilter(f_low, f_high, order);
+
+        }
+
+        private static LtiFilter AnalyzeBesselFilter(double f_low, double f_high, int order)
+        {
+            
+            return new NWaves.Filters.Bessel.BandPassFilter(f_low, f_high, order);
+            
+        }
+
+        private static LtiFilter AnalyzeThiranFilter()
+        {
+            var order = 10;
+            var delta = 10.3;
+
+            return new ThiranFilter(order, order + delta);
+
+        }
+
+        private static LtiFilter AnalyzeEquirippleLpFilter()
+        {
+            var order = 47;
+            var fp = 0.15;
+            var fa = 0.18;
+            var ripplePass = 1.0;   // dB
+            var rippleStop = 42.0;  // dB
+
+         
+            var wp = Remez.DbToPassbandWeight(ripplePass);
+            var wa = Remez.DbToStopbandWeight(rippleStop);
+
+            return new FirFilter(DesignFilter.FirEquirippleLp(order, fp, fa, wp, wa));
+
+        }
+
+        private static LtiFilter AnalyzeEquirippleBsFilter()
+        {
+            var order = 51;
+            var fp1 = 0.19;
+            var fa1 = 0.21;
+            var fa2 = 0.39;
+            var fp2 = 0.41;
+            var ripplePass1 = 1.0;
+            var rippleStop = 24.0;
+            var ripplePass2 = 3.0;
+
+           
+            var freqs = new[] { 0, fp1, fa1, fa2, fp2, 0.5 };
+
+            var weights = new[]
+            {
+                Remez.DbToPassbandWeight(ripplePass1),
+                Remez.DbToStopbandWeight(rippleStop),
+                Remez.DbToPassbandWeight(ripplePass2),
+            };
+
+            var remez = new Remez(order, freqs, new double[] { 1, 0, 1 }, weights);
+
+            return new FirFilter(remez.Design());
+            
+        }
+
+        
+        #endregion
+
 
     }
 }
