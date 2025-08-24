@@ -1,12 +1,11 @@
 #define SENSOR_WHITE  2
-
-//use library MPU9250_WE https://docs.arduino.cc/libraries/mpu9250_we/
+#define MPU6500_ADDR 0x68
 
 uint8_t buff[16],buffTmp[16];
-#include <MPU9250_WE.h>
+
 #include <Wire.h>
-#define MPU9250_ADDR 0x68
-MPU9250_WE myMPU9250 = MPU9250_WE(MPU9250_ADDR);
+
+
 
 void setup() {
    pinMode(SENSOR_WHITE, INPUT);
@@ -14,20 +13,43 @@ void setup() {
    Wire.setClock(400000L);
    Wire.begin(); 
    Wire.setClock(400000L);
-   if(myMPU9250.init())
-   {   
-      myMPU9250.autoOffsets();
-      myMPU9250.setAccRange(MPU9250_ACC_RANGE_2G);
-      myMPU9250.setGyrRange(MPU9250_GYRO_RANGE_250);
-      myMPU9250.enableAccDLPF(false);
-      myMPU9250.disableGyrDLPF(MPU9250_BW_WO_DLPF_3600);
-      
-      myMPU9250.disableInterrupt(MPU9250_DATA_READY); 
-      myMPU9250.disableInterrupt(MPU9250_WOM_INT); 
-      myMPU9250.disableInterrupt(MPU9250_FIFO_OVF); 
-      myMPU9250.enableAccAxes(MPU9250_ENABLE_XYZ);
-      myMPU9250.enableGyrAxes(MPU9250_ENABLE_XYZ);
-  }
+   // Réveil du MPU (il démarre en mode sleep)
+  Wire.beginTransmission(MPU6500_ADDR);
+  Wire.write(0x6B);         // PWR_MGMT_1
+  Wire.write(0x00);         // Wake up device, use internal 8 MHz clock
+  Wire.endTransmission();
+
+  delay(100); // Attendre la stabilisation
+
+  // 1. CONFIG : activer DLPF à ~100 Hz
+  Wire.beginTransmission(MPU6500_ADDR);
+  Wire.write(0x1A);         // CONFIG
+  Wire.write(0x03);         // DLPF_CFG = 3
+  Wire.endTransmission();
+
+  // 2. SMPLRT_DIV : pour obtenir 200 Hz
+  Wire.beginTransmission(MPU6500_ADDR);
+  Wire.write(0x19);         // SMPLRT_DIV
+  Wire.write(4);            // (1000 / (1 + 4)) = 200 Hz
+  Wire.endTransmission();
+
+  // 3. GYRO_CONFIG : plage ±250 dps (bits [4:3] = 00)
+  Wire.beginTransmission(MPU6500_ADDR);
+  Wire.write(0x1B);         // GYRO_CONFIG
+  Wire.write(0x00);         // ±250 dps
+  Wire.endTransmission();
+
+  // 4. ACCEL_CONFIG : plage ±2g (bits [4:3] = 00)
+  Wire.beginTransmission(MPU6500_ADDR);
+  Wire.write(0x1C);         // ACCEL_CONFIG
+  Wire.write(0x00);         // ±2g
+  Wire.endTransmission();
+
+  // 5. ACCEL_CONFIG2 : DLPF accel à ~99 Hz (ACCEL_FCHOICE_B = 0, A_DLPF_CFG = 3)
+  Wire.beginTransmission(MPU6500_ADDR);
+  Wire.write(0x1D);         // ACCEL_CONFIG2
+  Wire.write(0x03);         // DLPF à ~99 Hz
+  Wire.endTransmission();
 }
 
 void loop() 
@@ -43,6 +65,7 @@ int printData()
     // [59-64] Accelerometer
     // [65-66] Temperature
     // [67-72] Gyroscope
+    uint8_t buff[16],buffTmp[16];
     I2Cread(MPU9250_ADDR, 58, 15, buffTmp);
     if(!(buffTmp[0]& 0x01)) return 0; //not ready
     // Accelerometer, create 16 bits values from 8 bits data
@@ -57,6 +80,7 @@ int printData()
     }
     buff[15] = 0x0A;
     Serial.write(buff,sizeof(buff));
+    //delayMicroseconds(500);
 }
 
 void I2Cread(uint8_t address, uint8_t reg, uint8_t bytes, uint8_t* data)

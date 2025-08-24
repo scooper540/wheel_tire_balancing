@@ -53,8 +53,9 @@ namespace equilibreuse
             InitializeComponent();
             t1.Tick += T1_Tick;
             t1.Interval = 1000;
-            cbxFFT.SelectedItem = "Hamming";
-            cbxFFTSingle.SelectedItem = "Hamming";
+            cbxFFT.SelectedItem = "BlackmanNuttal";
+            cbxFFTSingle.SelectedItem = "BlackmanNuttal";
+            cbxFilterTypes.SelectedItem = "BiQuad LP";
             cbxSensor.SelectedIndex = 0; //mpu per default
             Help.FillHelp(richTextBox1);
             btnClearAnalysisHistory_Click(null, EventArgs.Empty);
@@ -227,7 +228,7 @@ namespace equilibreuse
                                     isWhite = false;
                                 avgTemp = calcXYZ(ref bufDataRemaining, pos);
                                 pos += 15;
-                                if (!isWhite && (avgTemp.x == lastX && avgTemp.y == lastY && avgTemp.z == lastZ)) //duplicate, skip only if not white line
+                                if (!bNewSection && (avgTemp.x == lastX && avgTemp.y == lastY && avgTemp.z == lastZ)) //duplicate, skip only if not white line
                                 {
                                     count--;
                                 }
@@ -277,9 +278,9 @@ namespace equilibreuse
 
                 //lsm6ds3 : *0.061 * (settings.accelRange >> 1) / 1000;
                 data.ms = timestamp; //timestamp is encoded in 0.064ms
-                data.x = (double)((x) * 0.061 * G / 1000.0);
-                data.y = (double)((y) * 0.061 * G / 1000.0);
-                data.z = (double)((z) * 0.061 * G / 1000.0);
+                data.x = (double)((x) * 0.061*4 * G / 1000.0);
+                data.y = (double)((y) * 0.061 * 4 * G / 1000.0);
+                data.z = (double)((z) * 0.061 * 4 * G / 1000.0);
 
                 data.gx = (double)((gx) * 4.375 / 1000.0);
                 data.gy = (double)((gy) * 4.375 / 1000.0);
@@ -869,18 +870,41 @@ namespace equilibreuse
             }
             else
             {
-                if (filterTypesComboBox.SelectedItem.ToString() != "None")
+                if (cbxFilterTypes.SelectedItem.ToString() != "None")
                 {
-                    var xFilter = LowPassFilter.ApplyFilter(x, sampleRate, f_rot, filterOrder, filterTypesComboBox.SelectedItem.ToString(), Convert.ToDouble(txtFilter.Text));
+                    var xFilter = LowPassFilter.ApplyFilter(x, sampleRate, f_rot, filterOrder, cbxFilterTypes.SelectedItem.ToString(), Convert.ToDouble(txtFilter.Text));
                     x = xFilter.Samples.Select(d => (double)d).ToArray();
-                    var yFilter = LowPassFilter.ApplyFilter(y, sampleRate, f_rot, filterOrder, filterTypesComboBox.SelectedItem.ToString(), Convert.ToDouble(txtFilter.Text));
+                    var yFilter = LowPassFilter.ApplyFilter(y, sampleRate, f_rot, filterOrder, cbxFilterTypes.SelectedItem.ToString(), Convert.ToDouble(txtFilter.Text));
                     y = yFilter.Samples.Select(d => (double)d).ToArray();
-                    var zFilter = LowPassFilter.ApplyFilter(z, sampleRate, f_rot, filterOrder, filterTypesComboBox.SelectedItem.ToString(), Convert.ToDouble(txtFilter.Text));
+                    var zFilter = LowPassFilter.ApplyFilter(z, sampleRate, f_rot, filterOrder, cbxFilterTypes.SelectedItem.ToString(), Convert.ToDouble(txtFilter.Text));
                     z = zFilter.Samples.Select(d => (double)d).ToArray();
-                    var resultanteFilter = LowPassFilter.ApplyFilter(resultante, sampleRate, f_rot, filterOrder, filterTypesComboBox.SelectedItem.ToString(), Convert.ToDouble(txtFilter.Text));
+                    var resultanteFilter = LowPassFilter.ApplyFilter(resultante, sampleRate, f_rot, filterOrder, cbxFilterTypes.SelectedItem.ToString(), Convert.ToDouble(txtFilter.Text));
                     resultante = resultanteFilter.Samples.Select(d => (double)d).ToArray();
                 }
+                if (cbxSmoothing.SelectedItem.ToString() != "None")
+                {
+                    if (cbxSmoothing.SelectedItem.ToString() == "IQ")
+                    {
+                        x = LowPassFilter.ComputePhaseIQ(x, sampleRate, f_rot);
+                        y = LowPassFilter.ComputePhaseIQ(y, sampleRate, f_rot);
+                        z = LowPassFilter.ComputePhaseIQ(z, sampleRate, f_rot);
+                        resultante = LowPassFilter.ComputePhaseIQ(resultante, sampleRate, f_rot);
+                    }
+                    else
+                    {
+                        var xFilter = LowPassFilter.ApplyFilter(x, sampleRate, f_rot, filterOrder, cbxFilterTypes.SelectedItem.ToString(), Convert.ToDouble(txtFilter.Text));
+                        x = xFilter.Samples.Select(d => (double)d).ToArray();
+                        var yFilter = LowPassFilter.ApplyFilter(y, sampleRate, f_rot, filterOrder, cbxFilterTypes.SelectedItem.ToString(), Convert.ToDouble(txtFilter.Text));
+                        y = yFilter.Samples.Select(d => (double)d).ToArray();
+                        var zFilter = LowPassFilter.ApplyFilter(z, sampleRate, f_rot, filterOrder, cbxFilterTypes.SelectedItem.ToString(), Convert.ToDouble(txtFilter.Text));
+                        z = zFilter.Samples.Select(d => (double)d).ToArray();
+                        var resultanteFilter = LowPassFilter.ApplyFilter(resultante, sampleRate, f_rot, filterOrder, cbxFilterTypes.SelectedItem.ToString(), Convert.ToDouble(txtFilter.Text));
+                        resultante = resultanteFilter.Samples.Select(d => (double)d).ToArray();
+                    }
+                }
             }
+
+            
               if(chkRemoveDC.Checked)
               {
                   x = LowPassFilter.RemoveDCOffset(x);
@@ -891,12 +915,12 @@ namespace equilibreuse
 
               //apply gain on signal
               var gain = Convert.ToDouble(txtGain.Text);
-              x = x.Select(r => r * gain).ToArray();
-              y = y.Select(r => r * gain).ToArray();
-              z = z.Select(r => r * gain).ToArray();
+            x = x.Select(r => Math.Sign(r) * Math.Pow(Math.Abs(r), gain)).ToArray();
+              y = y.Select(r => Math.Sign(r) * Math.Pow(Math.Abs(r), gain)).ToArray();
+              z = z.Select(r => Math.Sign(r) * Math.Pow(Math.Abs(r), gain)).ToArray();
               if (resultante == null || resultante.Length == 0)
                   return;
-              resultante = resultante.Select(r => r * gain).ToArray();
+              resultante = resultante.Select(r => Math.Sign(r) * Math.Pow(Math.Abs(r), gain)).ToArray();
         }
         private PhaseAnalysis CalculateMeanPhaseAnalysis(List<PhaseAnalysis> phaseAnalyses)
         {
@@ -1162,7 +1186,12 @@ namespace equilibreuse
             var dataY = GetSegments(analyzedY, whiteLine);
             List<PhaseAnalysis> lstPhaseX = new List<PhaseAnalysis>();
             List<PhaseAnalysis> lstPhaseY = new List<PhaseAnalysis>();
-            for (int i = 2; i < dataX.whiteLineSegments.Count; i++) //skip 2 firsts segments
+            //analysis only the mid segments
+            int skip = selectedSections.Count / 4;         // sauter les 25% premiers et derniers tours
+            
+            int use = selectedSections.Count/2;// selectedSections.Count - 2 * skip;
+            int end = use + skip;   // analyser les 50% centrau
+            for (int i = skip; i < end; i++) //skip 2 firsts segments
             {
                 var signalX = dataX.dataSegments[i];
                 var signalY = dataY.dataSegments[i];
@@ -1170,8 +1199,8 @@ namespace equilibreuse
                 lstPhaseY.Add(EquilibrageHelper.AnalyzeSignal(signalY, sampleRate, f_rot, cbxFFT, chkDb, rpm));
             }
             
-            var globalX = EquilibrageHelper.AnalyzeSignal(dataX.dataSegments.Skip(2).SelectMany(arr => arr).ToArray(), sampleRate, f_rot, cbxFFT, chkDb, rpm);
-            var globalY = EquilibrageHelper.AnalyzeSignal(dataY.dataSegments.Skip(2).SelectMany(arr => arr).ToArray(), sampleRate, f_rot, cbxFFT, chkDb, rpm);
+            var globalX = EquilibrageHelper.AnalyzeSignal(dataX.dataSegments.Skip(skip).Take(use).SelectMany(arr => arr).ToArray(), sampleRate, f_rot, cbxFFT, chkDb, rpm);
+            var globalY = EquilibrageHelper.AnalyzeSignal(dataY.dataSegments.Skip(skip).Take(use).SelectMany(arr => arr).ToArray(), sampleRate, f_rot, cbxFFT, chkDb, rpm);
             var ttX = CalculateMeanPhaseAnalysis(lstPhaseX);
             var ttY = CalculateMeanPhaseAnalysis(lstPhaseY);
 
@@ -1260,7 +1289,7 @@ namespace equilibreuse
                     DisplayPeaksTemporal(resultante, temporal, "Resultante", formsPlotGlobal, lstPeakResultanteGlobal);
                     max = Math.Max(max, resultante.Max());
                 }
-                max += 5;
+                max = max * 2;
                 for (int i = 0; i < whiteLine.Length; i++)
                 {
                     if (whiteLine[i] == 10)
@@ -1288,13 +1317,29 @@ namespace equilibreuse
                 lstAnglesY.Items.Add("Angle FFT Global limited: " + (globalY.rFFT + Convert.ToDouble(txtCorrectAngleY.Text)) % 360);
                 lstAnglesY.Items.Add("Angle FFT TurnTurn limited: " + (ttY.rFFT + Convert.ToDouble(txtCorrectAngleY.Text)) % 360);
                 lstAnglesY.Items.Add("Angle FFT Global complete: " + (fundY.Angle + Convert.ToDouble(txtCorrectAngleY.Text)) % 360);
-                lstAngleXAnalysis.Add((globalX.rFFT + Convert.ToDouble(txtCorrectAngleX.Text)) % 360);
-              //  lstAngleXAnalysis.Add((ttX.rFFT + Convert.ToDouble(txtCorrectAngleX.Text)) % 360);
-                //lstAngleXAnalysis.Add((fundX.Angle + Convert.ToDouble(txtCorrectAngleX.Text)) % 360);
-                lstAngleYAnalysis.Add((globalY.rFFT + Convert.ToDouble(txtCorrectAngleY.Text)) % 360);
-              //  lstAngleYAnalysis.Add((ttY.rFFT + Convert.ToDouble(txtCorrectAngleY.Text)) % 360);
-                //lstAngleYAnalysis.Add((fundY.Angle + Convert.ToDouble(txtCorrectAngleY.Text)) % 360);
 
+                //check if values are in the same range
+                var a1 = CalcAngleDistance(globalX.rFFT, ttX.rFFT);
+                var a2 = CalcAngleDistance(globalX.rFFT, fundX.Angle);
+                var a3 = CalcAngleDistance(ttX.rFFT, fundX.Angle);
+                var t = new List<double>() { a1, a2, a3 };
+                if (t.Max() < 45) // consider
+                {
+                    lstAngleXAnalysis.Add((globalX.rFFT + Convert.ToDouble(txtCorrectAngleX.Text)) % 360);
+                    lstAngleXAnalysis.Add((ttX.rFFT + Convert.ToDouble(txtCorrectAngleX.Text)) % 360);
+                    lstAngleXAnalysis.Add((fundX.Angle + Convert.ToDouble(txtCorrectAngleX.Text)) % 360);
+                }
+
+                a1 = CalcAngleDistance(globalY.rFFT, ttY.rFFT);
+                a2 = CalcAngleDistance(globalY.rFFT, fundY.Angle);
+                a3 = CalcAngleDistance(ttY.rFFT, fundY.Angle);
+                t = new List<double>() { a1, a2, a3 };
+                if (t.Max() - t.Min() > 45) // do not consider
+                {
+                    lstAngleYAnalysis.Add((globalY.rFFT + Convert.ToDouble(txtCorrectAngleY.Text)) % 360);
+                    lstAngleYAnalysis.Add((ttY.rFFT + Convert.ToDouble(txtCorrectAngleY.Text)) % 360);
+                    lstAngleYAnalysis.Add((fundY.Angle + Convert.ToDouble(txtCorrectAngleY.Text)) % 360);
+                }
                 formsPlotGlobal.Plot.Clear();
                 lstPeakGlobalX.Items.Clear();
                 lstPeakGlobalY.Items.Clear();
@@ -1582,7 +1627,7 @@ namespace equilibreuse
                     if (whiteLine[i] == 10)
                         whiteLine[i] = max;
                 }
-                //formsPlotGyro.Plot.PlotScatter(temporal, whiteLine, Color.Black, 1, 3, "WhiteLine");
+                formsPlotGyro.Plot.PlotScatter(temporal, whiteLine, Color.Black, 1, 3, "WhiteLine");
                 //formsPlotAnalysis.Plot.Axis(0, 360, -1, 1);
                 formsPlotGyro.Plot.SetAxisLimitsX(0, countTotal);
                 formsPlotGyro.Plot.AxisAutoY();

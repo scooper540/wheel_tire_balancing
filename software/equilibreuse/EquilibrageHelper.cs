@@ -307,8 +307,8 @@ namespace equilibreuse
             var fundCandidate = freq
                 .Select((f, i) => new { Freq = f, Mag = mags[i], Angle=angle[i], Index = i })
                 .Where(x => ((x.Freq > freqMin) && (Math.Abs(x.Freq - f_rot) <= tolerance)))
-                //.OrderBy(x => Math.Abs(x.Freq - f_rot)) //order by freq
-                .OrderByDescending(x => x.Mag) // order by magnitude
+                .OrderBy(x => Math.Abs(x.Freq - f_rot)) //order by freq
+              //  .OrderByDescending(x => x.Mag) // order by magnitude
                 .FirstOrDefault();
             if (fundCandidate == null) return new Fundamentale() { Freq = 0, Index = 0, Magnitude = 0, Angle = 0};
             return new Fundamentale() { Freq = fundCandidate.Freq, Index = fundCandidate.Index, Magnitude = fundCandidate.Mag , Angle= fundCandidate.Angle};

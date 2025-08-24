@@ -205,17 +205,55 @@ namespace equilibreuse
         public static DiscreteSignal ApplyFilter(double[] signal, double sampleRate, double f_rot, int filterOrder, string filterName, double lowpass)
         {
             var freq = f_rot / sampleRate;
-            double fLow = (f_rot - 0.1) / sampleRate; // normalize frequency onto [0, 0.5] range
-            double fHigh = (f_rot + 0.1) / sampleRate; // normalize frequency onto [0, 0.5] range
-
+            double fLow = (f_rot - 0.3) / sampleRate; // normalize frequency onto [0, 0.5] range
+            double fHigh = (f_rot + 0.3) / sampleRate; // normalize frequency onto [0, 0.5] range
+            
             LtiFilter filter = new NWaves.Filters.BiQuad.PeakFilter(f_rot, 100, 100);
             switch (filterName)
             {
                 case "Custom IIR":
                     filter = AnalyzeCustomIirFilter();
                     break;
-                case "Custom FIR":                    
+                case "Custom FIR":
+                    // Tes paramètres
+                    filterOrder = (int)sampleRate;
+                    if (filterOrder % 2 == 0)
+                        filterOrder += 1;
+                    // Conception du filtre passe-bande FIR à phase linéaire
+                    var coeffs = NWaves.Filters.Fda.DesignFilter.FirWinBp(filterOrder, fLow, fHigh);
+                    // Création du filtre FIR
+                    filter = new NWaves.Filters.Base.FirFilter(coeffs);
+                    var filteredSignal2 = filter.ApplyTo(new DiscreteSignal((int)sampleRate, signal.Select(s => (float)s).ToArray()));
+                    int delay = coeffs.Length / 2;
+
+                    // Tronquer la sortie pour qu'elle soit de la même taille que l'entrée
+                    int start = delay;
+                    int end = start + signal.Length;
+
+                    return new DiscreteSignal((int)sampleRate, filteredSignal2.Samples.Skip(start).Take(signal.Length).ToArray());
+                    // === 4. Corriger le décalage du filtre ===
+                    //int delay = filterOrder / 2;
+                    
+                    // Décaler le signal en supprimant les échantillons du début
+                   /* double[] aligned = filteredSignal2.Skip(delay).Select(s=> (double)s).ToArray();
+
+                    // Pour garder la même taille (optionnel) : remplir avec des zéros au bout
+                    if (aligned.Length < signal.Length)
+                    {
+                        aligned = aligned.Concat(new double[signal.Length - aligned.Length]).ToArray();
+                    }*/
+                   /* double[] aligned = new double[signal.Length];
+                    for (int i = 0; i < signal.Length - delay; i++)
+                    {
+                        aligned[i + delay] = filteredSignal2[i];
+                    }
+                    */
+                    // Les premières valeurs (0 à delay-1) sont mises à 0 automatiquement (ou padding nul)
+                   // return aligned;
+                    //return new DiscreteSignal((int)sampleRate, aligned.Select(s => (float)s).ToArray());
+
                     break;
+        
                 case "BiQuad LP":
                 case "BiQuad HP":
                 case "BiQuad BP":
@@ -224,7 +262,7 @@ namespace equilibreuse
                 case "BiQuad peaking":
                 case "BiQuad lowshelf":
                 case "BiQuad highshelf":
-                    filter = AnalyzeBiQuadFilter(filterName, fLow, fHigh, freq, lowpass/sampleRate);
+                    filter = AnalyzeBiQuadFilter(filterName, fLow, fHigh, freq, lowpass/sampleRate, filterOrder);
                     break;
                 case "One-pole LP":
                     filter = new NWaves.Filters.OnePole.LowPassFilter(lowpass);
@@ -267,6 +305,7 @@ namespace equilibreuse
                     break;
                 case "Chebyshev-I":
                     filter = AnalyzeChebyshevIFilter(fLow, fHigh, filterOrder);
+                    
                     break;
                 case "Chebyshev-II":
                     filter = AnalyzeChebyshevIIFilter(fLow, fHigh, filterOrder);
@@ -296,10 +335,15 @@ namespace equilibreuse
             //var filter = new NWaves.Filters.Elliptic.BandPassFilter(fLow, fHigh, filterOrder);
             //var filter = new NWaves.Filters.BiQuad.PeakFilter(freq, 100, 100);
             var filteredSignal = filter.ApplyTo(new DiscreteSignal((int)sampleRate, signal.Select(s => (float)s).ToArray()));
-       /*     var filter2 = new NWaves.Filters.MovingAverageFilter();
-            //SavitzkyGolayFilter(31,0);
-            filteredSignal = filter2.ApplyTo(new DiscreteSignal((int)sampleRate, filteredSignal.Samples), FilteringMethod.Auto);
-            */
+            //reverse and reapply for zerophase
+            filter.Reset();
+            filteredSignal.Reverse();
+            filteredSignal = filter.ApplyTo(filteredSignal);
+            filteredSignal.Reverse();
+            /*     var filter2 = new NWaves.Filters.MovingAverageFilter();
+                 //SavitzkyGolayFilter(31,0);
+                 filteredSignal = filter2.ApplyTo(new DiscreteSignal((int)sampleRate, filteredSignal.Samples), FilteringMethod.Auto);
+                 */
 
 
             return filteredSignal;
@@ -343,9 +387,9 @@ namespace equilibreuse
 
         
 
-        private static LtiFilter AnalyzeBiQuadFilter(string filterType, double f_low, double f_high, double f_rot, double f_lowpassfilter)
+        private static LtiFilter AnalyzeBiQuadFilter(string filterType, double f_low, double f_high, double f_rot, double f_lowpassfilter, double q)
         {    
-            var q = 100.0;
+        
             var gain = 100.0;
             
          
@@ -386,7 +430,7 @@ namespace equilibreuse
 
         private static LtiFilter AnalyzeMovingAverageFilter()
         {
-            var size = 3;
+            var size = 5;
           
             return new MovingAverageFilter(size);
 
@@ -395,7 +439,7 @@ namespace equilibreuse
 
         private static LtiFilter AnalyzeRecursiveMovingAverageFilter()
         {
-            var size = 3;
+            var size = 5;
             
 
             return new MovingAverageRecursiveFilter(size);
@@ -404,7 +448,7 @@ namespace equilibreuse
 
         private static LtiFilter AnalyzeSavitzkyGolayFilter()
         {
-            var size = 9;
+            var size = 5;
             return new SavitzkyGolayFilter(size);
             
         }
@@ -445,15 +489,15 @@ namespace equilibreuse
         private static LtiFilter AnalyzeChebyshevIFilter(double f_low, double f_high, int order)
         {
 
-            return new NWaves.Filters.ChebyshevI.BandPassFilter(f_low, f_high, order);
-            
+            var filter = new NWaves.Filters.ChebyshevI.BandPassFilter(f_low, f_high, order);
+            return new IirFilter(filter.Tf);
         }
 
         private static LtiFilter AnalyzeChebyshevIIFilter(double f_low, double f_high, int order)
         {
             
-            return new NWaves.Filters.ChebyshevII.BandPassFilter(f_low, f_high, order);
-
+            var filter = new NWaves.Filters.ChebyshevII.BandPassFilter(f_low, f_high, order);
+            return new IirFilter(filter.Tf);
         }
 
         private static LtiFilter AnalyzeBesselFilter(double f_low, double f_high, int order)
@@ -517,7 +561,89 @@ namespace equilibreuse
 
         
         #endregion
+       
+        public static double[] ComputePhaseIQ(
+            double[] signal,
+            double sampleRate,
+            double targetFreq,
+            double smoothingSec = 0.1) // largeur moyenne glissante en secondes
+        {
+            if (signal.Length == 0) return signal;
+            int len = signal.Length;
+            double[] cosRef = new double[len];
+            double[] sinRef = new double[len];
+            double dt = 1.0 / sampleRate;
+            //smoothingSec = 1.0 / targetFreq/2;
+            // Génération des références sinusoïdales
+            for (int i = 0; i < len; i++)
+            {
+                double t = i * dt;
+                cosRef[i] = Math.Cos(2 * Math.PI * targetFreq * t);
+                sinRef[i] = Math.Sin(2 * Math.PI * targetFreq * t);
+            }
 
+            // Multiplication (I et Q)
+            double[] I = new double[len];
+            double[] Q = new double[len];
+            for (int i = 0; i < len; i++)
+            {
+                I[i] = signal[i] * cosRef[i];
+                Q[i] = signal[i] * sinRef[i];
+            }
+
+            // Moyenne glissante (filtrage passe-bas)
+            int win = (int)(smoothingSec * sampleRate);
+            double[] I_filt = MovingAverage(I, win);
+            double[] Q_filt = MovingAverage(Q, win);
+
+            // Calcul de la phase instantanée
+            double[] phase = new double[len];
+            for (int i = 0; i < len; i++)
+            {
+                phase[i] = Math.Atan2(Q_filt[i], I_filt[i]);
+            }
+
+            // Unwrap phase
+            return UnwrapPhase(phase).Select(p => ((p * 180.0 / Math.PI) % 360 + 360) % 360) // Convertit en deg, puis modulo 360 en positif
+    .ToArray(); 
+        }
+
+        private static double[] MovingAverage(double[] data, int window)
+        {
+            double[] result = new double[data.Length];
+            double sum = 0.0;
+
+            for (int i = 0; i < data.Length; i++)
+            {
+                sum += data[i];
+                if (i >= window)
+                    sum -= data[i - window];
+
+                int currentWindowSize = Math.Min(i + 1, window);
+                result[i] = sum / currentWindowSize;
+            }
+            return result;
+        }
+
+        private static double[] UnwrapPhase(double[] phase)
+        {
+            double[] unwrapped = new double[phase.Length];
+            unwrapped[0] = phase[0];
+            double offset = 0;
+
+            for (int i = 1; i < phase.Length; i++)
+            {
+                double delta = phase[i] - phase[i - 1];
+                if (delta > Math.PI)
+                    offset -= 2 * Math.PI;
+                else if (delta < -Math.PI)
+                    offset += 2 * Math.PI;
+
+                unwrapped[i] = phase[i] + offset;
+            }
+
+            return unwrapped;
+        }
 
     }
 }

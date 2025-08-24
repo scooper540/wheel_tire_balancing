@@ -224,7 +224,8 @@
             this.label44 = new System.Windows.Forms.Label();
             this.lblStatX = new System.Windows.Forms.Label();
             this.lblStatY = new System.Windows.Forms.Label();
-            this.filterTypesComboBox = new System.Windows.Forms.ComboBox();
+            this.cbxFilterTypes = new System.Windows.Forms.ComboBox();
+            this.cbxSmoothing = new System.Windows.Forms.ComboBox();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -602,7 +603,7 @@
             this.txtFilter.Name = "txtFilter";
             this.txtFilter.Size = new System.Drawing.Size(25, 20);
             this.txtFilter.TabIndex = 41;
-            this.txtFilter.Text = "100";
+            this.txtFilter.Text = "10";
             // 
             // txtSampleRate
             // 
@@ -913,7 +914,7 @@
             this.label42.AutoSize = true;
             this.label42.Location = new System.Drawing.Point(577, 250);
             this.label42.Name = "label42";
-            this.label42.Size = new System.Drawing.Size(251, 52);
+            this.label42.Size = new System.Drawing.Size(252, 52);
             this.label42.TabIndex = 71;
             this.label42.Text = "Coeff variation\r\nCV < 0.1 → données très proches (faible dispersion)\r\n0.1 ≤ CV < " +
     "0.3 → données modérément dispersées\r\nCV ≥ 0.3 → données très dispersées";
@@ -2119,7 +2120,7 @@
             this.txtGain.Name = "txtGain";
             this.txtGain.Size = new System.Drawing.Size(50, 20);
             this.txtGain.TabIndex = 64;
-            this.txtGain.Text = "1000";
+            this.txtGain.Text = "2";
             // 
             // label6
             // 
@@ -2167,54 +2168,52 @@
             this.lblStatY.Size = new System.Drawing.Size(0, 15);
             this.lblStatY.TabIndex = 69;
             // 
-            // filterTypesComboBox
+            // cbxFilterTypes
             // 
-            this.filterTypesComboBox.FormattingEnabled = true;
-            this.filterTypesComboBox.Items.AddRange(new object[] {
+            this.cbxFilterTypes.FormattingEnabled = true;
+            this.cbxFilterTypes.Items.AddRange(new object[] {
             "None",
-            "Custom FIR",
-            "BiQuad LP",
-            "BiQuad HP",
             "BiQuad BP",
-            "BiQuad notch",
-            "BiQuad allpass",
             "BiQuad peaking",
-            "BiQuad lowshelf",
-            "BiQuad highshelf",
-            "One-pole LP",
-            "One-pole HP",
-            "Comb feed-forward",
-            "Comb feed-back",
             "Moving average",
             "Moving average recursive",
             "Savitzky-Golay",
-            "Pre-emphasis",
-            "De-emphasis",
-            "DC removal",
             "RASTA",
             "Butterworth",
             "Chebyshev-I",
             "Chebyshev-II",
-            "Elliptic",
             "Bessel",
-            "Thiran",
-            "Equiripple LP",
-            "Equiripple BS",
-            "Custom LP/HP",
-            "Custom BP/BR"});
-            this.filterTypesComboBox.Location = new System.Drawing.Point(939, 0);
-            this.filterTypesComboBox.Margin = new System.Windows.Forms.Padding(2);
-            this.filterTypesComboBox.Name = "filterTypesComboBox";
-            this.filterTypesComboBox.Size = new System.Drawing.Size(144, 21);
-            this.filterTypesComboBox.TabIndex = 70;
-            this.filterTypesComboBox.Text = "None";
+            "Custom FIR",
+            "BiQuad LP"});
+            this.cbxFilterTypes.Location = new System.Drawing.Point(939, 0);
+            this.cbxFilterTypes.Margin = new System.Windows.Forms.Padding(2);
+            this.cbxFilterTypes.Name = "cbxFilterTypes";
+            this.cbxFilterTypes.Size = new System.Drawing.Size(144, 21);
+            this.cbxFilterTypes.TabIndex = 70;
+            this.cbxFilterTypes.Text = "None";
+            // 
+            // cbxSmoothing
+            // 
+            this.cbxSmoothing.FormattingEnabled = true;
+            this.cbxSmoothing.Items.AddRange(new object[] {
+            "None",
+            "Moving average",
+            "Moving average recursive",
+            "Savitzky-Golay",
+            "IQ"});
+            this.cbxSmoothing.Location = new System.Drawing.Point(1088, 0);
+            this.cbxSmoothing.Name = "cbxSmoothing";
+            this.cbxSmoothing.Size = new System.Drawing.Size(121, 21);
+            this.cbxSmoothing.TabIndex = 71;
+            this.cbxSmoothing.Text = "None";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1287, 639);
-            this.Controls.Add(this.filterTypesComboBox);
+            this.Controls.Add(this.cbxSmoothing);
+            this.Controls.Add(this.cbxFilterTypes);
             this.Controls.Add(this.lblStatY);
             this.Controls.Add(this.lblStatX);
             this.Controls.Add(this.label44);
@@ -2499,7 +2498,8 @@
         private System.Windows.Forms.Button btnFindAngles;
         private ScottPlot.FormsPlot formsPlotBestAngleY;
         private ScottPlot.FormsPlot formsPlotBestAngleX;
-        private System.Windows.Forms.ComboBox filterTypesComboBox;
+        private System.Windows.Forms.ComboBox cbxFilterTypes;
+        private System.Windows.Forms.ComboBox cbxSmoothing;
     }
 }
 

@@ -1,16 +1,7 @@
 #define SENSOR_WHITE  2
-
-//use library Amethyste_LSM6DS3 https://docs.arduino.cc/libraries/amethyste_lsm6ds3/
-//modify in the library the address to 0x6B in LSM6DS3.h
-//#define LSM6DS3_ID 0x6B 
-//uint8_t LSM6DS3_address = 0x6B;
-
+#define LSM6DS3_ADDR 0x6B 
 uint8_t buff[16];
 #include <Wire.h>
-#include <Amethyste_LSM6DS3.h>
-
-// Instancie un capteur LSM6DS3
-LSM6DS3 sensor;
 
 void setup() {
     pinMode(SENSOR_WHITE, INPUT);
@@ -19,12 +10,32 @@ void setup() {
     Wire.setClock(1000000L);
     Wire.begin(); 
     Wire.setClock(1000000L);
-    //Call .begin() to configure the IMU
-    sensor.begin();
-    sensor.toggleAccel(true);
-    sensor.toggleGyro(true);
-    sensor.setAccelDataRate(0xA0);
-    sensor.setGyroDataRate(0xA0);
+    delay(100);
+ // 1. Accéléromètre : ODR = 200 Hz, ±4g, BW = 50 Hz (anti-aliasing analogique)
+  // CTRL1_XL: 0x5B = 0b01011011
+  Wire.beginTransmission(LSM6DS3_ADDR);
+  Wire.write(0x10);       // CTRL1_XL
+  Wire.write(0xBF);       // ODR = 1.66 kHz, ±8g, BW = 50 Hz
+  Wire.endTransmission();
+
+  // 2. Gyroscope : ODR = 200 Hz, ±245 dps
+  // CTRL2_G: 0x50 = 0b01010000
+  Wire.beginTransmission(LSM6DS3_ADDR);
+  Wire.write(0x11);       // CTRL2_G
+  Wire.write(0x50);       // 200 Hz, ±245 dps
+  Wire.endTransmission();
+
+  // 3. Désactiver le filtre numérique LPF2 sur accéléro
+  Wire.beginTransmission(LSM6DS3_ADDR);
+  Wire.write(0x17);       // CTRL8_XL
+  Wire.write(0x00);       // LPF2 désactivé
+  Wire.endTransmission();
+
+  // 4. Désactiver le filtre LPF1 sur gyro
+  Wire.beginTransmission(LSM6DS3_ADDR);
+  Wire.write(0x16);       // CTRL7_G
+  Wire.write(0x00);       // LP_EN_G = 0
+  Wire.endTransmission();
     Wire.setClock(1000000L);
 }
 void loop() 
