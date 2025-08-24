@@ -240,7 +240,7 @@ namespace equilibreuse
             res.ActualAmplitude = funda.Magnitude;
             return res;
         }
-        public static CalculationResult CompleteSimulation(ListBox lstData, String diagram, FFTData x, FFTData y, FFTData z, FFTData resultante, double sampleRate, double fRot, int stepDeg = 1)
+        public static CalculationResult CompleteSimulation(ListBox lstData, String diagram, FFTData x, FFTData y, FFTData z, FFTData resultante, double sampleRate, double fRot, double correctXAngle, double correctYAngle, int stepDeg = 1)
         {
             CalculationResult cr = new CalculationResult();
             for (int i = 1; i < 6; i++)

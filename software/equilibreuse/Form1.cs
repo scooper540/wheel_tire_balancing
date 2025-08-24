@@ -23,6 +23,7 @@ using NWaves.Features;
 using NWaves.FeatureExtractors.Options;
 using NWaves.FeatureExtractors.Multi;
 using MathNet.Numerics.Statistics;
+using ScottPlot.WinForms;
 
 namespace equilibreuse
 {
@@ -361,12 +362,9 @@ namespace equilibreuse
             AnalyzeCSV(csvFile);
         }
 
-
-        // analysis of all segments in one graph aligned on the max size of segment
-        private void RefreshAnalysisCompiled()
+        private (double[] x, double[] y, double[] z, double[] resultante, double f_rot, double rpm, double sampleRate) GetCompiledTourSignal()
         {
-            if (String.IsNullOrEmpty(sLastCSV)) return;
-
+            // analysis of all segments in one graph aligned on the max size of segment
             int alignedCount = selectedSections.Select(x => x.records.Count).Max();
             //get avg samplerate
             double rpm = selectedSections.Select(x => x.Rpm).Min();
@@ -425,215 +423,176 @@ namespace equilibreuse
             }
             double avgTourTime = alignedCount / sampleRate;
             double f_rot = 1.0 / avgTourTime;
+            return (analyzedX, analyzedY, analyzedZ, resultante, f_rot, rpm, sampleRate);
+        }
+
+        private void RefreshAnalysisCompiled()
+        {
+            var data = GetCompiledTourSignal();
+            double f_rot = data.f_rot;
+            double[] analyzedX = data.x;
+            double[] analyzedY = data.y;
+            double[] analyzedZ = data.z;
+            double[] resultante = data.resultante;
+            double sampleRate = data.sampleRate;
+            double rpm = data.rpm;
             ApplyFilters(sampleRate, f_rot, ref analyzedX, ref analyzedY, ref analyzedZ, ref resultante);
-            countX = analyzedX.Length;
-            alignedCount = analyzedX.Length;
-            //            lblPeak.Text += $"X Pk-Pk (compiled) : {analyzedX.Max() - analyzedX.Min()}\r\nY Pk-Pk (compiled) : {analyzedY.Max() - analyzedY.Min()}\r\nZ Pk-Pk (compiled) : {analyzedZ.Max() - analyzedZ.Min()}";
-            currentAnalysisX.coPkPk = analyzedX.Max() - analyzedX.Min();
-            currentAnalysisX.coRMS = Statistics.RootMeanSquare(analyzedX);
-            currentAnalysisY.coPkPk = analyzedY.Max() - analyzedY.Min();
-            currentAnalysisY.coRMS = Statistics.RootMeanSquare(analyzedY);
+            
+            int alignedCount = analyzedX.Length;
 
-            var maxValue = analyzedX.Max();
-            int maxIndex = analyzedX.ToList().IndexOf(maxValue);
-            //add timing of the max value
-            currentAnalysisX.coPkTiming = (maxIndex * 360.0 / countX);
-            maxValue = analyzedY.Max();
-            maxIndex = analyzedY.ToList().IndexOf(maxValue);
-            //add timing of the max value
-            currentAnalysisY.coPkTiming = (maxIndex * 360.0 / countX);
+            //display the graph on 360° basis
+            double[] angle = new double[alignedCount];
+            double anglePerCount = 360.0 / alignedCount;
+            for (int i = 0; i < alignedCount; i++)
+                angle[i] = i * anglePerCount;
 
-            formsPlotAnalysis.Plot.Clear();
-            if (!chkFFTSingle.Checked)
+            int[][] peakX = new int[1][]; peakX[0] = GetPeakPerTurn(analyzedX);
+            int[][] peakY = new int[1][]; peakY[0] = GetPeakPerTurn(analyzedY);
+            int[][] peakZ = new int[1][]; peakZ[0] = GetPeakPerTurn(analyzedZ);
+            int[][] peakResultante = new int[1][]; peakResultante[0] = GetPeakPerTurn(resultante);
+
+            lstPeakXCompiled.Items.Clear();
+            lstPeakYCompiled.Items.Clear();
+            lstPeakZCompiled.Items.Clear();
+            lstPeakResultanteCompiled.Items.Clear();
+
+            var top5 = GetTopCommonPeaksWithAmplitude(peakX, analyzedX, tol: 10, minSamples: 2, topN: 5);
+            foreach (var item in top5)
+                lstPeakXCompiled.Items.Add($"PeakX: Angle {item.Mean} – Fréquence {item.Freq} - Force {item.AverageAmplitude}");
+            top5 = GetTopCommonPeaksWithAmplitude(peakY, analyzedY, tol: 10, minSamples: 2, topN: 5);
+            foreach (var item in top5)
+                lstPeakYCompiled.Items.Add($"PeakY: Angle {item.Mean} – Fréquence {item.Freq} - Force {item.AverageAmplitude}");
+            top5 = GetTopCommonPeaksWithAmplitude(peakZ, analyzedZ, tol: 10, minSamples: 2, topN: 5);
+            foreach (var item in top5)
+                lstPeakZCompiled.Items.Add($"PeakZ: Angle {item.Mean} – Fréquence {item.Freq} - Force {item.AverageAmplitude}");
+            top5 = GetTopCommonPeaksWithAmplitude(peakResultante, resultante, tol: 10, minSamples: 2, topN: 5);
+            foreach (var item in top5)
+                lstPeakResultanteCompiled.Items.Add($"Resultante: Angle {item.Mean} – Fréquence {item.Freq} - Force {item.AverageAmplitude}");
+
+            formsPlotAnalysis.Reset();
+            formsPlotAnalysis.Multiplot.Reset();
+            var plotTemporal = formsPlotAnalysis.Plot;
+            if (chkShowX.Checked)
             {
-                //display the graph on 360° basis
-                double[] angle = new double[alignedCount];
-                double anglePerCount = 360.0 / alignedCount;
-                for (int i = 0; i < alignedCount; i++)
-                    angle[i] = i * anglePerCount;
-
-                int[][] peakX = new int[1][]; peakX[0] = GetPeakPerTurn(analyzedX);
-                int[][] peakY = new int[1][]; peakY[0] = GetPeakPerTurn(analyzedY);
-                int[][] peakZ = new int[1][]; peakZ[0] = GetPeakPerTurn(analyzedZ);
-                int[][] peakResultante = new int[1][]; peakResultante[0] = GetPeakPerTurn(resultante);
-
-                lstPeakXCompiled.Items.Clear();
-                lstPeakYCompiled.Items.Clear();
-                lstPeakZCompiled.Items.Clear();
-                lstPeakResultanteCompiled.Items.Clear();
-
-                var top5 = GetTopCommonPeaksWithAmplitude(peakX, analyzedX, tol: 10, minSamples: 2, topN: 5);
-                foreach (var item in top5)
-                    lstPeakXCompiled.Items.Add($"PeakX: Angle {item.Mean} – Fréquence {item.Freq} - Force {item.AverageAmplitude}");
-                top5 = GetTopCommonPeaksWithAmplitude(peakY, analyzedY, tol: 10, minSamples: 2, topN: 5);
-                foreach (var item in top5)
-                    lstPeakYCompiled.Items.Add($"PeakY: Angle {item.Mean} – Fréquence {item.Freq} - Force {item.AverageAmplitude}");
-                top5 = GetTopCommonPeaksWithAmplitude(peakZ, analyzedZ, tol: 10, minSamples: 2, topN: 5);
-                foreach (var item in top5)
-                    lstPeakZCompiled.Items.Add($"PeakZ: Angle {item.Mean} – Fréquence {item.Freq} - Force {item.AverageAmplitude}");
-                top5 = GetTopCommonPeaksWithAmplitude(peakResultante, resultante, tol: 10, minSamples: 2, topN: 5);
-                foreach (var item in top5)
-                    lstPeakResultanteCompiled.Items.Add($"Resultante: Angle {item.Mean} – Fréquence {item.Freq} - Force {item.AverageAmplitude}");
-
-                if (chkShowX.Checked)
-                {
-                    formsPlotAnalysis.Plot.PlotScatter(angle, analyzedX, Color.Blue, 1, 1, "X");
-                    DisplayPeaksTemporal(analyzedX, angle, "Top Peak X", formsPlotAnalysis, lstPeakXCompiled);
-                }
-                if (chkShowY.Checked)
-                {
-                    formsPlotAnalysis.Plot.PlotScatter(angle, analyzedY, Color.Red, 1, 1, "Y");
-                    DisplayPeaksTemporal(analyzedY, angle, "Top Peak Y", formsPlotAnalysis, lstPeakYCompiled);
-                }
-                if (chkShowZ.Checked)
-                {
-                    formsPlotAnalysis.Plot.PlotScatter(angle, analyzedZ, Color.Yellow, 1, 1, "Z");
-                    DisplayPeaksTemporal(analyzedX, angle, "Top Peak Z", formsPlotAnalysis, lstPeakZCompiled);
-                }
-                if (chkShowResultante.Checked)
-                {
-                    formsPlotAnalysis.Plot.PlotScatter(angle, resultante, Color.Black, 1, 1, "Resultante");
-                    DisplayPeaksTemporal(analyzedX, angle, "Top Peak Resultante", formsPlotAnalysis, lstPeakResultanteCompiled);
-                }
-                //formsPlotAnalysis.Plot.Axis(0, 360, -1, 1);
-
-                formsPlotAnalysis.Plot.SetAxisLimitsX(0.0, 360.0);
-                formsPlotAnalysis.Plot.AxisAutoY();
-                formsPlotAnalysis.Plot.Legend(true);
+                var sp = plotTemporal.Add.Scatter(angle, analyzedX, ScottPlot.Colors.Blue);
+                sp.LegendText = "X";
+                DisplayPeaksTemporal(analyzedX, angle, "Top Peak X", plotTemporal, lstPeakXCompiled);
             }
-            else
+            if (chkShowY.Checked)
             {
-                //resample to 200
-                //   double[] outX = new double[200];
-                //   double[] outY = new double[200];
-                //   double[] outZ = new double[200];
-                //   ResampleSectionAngularXYZ(analyzedX, analyzedY, analyzedZ, 200, 1.0 / sampleRate, outX, outY, outZ, 0);
-
-                FFTData dataX = EquilibrageHelper.CalculateFFT(analyzedX, sampleRate, cbxFFTSingle, chkDb.Checked, rpm, f_rot);
-                FFTData dataY = EquilibrageHelper.CalculateFFT(analyzedY, sampleRate, cbxFFTSingle, chkDb.Checked, rpm, f_rot);
-                FFTData dataZ = EquilibrageHelper.CalculateFFT(analyzedZ, sampleRate, cbxFFTSingle, chkDb.Checked, rpm, f_rot);
-                FFTData dataResultante = EquilibrageHelper.CalculateFFT(resultante, sampleRate, cbxFFTSingle, chkDb.Checked, rpm, f_rot);
-
-                formsPlotAnalysis.Plot.Clear();
-                lstPeakZCompiled.Items.Clear();
-                lstPeakXCompiled.Items.Clear();
-                lstPeakYCompiled.Items.Clear();
-                lstPeakResultanteCompiled.Items.Clear();
-                if (chkShowX.Checked)
-                {
-                    AnalyzeAxis("X", dataX, sampleRate, lstPeakXCompiled, Color.Blue, formsPlotAnalysis, f_rot);
-                }
-                if (chkShowY.Checked)
-                {
-                    AnalyzeAxis("Y", dataY, sampleRate, lstPeakYCompiled, Color.Red, formsPlotAnalysis, f_rot);
-                }
-                if (chkShowZ.Checked)
-                {
-                    AnalyzeAxis("Z", dataZ, sampleRate, lstPeakZCompiled, Color.Yellow, formsPlotAnalysis, f_rot);
-                }
-                if (chkShowResultante.Checked)
-                {
-                    AnalyzeAxis("Resultante", dataResultante, sampleRate, lstPeakResultanteCompiled, Color.DeepPink, formsPlotAnalysis, f_rot);
-                }
-                String sText = $"Fundamental: {f_rot}Hz\r\n1er order: {f_rot * 2}\r\n2eme order: {f_rot * 3}\r\n3eme order: {f_rot * 4}\r\n4er order: {f_rot * 5}\r\n5er order: {f_rot * 6}\r\n";
-                formsPlotAnalysis.Plot.AddAnnotation(sText);
-                lstSimulationCompiled.Items.Clear();
-                var calcResult = EquilibrageHelper.CompleteSimulation(lstSimulationCompiled, "Compiled", dataX, dataY, dataZ, dataResultante, sampleRate, f_rot);
-                for (int i = 0; i < 5; i++)
-                {
-                    if (i == 0)
-                    {
-                        if (calcResult.dir[i].IsDynamic)
-                        {
-                            formsPlotT1I.Plot.AddVerticalLine(calcResult.dir[i].correction.AngleInnerDeg, Color.Red, width: 3);
-                            formsPlotT1O.Plot.AddVerticalLine(calcResult.dir[i].correction.AngleOuterDeg, Color.Red, width: 3);
-                        }
-                        formsPlotT1X.Plot.AddVerticalLine(calcResult.px[i].UnbalanceAngleDeg, Color.Red, width: 3);
-                        formsPlotT1Y.Plot.AddVerticalLine(calcResult.py[i].UnbalanceAngleDeg, Color.Red, width: 3);
-                    }
-                    else if (i == 1)
-                    {
-                        if (calcResult.dir[i].IsDynamic)
-                        {
-                            formsPlotT2I.Plot.AddVerticalLine(calcResult.dir[i].correction.AngleInnerDeg, Color.Red, width: 3);
-                            formsPlotT2O.Plot.AddVerticalLine(calcResult.dir[i].correction.AngleOuterDeg, Color.Red, width: 3);
-                        }
-                        formsPlotT2X.Plot.AddVerticalLine(calcResult.px[i].UnbalanceAngleDeg, Color.Red, width: 3);
-                        formsPlotT2Y.Plot.AddVerticalLine(calcResult.py[i].UnbalanceAngleDeg, Color.Red, width: 3);
-                    }
-                    else if (i == 2)
-                    {
-                        if (calcResult.dir[i].IsDynamic)
-                        {
-                            formsPlotT3I.Plot.AddVerticalLine(calcResult.dir[i].correction.AngleInnerDeg, Color.Red, width: 3);
-                            formsPlotT3O.Plot.AddVerticalLine(calcResult.dir[i].correction.AngleOuterDeg, Color.Red, width: 3);
-                        }
-                        formsPlotT3X.Plot.AddVerticalLine(calcResult.px[i].UnbalanceAngleDeg, Color.Red, width: 3);
-                        formsPlotT3Y.Plot.AddVerticalLine(calcResult.py[i].UnbalanceAngleDeg, Color.Red, width: 3);
-                    }
-                    else if (i == 3)
-                    {
-                        if (calcResult.dir[i].IsDynamic)
-                        {
-                            formsPlotT4I.Plot.AddVerticalLine(calcResult.dir[i].correction.AngleInnerDeg, Color.Red, width: 3);
-                            formsPlotT4O.Plot.AddVerticalLine(calcResult.dir[i].correction.AngleOuterDeg, Color.Red, width: 3);
-                        }
-                        formsPlotT4X.Plot.AddVerticalLine(calcResult.px[i].UnbalanceAngleDeg, Color.Red, width: 3);
-                        formsPlotT4Y.Plot.AddVerticalLine(calcResult.py[i].UnbalanceAngleDeg, Color.Red, width: 3);
-                    }
-                    else if (i == 4)
-                    {
-                        if (calcResult.dir[i].IsDynamic)
-                        {
-                            formsPlotT5I.Plot.AddVerticalLine(calcResult.dir[i].correction.AngleInnerDeg, Color.Red, width: 3);
-                            formsPlotT5O.Plot.AddVerticalLine(calcResult.dir[i].correction.AngleOuterDeg, Color.Red, width: 3);
-                        }
-                        formsPlotT5X.Plot.AddVerticalLine(calcResult.px[i].UnbalanceAngleDeg, Color.Red, width: 3);
-                        formsPlotT5Y.Plot.AddVerticalLine(calcResult.py[i].UnbalanceAngleDeg, Color.Red, width: 3);
-                    }
-                }
-                //lblFFTAnalysis.Text += "Compiled X AVG Mag: " + calcResult.px[0].ActualAmplitude.ToString("F4") + "\r\n";
-                //lblFFTAnalysis.Text += "Compiled Y AVG Mag: " + calcResult.py[0].ActualAmplitude.ToString("F4") + "\r\n";
-                currentAnalysisX.coMagAvg = calcResult.px[0].ActualAmplitude;
-                currentAnalysisX.coAngle = calcResult.px[0].UnbalanceAngleDeg;
-                currentAnalysisX.coPkPkInverse = dataX.SignalFFTInverse.Max() - dataX.SignalFFTInverse.Min();
-                currentAnalysisY.coMagAvg = calcResult.py[0].ActualAmplitude;
-                currentAnalysisY.coAngle = calcResult.py[0].UnbalanceAngleDeg;
-                currentAnalysisY.coPkPkInverse = dataY.SignalFFTInverse.Max() - dataY.SignalFFTInverse.Min();
-                if (calcResult.dir[0].IsDynamic)
-                {
-                    currentAnalysisX.coAngleDynamicSimple = calcResult.dir[0].correction.AngleInnerDeg;
-                    currentAnalysisY.coAngleDynamicSimple = calcResult.dir[0].correction.AngleOuterDeg;
-                }
-                /*     var k = EquilibrageHelper.CalculateAttenuationConstant(Convert.ToDouble(txtXMagExt.Text), Convert.ToDouble(txtXMagInt.Text), Convert.ToDouble(txtXMagGrams.Text));
-                     currentAnalysisX.coWeight = EquilibrageHelper.CalculateRequiredMass(k, currentAnalysisX.coMagAvg, Convert.ToDouble(txtXMagBalanced.Text));
-
-                     k = EquilibrageHelper.CalculateAttenuationConstant(Convert.ToDouble(txtYMagExt.Text), Convert.ToDouble(txtYMagInt.Text), Convert.ToDouble(txtYMagGrams.Text));
-                     currentAnalysisY.coWeight = EquilibrageHelper.CalculateRequiredMass(k, currentAnalysisY.coMagAvg, Convert.ToDouble(txtYMagBalanced.Text));
-                     */
-                /*   var result = EquilibrageHelper.CalculateAttenuationConstantsXY(Convert.ToDouble(txtXMagGrams.Text) / 1000.0,
-                                            Convert.ToDouble(txtXMagBalanced.Text),
-                                            Convert.ToDouble(txtYMagBalanced.Text),
-                                            Convert.ToDouble(txtXMagExt.Text),
-                                            Convert.ToDouble(txtYMagExt.Text),
-                                            Convert.ToDouble(txtYMagGrams.Text) / 1000.0,
-                                            Convert.ToDouble(txtXMagInt.Text),
-                                            Convert.ToDouble(txtYMagInt.Text));
-                   var res = EquilibrageHelper.EstimateMassCorrection(currentAnalysisX.coMagAvg, (currentAnalysisX.coAngle + 180) % 360, currentAnalysisY.coMagAvg, (currentAnalysisY.coAngle + 180) % 360, result.KextX, result.KextY, result.KintX, result.KintY);
-
-                   currentAnalysisX.coAngleDynamicComplex = res.AngleIntDeg;
-                   currentAnalysisY.coAngleDynamicComplex = res.AngleExtDeg;
-                   currentAnalysisX.coWeight = res.MassInt;
-                   currentAnalysisY.coWeight = res.MassExt;
-                */
+                plotTemporal.Add.Scatter(angle, analyzedY, Colors.Red).LegendText = "Y";
+                    
+                DisplayPeaksTemporal(analyzedY, angle, "Top Peak Y", plotTemporal, lstPeakYCompiled);
             }
-            formsPlotAnalysis.Render();
+            if (chkShowZ.Checked)
+            {
+                plotTemporal.Add.Scatter(angle, analyzedZ, Colors.Yellow).LegendText = "Z";
+                DisplayPeaksTemporal(analyzedX, angle, "Top Peak Z", plotTemporal, lstPeakZCompiled);
+            }
+            if (chkShowResultante.Checked)
+            {
+                plotTemporal.Add.Scatter(angle, resultante, Colors.Black).LegendText = "Resultante";
+                DisplayPeaksTemporal(analyzedX, angle, "Top Peak Resultante", plotTemporal, lstPeakResultanteCompiled);
+            }
+            //formsPlotAnalysis.Plot.Axis(0, 360, -1, 1);
+
+            plotTemporal.Axes.SetLimits(0.0, 360.0);
+            plotTemporal.Axes.AutoScaleY();
+            plotTemporal.ShowLegend();
+
+            var plotFFT = formsPlotAnalysis.Multiplot.AddPlot();
+            FFTData dataX = EquilibrageHelper.CalculateFFT(analyzedX, sampleRate, cbxFFTSingle, chkDb.Checked, rpm, f_rot);
+            FFTData dataY = EquilibrageHelper.CalculateFFT(analyzedY, sampleRate, cbxFFTSingle, chkDb.Checked, rpm, f_rot);
+            FFTData dataZ = EquilibrageHelper.CalculateFFT(analyzedZ, sampleRate, cbxFFTSingle, chkDb.Checked, rpm, f_rot);
+            FFTData dataResultante = EquilibrageHelper.CalculateFFT(resultante, sampleRate, cbxFFTSingle, chkDb.Checked, rpm, f_rot);
+
+            lstPeakZCompiled.Items.Clear();
+            lstPeakXCompiled.Items.Clear();
+            lstPeakYCompiled.Items.Clear();
+            lstPeakResultanteCompiled.Items.Clear();
+            if (chkShowX.Checked)
+            {
+                AnalyzeAxis("X", dataX, sampleRate, lstPeakXCompiled, Colors.Blue, plotFFT, f_rot);
+            }
+            if (chkShowY.Checked)
+            {
+                AnalyzeAxis("Y", dataY, sampleRate, lstPeakYCompiled, Colors.Red, plotFFT, f_rot);
+            }
+            if (chkShowZ.Checked)
+            {
+                AnalyzeAxis("Z", dataZ, sampleRate, lstPeakZCompiled, Colors.Yellow, plotFFT, f_rot);
+            }
+            if (chkShowResultante.Checked)
+            {
+                AnalyzeAxis("Resultante", dataResultante, sampleRate, lstPeakResultanteCompiled, Colors.DeepPink, plotFFT, f_rot);
+            }
+            String sText = $"Fundamental: {f_rot}Hz\r\n1er order: {f_rot * 2}\r\n2eme order: {f_rot * 3}\r\n3eme order: {f_rot * 4}\r\n4er order: {f_rot * 5}\r\n5er order: {f_rot * 6}\r\n";
+            plotFFT.Add.Annotation(sText);
+            lstSimulationCompiled.Items.Clear();
+            var calcResult = EquilibrageHelper.CompleteSimulation(lstSimulationCompiled, "Compiled", dataX, dataY, dataZ, dataResultante, sampleRate, Convert.ToDouble(txtCorrectAngleX.Text), Convert.ToDouble(txtCorrectAngleY.Text), f_rot);
+            for (int i = 0; i < 5; i++)
+            {
+                if (i == 0)
+                {
+                    if (calcResult.dir[i].IsDynamic)
+                    {
+                        formsPlotT1I.Plot.Add.VerticalLine(calcResult.dir[i].correction.AngleInnerDeg, width:3, color: Colors.Red);
+                        formsPlotT1O.Plot.Add.VerticalLine(calcResult.dir[i].correction.AngleOuterDeg, width: 3, color: Colors.Red);
+                    }
+                    formsPlotT1X.Plot.Add.VerticalLine(calcResult.px[i].UnbalanceAngleDeg, color: Colors.Red, width: 3);
+                    formsPlotT1Y.Plot.Add.VerticalLine(calcResult.py[i].UnbalanceAngleDeg, color: Colors.Red, width: 3);
+                }
+                   
+            }
+            //lblFFTAnalysis.Text += "Compiled X AVG Mag: " + calcResult.px[0].ActualAmplitude.ToString("F4") + "\r\n";
+            //lblFFTAnalysis.Text += "Compiled Y AVG Mag: " + calcResult.py[0].ActualAmplitude.ToString("F4") + "\r\n";
+            currentAnalysisX.coMagAvg = calcResult.px[0].ActualAmplitude;
+            currentAnalysisX.coAngle = calcResult.px[0].UnbalanceAngleDeg;
+            currentAnalysisX.coPkPkInverse = dataX.SignalFFTInverse.Max() - dataX.SignalFFTInverse.Min();
+            currentAnalysisY.coMagAvg = calcResult.py[0].ActualAmplitude;
+            currentAnalysisY.coAngle = calcResult.py[0].UnbalanceAngleDeg;
+            currentAnalysisY.coPkPkInverse = dataY.SignalFFTInverse.Max() - dataY.SignalFFTInverse.Min();
+            if (calcResult.dir[0].IsDynamic)
+            {
+                currentAnalysisX.coAngleDynamicSimple = calcResult.dir[0].correction.AngleInnerDeg;
+                currentAnalysisY.coAngleDynamicSimple = calcResult.dir[0].correction.AngleOuterDeg;
+            }
+
+
+            formsPlotAnalysis.Refresh();
+
+
             if (selectedSections.Count > 0)
             {
                 lblRecordNumber.Text = "0";
                 RefreshXYZ(selectedSections[0]);
             }
 
+        }
+        private (double[] x, double[] y, double[] z, double[] resultante, double f_rot) GetSingleTourSignal(int iSignal)
+        {
+            var s = selectedSections[iSignal];
+            double sampleRate = s.SamplingRate;
+            int count = s.records.Count;
+            double[] x = new double[count];
+            double[] y = new double[count];
+            double[] z = new double[count];
+            double[] resultante = new double[count];
+            for (int i = 0; i < count; i++)
+            {
+                x[i] = s.records[i].x;
+                y[i] = s.records[i].y;
+                z[i] = s.records[i].z;
+            }
+            for (int i = 0; i < count; i++)
+            {
+                resultante[i] = Math.Sqrt(Math.Pow(x[i], 2)
+                                            + Math.Pow(y[i], 2)
+                                            );
+            }
+            double avgTourTime = count / sampleRate;
+            double f_rot = 1.0 / avgTourTime;
+            return (x, y, z, resultante, f_rot);
         }
         private void CalculateXYZ()
         {
@@ -693,7 +652,7 @@ namespace equilibreuse
                 pkpkYInv.Add(cmpY.SignalFFTInverse.Max() - cmpY.SignalFFTInverse.Min());
 
 
-                var cs = EquilibrageHelper.CompleteSimulation(null, "turn by turn", cmpX, cmpY, cmpZ, cmpResultante, sampleRate, f_rot);
+                var cs = EquilibrageHelper.CompleteSimulation(null, "turn by turn", cmpX, cmpY, cmpZ, cmpResultante, sampleRate, Convert.ToDouble(txtCorrectAngleX.Text), Convert.ToDouble(txtCorrectAngleY.Text), f_rot);
                 lstCR.Add(cs);
             }
             //for the 5 orders, calculate the average and most possible value =
@@ -767,26 +726,26 @@ namespace equilibreuse
                 CalculateStatistics("Angle Inner", i, lstBestAngleInner, ref mean, ref coeffVariation, ref variance, ref standardDeviation);
                 if (i == 0 && mean != double.NaN)
                 {
-                    formsPlotT1I.Plot.AddVerticalLine(mean, Color.Black, width: 3);
+                    formsPlotT1I.Plot.Add.VerticalLine(mean, color: Colors.Black, width: 3);
                     currentAnalysisX.ttAngleDynamicSimple = mean;
 
                 }
                 CalculateStatistics("Angle Outer", i, lstBestAngleOuter, ref mean, ref coeffVariation, ref variance, ref standardDeviation);
                 if (i == 0 && mean != double.NaN)
                 {
-                    formsPlotT1O.Plot.AddVerticalLine(mean, Color.Black, width: 3);
+                    formsPlotT1O.Plot.Add.VerticalLine(mean, color:Colors.Black, width: 3);
                     currentAnalysisY.ttAngleDynamicSimple = mean;
                 }
                 CalculateStatistics("X", i, lstBestAngleX, ref mean, ref coeffVariation, ref variance, ref standardDeviation);
                 if (i == 0 && mean != double.NaN)
                 {
-                    formsPlotT1X.Plot.AddVerticalLine(mean, Color.Black, width: 3);
+                    formsPlotT1X.Plot.Add.VerticalLine(mean, color:Colors.Black, width: 3);
                     currentAnalysisX.ttAngle = mean;
                 }
                 CalculateStatistics("Y", i, lstBestAngleY, ref mean, ref coeffVariation, ref variance, ref standardDeviation);
                 if (i == 0 && mean != double.NaN)
                 {
-                    formsPlotT1Y.Plot.AddVerticalLine(mean, Color.Black, width: 3);
+                    formsPlotT1Y.Plot.Add.VerticalLine(mean, color:Colors.Black, width: 3);
                     currentAnalysisY.ttAngle = mean;
                 }
                 CalculateStatistics("Z", i, lstBestAngleZ, ref mean, ref coeffVariation, ref variance, ref standardDeviation);
@@ -797,7 +756,7 @@ namespace equilibreuse
                 if (i == 0)
                 {
                     DisplayTurnByTurnGraph(lstBestAngleInner, lstBestAngleOuter, lstBestAngleX, lstBestAngleY, formsPlotT1I, formsPlotT1O, formsPlotT1X, formsPlotT1Y);
-                    lblTotalSelected.Text = $"Found Dynamic unbalance on {lstBestAngleInner.Count} turn of {lstSectionSelector.CheckedItems.Count} selected";
+                    
                     //    lblFFTAnalysis.Text += "Turn by turn X AVG Mag: " + lstMagnitudeX.Average(t => t.Item2).ToString("F4") + "\r\n";
                     //    lblFFTAnalysis.Text += "Turn by turn Y AVG Mag: " + lstMagnitudeY.Average(t => t.Item2).ToString("F4") + "\r\n";
                     currentAnalysisX.ttMagAvg = lstMagnitudeX.Average(t => t.Item2);
@@ -823,16 +782,7 @@ namespace equilibreuse
                     currentAnalysisX.ttWeight = res.MassInt;
                     currentAnalysisY.ttWeight = res.MassExt;*/
                 }
-                else if (i == 1)
-                    DisplayTurnByTurnGraph(lstBestAngleInner, lstBestAngleOuter, lstBestAngleX, lstBestAngleY, formsPlotT2I, formsPlotT2O, formsPlotT2X, formsPlotT2Y);
-                else if (i == 2)
-                    DisplayTurnByTurnGraph(lstBestAngleInner, lstBestAngleOuter, lstBestAngleX, lstBestAngleY, formsPlotT3I, formsPlotT3O, formsPlotT3X, formsPlotT3Y);
-                else if (i == 3)
-                    DisplayTurnByTurnGraph(lstBestAngleInner, lstBestAngleOuter, lstBestAngleX, lstBestAngleY, formsPlotT4I, formsPlotT4O, formsPlotT4X, formsPlotT4Y);
-                else if (i == 4)
-                    DisplayTurnByTurnGraph(lstBestAngleInner, lstBestAngleOuter, lstBestAngleX, lstBestAngleY, formsPlotT5I, formsPlotT5O, formsPlotT5X, formsPlotT5Y);
-
-
+            
             }
 
         }
@@ -999,28 +949,27 @@ namespace equilibreuse
                 double[] ys = lstBestAngleInner.Values.Select(y => (double)y).ToArray();
                 if (xs.Length > 0)
                 {
-                    frmInner.Plot.PlotBar(xs, ys, barWidth: 0.5, fillColor: Color.Blue, outlineColor: Color.Blue);
-
+                    //frmInner.Plot.Add.Bars(xs, ys, barWidth: 0.5, fillColor: Color.Blue, outlineColor: Color.Blue);
                 }
                 xs = lstBestAngleOuter.Keys.Select(x => (double)x).ToArray();
                 ys = lstBestAngleOuter.Values.Select(y => (double)y).ToArray();
                 if (xs.Length > 0)
                 {
-                    frmOuter.Plot.PlotBar(xs, ys, barWidth: 0.5, fillColor: Color.Blue, outlineColor: Color.Blue);
+                    //frmOuter.Plot.PlotBar(xs, ys, barWidth: 0.5, fillColor: Color.Blue, outlineColor: Color.Blue);
 
                 }
                 xs = lstBestAngleX.Keys.Select(x => (double)x).ToArray();
                 ys = lstBestAngleX.Values.Select(y => (double)y).ToArray();
                 if (xs.Length > 0)
                 {
-                    frmX.Plot.PlotBar(xs, ys, barWidth: 0.5, fillColor: Color.Blue, outlineColor: Color.Blue);
+                    //frmX.Plot.PlotBar(xs, ys, barWidth: 0.5, fillColor: Color.Blue, outlineColor: Color.Blue);
 
                 }
                 xs = lstBestAngleY.Keys.Select(x => (double)x).ToArray();
                 ys = lstBestAngleY.Values.Select(y => (double)y).ToArray();
                 if (xs.Length > 0)
                 {
-                    frmY.Plot.PlotBar(xs, ys, barWidth: 0.5, fillColor: Color.Blue, outlineColor: Color.Blue);
+                 //   frmY.Plot.PlotBar(xs, ys, barWidth: 0.5, fillColor: Color.Blue, outlineColor: Color.Blue);
                 }
             }
             catch
@@ -1062,15 +1011,15 @@ namespace equilibreuse
             lstPeakZ.Items.Clear();
             if (!chkFFTSingle.Checked)
             {
-                formsPlotX.Plot.PlotScatter(axis, x, null, 1, 1);
-                formsPlotY.Plot.PlotScatter(axis, y, null, 1, 1);
-                formsPlotZ.Plot.PlotScatter(axis, z, null, 1, 1);
-                formsPlotX.Plot.AxisAuto();
-                formsPlotY.Plot.AxisAuto();
-                formsPlotZ.Plot.AxisAuto();
-                formsPlotX.Render();
-                formsPlotY.Render();
-                formsPlotZ.Render();
+                formsPlotX.Plot.Add.Scatter(axis, x);
+                formsPlotY.Plot.Add.Scatter(axis, y);
+                formsPlotZ.Plot.Add.Scatter(axis, z);
+                formsPlotX.Plot.Axes.AutoScale();
+                formsPlotY.Plot.Axes.AutoScale(); 
+                formsPlotZ.Plot.Axes.AutoScale();
+                formsPlotX.Refresh();
+                formsPlotY.Refresh();
+                formsPlotZ.Refresh();
                 return;
             }
             else
@@ -1079,18 +1028,98 @@ namespace equilibreuse
                 FFTData cmpY = EquilibrageHelper.CalculateFFT(y, sampleRate, cbxFFTSingle, chkDb.Checked, s.Rpm, f_rot);
                 FFTData cmpZ = EquilibrageHelper.CalculateFFT(z, sampleRate, cbxFFTSingle, chkDb.Checked, s.Rpm, f_rot);
 
-                AnalyzeAxis("X", cmpX, sampleRate, lstPeakX, Color.Blue, formsPlotX, f_rot);
-                AnalyzeAxis("Y", cmpY, sampleRate, lstPeakY, Color.Blue, formsPlotY, f_rot);
-                AnalyzeAxis("Z", cmpZ, sampleRate, lstPeakZ, Color.Blue, formsPlotZ, f_rot);
+                AnalyzeAxis("X", cmpX, sampleRate, lstPeakX, Colors.Blue, formsPlotX.Plot, f_rot);
+                AnalyzeAxis("Y", cmpY, sampleRate, lstPeakY, Colors.Blue, formsPlotY.Plot, f_rot);
+                AnalyzeAxis("Z", cmpZ, sampleRate, lstPeakZ, Colors.Blue, formsPlotZ.Plot, f_rot);
                 String sText = $"Fundamental: {f_rot}Hz\r\n1er order: {f_rot * 2}\r\n2eme order: {f_rot * 3}\r\n3eme order: {f_rot * 4}\r\n4er order: {f_rot * 5}\r\n5er order: {f_rot * 6}\r\n";
-                formsPlotX.Plot.AddAnnotation(sText);
+                formsPlotX.Plot.Add.Annotation(sText);
 
-                formsPlotX.Render();
-                formsPlotY.Render();
-                formsPlotZ.Render();
+                formsPlotX.Refresh();
+                formsPlotY.Refresh();
+                formsPlotZ.Refresh();
             }
         }
+        // analysis of all consecutives segments
+        private (double[] x, double[] y, double[] z, double[] resultante, double[] whiteLine, double f_rot, double rpm, double sampleRate) GetGlobalTourSignal()
+        {
+            int countTotal = iTotalRecordsInCSV; //number of total records for selected sections in the dataset
+            int alignedCount = selectedSections.Select(x => x.records.Count).Max();
+            double rpm = selectedSections.Select(x => x.Rpm).Min();
+            //get avg samplerate
+            double sampleRate = selectedSections.Select(x => x.SamplingRate).Average();
+            if (chkOrderTracking.Checked) //resample on 360 points per sections
+                countTotal = selectedSections.Count * alignedCount; //made a count total based on the max number of data
 
+            double[] analyzedX = new double[countTotal];
+            double[] analyzedY = new double[countTotal];
+            double[] analyzedZ = new double[countTotal];
+            double[] whiteLine = new double[countTotal];
+            double[] resultante = new double[countTotal];
+            //display peaks
+            //double[] angle = new double[countTotal];
+            int[][] peakX = new int[selectedSections.Count][];
+            int[][] peakY = new int[selectedSections.Count][];
+            int[][] peakZ = new int[selectedSections.Count][];
+
+            int iCount = 0, tourNumber = 0;
+            foreach (section se in selectedSections)
+            {
+                int startCount = iCount;
+                whiteLine[iCount] = 10;
+                int count = se.records.Count;
+                double angleIncrement = 360.0 / count;
+                if (!chkOrderTracking.Checked)
+                {
+                    for (int i = 0; i < count; i++)
+                    {
+                        //   angle[iCount] = i*angleIncrement;
+                        if (chkAbsolute.Checked)
+                        {
+                            analyzedX[iCount] = Math.Abs(se.records[i].x);
+                            analyzedY[iCount] = Math.Abs(se.records[i].y);
+                            analyzedZ[iCount] = Math.Abs(se.records[i].z);
+                        }
+                        else
+                        {
+                            analyzedX[iCount] = se.records[i].x;
+                            analyzedY[iCount] = se.records[i].y;
+                            analyzedZ[iCount] = se.records[i].z;
+                        }
+                        iCount++;
+                    }
+                }
+                else
+                {
+                    angleIncrement = 360.0 / alignedCount;
+                    //for (int i = 0; i < alignedCount; i++)
+                    //    angle[i+ (tourNumber* alignedCount)] = i * angleIncrement;
+                    iCount += alignedCount;
+
+                    ResampleSectionAngularXYZ(se.records, alignedCount, 1.0 / sampleRate, analyzedX, analyzedY, analyzedZ, tourNumber * alignedCount);
+
+                }
+
+                //convert the return x axis (0 to number of sample for 1 turn) to 360°
+                peakX[tourNumber] = GetPeakPerTurn(analyzedX.Skip(startCount).Take(iCount - startCount).ToArray()).Select(x => (int)(x * angleIncrement)).ToArray();
+                peakY[tourNumber] = GetPeakPerTurn(analyzedY.Skip(startCount).Take(iCount - startCount).ToArray()).Select(x => (int)(x * angleIncrement)).ToArray();
+                peakZ[tourNumber] = GetPeakPerTurn(analyzedZ.Skip(startCount).Take(iCount - startCount).ToArray()).Select(x => (int)(x * angleIncrement)).ToArray();
+
+
+                tourNumber++;
+
+            }
+            int countX = analyzedX.Count();
+            for (int i = 0; i < countX; i++)
+            {
+                resultante[i] = Math.Sqrt(Math.Pow(analyzedX[i], 2)
+                                            + Math.Pow(analyzedY[i], 2)
+                                            );
+            }
+
+            double avgTourTime = countTotal / sampleRate / selectedSections.Count;  // en secondes  
+            double f_rot = 1.0 / avgTourTime;
+            return (analyzedX, analyzedY, analyzedZ, resultante, whiteLine, f_rot, rpm, sampleRate);
+        }
 
         // analysis of all consecutives segments
         private void RefreshAnalysisGlobal()
@@ -1267,26 +1296,26 @@ namespace equilibreuse
                 double max = 0;
                 if (chkShowX.Checked)
                 {
-                    formsPlotGlobal.Plot.PlotScatter(temporal, analyzedX, Color.Blue, 1, 1, "X");
-                    DisplayPeaksTemporal(analyzedX, temporal, "Top Peak X", formsPlotGlobal, lstPeakGlobalX);
+                    formsPlotGlobal.Plot.Add.Scatter(temporal, analyzedX, Colors.Blue).LegendText = "X";
+                    DisplayPeaksTemporal(analyzedX, temporal, "Top Peak X", formsPlotGlobal.Plot, lstPeakGlobalX);
                     max = analyzedX.Max();
                 }
                 if (chkShowY.Checked)
                 {
-                    formsPlotGlobal.Plot.PlotScatter(temporal, analyzedY, Color.Red, 1, 1, "Y");
-                    DisplayPeaksTemporal(analyzedY, temporal, "Top Peak Y", formsPlotGlobal, lstPeakGlobalY);
+                    formsPlotGlobal.Plot.Add.Scatter(temporal, analyzedY, Colors.Red).LegendText = "Y";
+                    DisplayPeaksTemporal(analyzedY, temporal, "Top Peak Y", formsPlotGlobal.Plot, lstPeakGlobalY);
                     max = Math.Max(max, analyzedY.Max());
                 }
                 if (chkShowZ.Checked)
                 {
-                    formsPlotGlobal.Plot.PlotScatter(temporal, analyzedZ, Color.Yellow, 1, 1, "Z");
-                    DisplayPeaksTemporal(analyzedZ, temporal, "Top Peak Z", formsPlotGlobal, lstPeakGlobalZ);
+                    formsPlotGlobal.Plot.Add.Scatter(temporal, analyzedZ, Colors.Yellow).LegendText = "Z";
+                    DisplayPeaksTemporal(analyzedZ, temporal, "Top Peak Z", formsPlotGlobal.Plot, lstPeakGlobalZ);
                     max = Math.Max(max, analyzedZ.Max());
                 }
                 if (chkShowResultante.Checked)
                 {
-                    formsPlotGlobal.Plot.PlotScatter(temporal, resultante, Color.DeepPink, 1, 1, "Resultante");
-                    DisplayPeaksTemporal(resultante, temporal, "Resultante", formsPlotGlobal, lstPeakResultanteGlobal);
+                    formsPlotGlobal.Plot.Add.Scatter(temporal, resultante, Colors.DeepPink).LegendText= "Resultante";
+                    DisplayPeaksTemporal(resultante, temporal, "Resultante", formsPlotGlobal.Plot, lstPeakResultanteGlobal);
                     max = Math.Max(max, resultante.Max());
                 }
                 max = max * 2;
@@ -1295,11 +1324,11 @@ namespace equilibreuse
                     if (whiteLine[i] == 10)
                         whiteLine[i] = max;
                 }
-                formsPlotGlobal.Plot.PlotScatter(temporal, whiteLine, Color.Black, 1, 3, "WhiteLine");
+                formsPlotGlobal.Plot.Add.Scatter(temporal, whiteLine, Colors.Black).LegendText ="WhiteLine";
                 //formsPlotAnalysis.Plot.Axis(0, 360, -1, 1);
-                formsPlotGlobal.Plot.SetAxisLimitsX(0, countTotal);
-                formsPlotGlobal.Plot.AxisAutoY();
-                formsPlotGlobal.Plot.Legend(true);
+                formsPlotGlobal.Plot.Axes.SetLimitsX(0, countTotal);
+                formsPlotGlobal.Plot.Axes.AutoScaleY();
+                formsPlotGlobal.Plot.ShowLegend();
             }
             else
             {
@@ -1347,77 +1376,38 @@ namespace equilibreuse
                 lstPeakResultanteGlobal.Items.Clear();
                 if (chkShowX.Checked)
                 {
-                    AnalyzeAxis("X", cmpX, sampleRate, lstPeakGlobalX, Color.Blue, formsPlotGlobal, f_rot);
+                    AnalyzeAxis("X", cmpX, sampleRate, lstPeakGlobalX, Colors.Blue, formsPlotGlobal.Plot, f_rot);
                 }
                 if (chkShowY.Checked)
                 {
-                    AnalyzeAxis("Y", cmpY, sampleRate, lstPeakGlobalY, Color.Red, formsPlotGlobal, f_rot);
+                    AnalyzeAxis("Y", cmpY, sampleRate, lstPeakGlobalY, Colors.Red, formsPlotGlobal.Plot, f_rot);
                 }
                 if (chkShowZ.Checked)
                 {
-                    AnalyzeAxis("Z", cmpZ, sampleRate, lstPeakGlobalZ, Color.Yellow, formsPlotGlobal, f_rot);
+                    AnalyzeAxis("Z", cmpZ, sampleRate, lstPeakGlobalZ, Colors.Yellow, formsPlotGlobal.Plot, f_rot);
                 }
                 if (chkShowResultante.Checked)
                 {
-                    AnalyzeAxis("Resultante", cmpResultante, sampleRate, lstPeakResultanteGlobal, Color.DeepPink, formsPlotGlobal, f_rot);
+                    AnalyzeAxis("Resultante", cmpResultante, sampleRate, lstPeakResultanteGlobal, Colors.DeepPink, formsPlotGlobal.Plot, f_rot);
                 }
                 String sText = $"Fundamental: {f_rot}Hz\r\n1er order: {f_rot * 2}\r\n2eme order: {f_rot * 3}\r\n3eme order: {f_rot * 4}\r\n4er order: {f_rot * 5}\r\n5er order: {f_rot * 6}\r\n";
-                formsPlotGlobal.Plot.AddAnnotation(sText);
+                formsPlotGlobal.Plot.Add.Annotation(sText);
                 lstSimulationGlobal.Items.Clear();
-
-                var calcResult = EquilibrageHelper.CompleteSimulation(lstSimulationGlobal, "Global", cmpX, cmpY, cmpZ, cmpResultante, sampleRate, f_rot, 1);
+                
+                var calcResult = EquilibrageHelper.CompleteSimulation(lstSimulationGlobal, "Global", cmpX, cmpY, cmpZ, cmpResultante, sampleRate, f_rot,Convert.ToDouble(txtCorrectAngleX.Text), Convert.ToDouble(txtCorrectAngleY.Text), 1);
                 for (int i = 0; i < 5; i++)
                 {
                     if (i == 0)
                     {
                         if (calcResult.dir[i].IsDynamic)
                         {
-                            formsPlotT1I.Plot.AddVerticalLine(calcResult.dir[i].correction.AngleInnerDeg, Color.Green, width: 3);
-                            formsPlotT1O.Plot.AddVerticalLine(calcResult.dir[i].correction.AngleOuterDeg, Color.Green, width: 3);
+                            formsPlotT1I.Plot.Add.VerticalLine(calcResult.dir[i].correction.AngleInnerDeg, color:Colors.Green, width: 3);
+                            formsPlotT1O.Plot.Add.VerticalLine(calcResult.dir[i].correction.AngleOuterDeg, color:Colors.Green, width: 3);
                         }
-                        formsPlotT1X.Plot.AddVerticalLine(calcResult.px[i].UnbalanceAngleDeg, Color.Green, width: 3);
-                        formsPlotT1Y.Plot.AddVerticalLine(calcResult.py[i].UnbalanceAngleDeg, Color.Green, width: 3);
+                        formsPlotT1X.Plot.Add.VerticalLine(calcResult.px[i].UnbalanceAngleDeg, color:Colors.Green, width: 3);
+                        formsPlotT1Y.Plot.Add.VerticalLine(calcResult.py[i].UnbalanceAngleDeg, color:Colors.Green, width: 3);
                     }
-                    else if (i == 1)
-                    {
-                        if (calcResult.dir[i].IsDynamic)
-                        {
-                            formsPlotT2I.Plot.AddVerticalLine(calcResult.dir[i].correction.AngleInnerDeg, Color.Green, width: 3);
-                            formsPlotT2O.Plot.AddVerticalLine(calcResult.dir[i].correction.AngleOuterDeg, Color.Green, width: 3);
-                        }
-                        formsPlotT2X.Plot.AddVerticalLine(calcResult.px[i].UnbalanceAngleDeg, Color.Green, width: 3);
-                        formsPlotT2Y.Plot.AddVerticalLine(calcResult.py[i].UnbalanceAngleDeg, Color.Green, width: 3);
-                    }
-                    else if (i == 2)
-                    {
-                        if (calcResult.dir[i].IsDynamic)
-                        {
-                            formsPlotT3I.Plot.AddVerticalLine(calcResult.dir[i].correction.AngleInnerDeg, Color.Green, width: 3);
-                            formsPlotT3O.Plot.AddVerticalLine(calcResult.dir[i].correction.AngleOuterDeg, Color.Green, width: 3);
-                        }
-                        formsPlotT3X.Plot.AddVerticalLine(calcResult.px[i].UnbalanceAngleDeg, Color.Green, width: 3);
-                        formsPlotT3Y.Plot.AddVerticalLine(calcResult.py[i].UnbalanceAngleDeg, Color.Green, width: 3);
-                    }
-                    else if (i == 3)
-                    {
-                        if (calcResult.dir[i].IsDynamic)
-                        {
-                            formsPlotT4I.Plot.AddVerticalLine(calcResult.dir[i].correction.AngleInnerDeg, Color.Green, width: 3);
-                            formsPlotT4O.Plot.AddVerticalLine(calcResult.dir[i].correction.AngleOuterDeg, Color.Green, width: 3);
-                        }
-                        formsPlotT4X.Plot.AddVerticalLine(calcResult.px[i].UnbalanceAngleDeg, Color.Green, width: 3);
-                        formsPlotT4Y.Plot.AddVerticalLine(calcResult.py[i].UnbalanceAngleDeg, Color.Green, width: 3);
-                    }
-                    else if (i == 4)
-                    {
-                        if (calcResult.dir[i].IsDynamic)
-                        {
-                            formsPlotT5I.Plot.AddVerticalLine(calcResult.dir[i].correction.AngleInnerDeg, Color.Green, width: 3);
-                            formsPlotT5O.Plot.AddVerticalLine(calcResult.dir[i].correction.AngleOuterDeg, Color.Green, width: 3);
-                        }
-                        formsPlotT5X.Plot.AddVerticalLine(calcResult.px[i].UnbalanceAngleDeg, Color.Green, width: 3);
-                        formsPlotT5Y.Plot.AddVerticalLine(calcResult.py[i].UnbalanceAngleDeg, Color.Green, width: 3);
-                    }
+                   
                 }
 
 
@@ -1475,7 +1465,7 @@ namespace equilibreuse
                   */
 
             }
-            formsPlotGlobal.Render();
+            formsPlotGlobal.Refresh();
         }
 
 
@@ -1599,26 +1589,26 @@ namespace equilibreuse
                 double max = 0;
                 if (chkShowX.Checked)
                 {
-                    formsPlotGyro.Plot.PlotScatter(temporal, analyzedX, Color.Blue, 1, 1, "X");
-                    DisplayPeaksTemporal(analyzedX, temporal, "Top Peak X", formsPlotGyro, lstPeakGyroX);
+                    formsPlotGyro.Plot.Add.Scatter(temporal, analyzedX, Colors.Blue).LegendText = "X";
+                    DisplayPeaksTemporal(analyzedX, temporal, "Top Peak X", formsPlotGyro.Plot, lstPeakGyroX);
                     max = analyzedX.Max();
                 }
                 if (chkShowY.Checked)
                 {
-                    formsPlotGyro.Plot.PlotScatter(temporal, analyzedY, Color.Red, 1, 1, "Y");
-                    DisplayPeaksTemporal(analyzedY, temporal, "Top Peak Y", formsPlotGyro, lstPeakGyroY);
+                    formsPlotGyro.Plot.Add.Scatter(temporal, analyzedY, Colors.Red).LegendText = "Y";
+                    DisplayPeaksTemporal(analyzedY, temporal, "Top Peak Y", formsPlotGyro.Plot, lstPeakGyroY);
                     max = Math.Max(max, analyzedY.Max());
                 }
                 if (chkShowZ.Checked)
                 {
-                    formsPlotGyro.Plot.PlotScatter(temporal, analyzedZ, Color.Yellow, 1, 1, "Z");
-                    DisplayPeaksTemporal(analyzedZ, temporal, "Top Peak Z", formsPlotGyro, lstPeakGyroZ);
+                    formsPlotGyro.Plot.Add.Scatter(temporal, analyzedZ, Colors.Yellow).LegendText = "Z";
+                    DisplayPeaksTemporal(analyzedZ, temporal, "Top Peak Z", formsPlotGyro.Plot, lstPeakGyroZ);
                     max = Math.Max(max, analyzedZ.Max());
                 }
                 if (chkShowResultante.Checked)
                 {
-                    formsPlotGyro.Plot.PlotScatter(temporal, resultante, Color.DeepPink, 1, 1, "Resultante");
-                    DisplayPeaksTemporal(resultante, temporal, "Top Peak Resultante", formsPlotGyro, lstPeakResultanteGyro);
+                    formsPlotGyro.Plot.Add.Scatter(temporal, resultante, Colors.DeepPink).LegendText = "Resultante"; ;
+                    DisplayPeaksTemporal(resultante, temporal, "Top Peak Resultante", formsPlotGyro.Plot, lstPeakResultanteGyro);
                     max = Math.Max(max, resultante.Max());
                 }
                 max += 5;
@@ -1627,11 +1617,13 @@ namespace equilibreuse
                     if (whiteLine[i] == 10)
                         whiteLine[i] = max;
                 }
-                formsPlotGyro.Plot.PlotScatter(temporal, whiteLine, Color.Black, 1, 3, "WhiteLine");
+                var s = formsPlotGyro.Plot.Add.Scatter(temporal, whiteLine, Colors.Black);
+                s.LineWidth = 1;
+                s.LegendText = "WhiteLine";
                 //formsPlotAnalysis.Plot.Axis(0, 360, -1, 1);
-                formsPlotGyro.Plot.SetAxisLimitsX(0, countTotal);
-                formsPlotGyro.Plot.AxisAutoY();
-                formsPlotGyro.Plot.Legend(true);
+                formsPlotGyro.Plot.Axes.SetLimitsX(0, countTotal);
+                formsPlotGyro.Plot.Axes.AutoScaleY();
+                formsPlotGyro.Plot.ShowLegend();
             }
             else
             {
@@ -1647,79 +1639,40 @@ namespace equilibreuse
                 lstPeakResultanteGyro.Items.Clear();
                 if (chkShowX.Checked)
                 {
-                    AnalyzeAxis("X", cmpX, sampleRate, lstPeakGyroX, Color.Blue, formsPlotGyro, f_rot);
+                    AnalyzeAxis("X", cmpX, sampleRate, lstPeakGyroX, Colors.Blue, formsPlotGyro.Plot, f_rot);
                 }
                 if (chkShowY.Checked)
                 {
-                    AnalyzeAxis("Y", cmpY, sampleRate, lstPeakGyroY, Color.Red, formsPlotGyro, f_rot);
+                    AnalyzeAxis("Y", cmpY, sampleRate, lstPeakGyroY, Colors.Red, formsPlotGyro.Plot, f_rot);
                 }
                 if (chkShowZ.Checked)
                 {
-                    AnalyzeAxis("Z", cmpZ, sampleRate, lstPeakGyroZ, Color.Yellow, formsPlotGyro, f_rot);
+                    AnalyzeAxis("Z", cmpZ, sampleRate, lstPeakGyroZ, Colors.Yellow, formsPlotGyro.Plot, f_rot);
                 }
                 if (chkShowResultante.Checked)
                 {
-                    AnalyzeAxis("Resultante", cmpResultante, sampleRate, lstPeakResultanteGyro, Color.DeepPink, formsPlotGyro, f_rot);
+                    AnalyzeAxis("Resultante", cmpResultante, sampleRate, lstPeakResultanteGyro, Colors.DeepPink, formsPlotGyro.Plot, f_rot);
                 }
                 String sText = $"Fundamental: {f_rot}Hz\r\n1er order: {f_rot * 2}\r\n2eme order: {f_rot * 3}\r\n3eme order: {f_rot * 4}\r\n4er order: {f_rot * 5}\r\n5er order: {f_rot * 6}\r\n";
-                formsPlotGyro.Plot.AddAnnotation(sText);
+                formsPlotGyro.Plot.Add.Annotation(sText);
 
                 lstSimulationGyro.Items.Clear();
 
                 //X and Y are inversed on GYRO
-                var calcResult = EquilibrageHelper.CompleteSimulation(lstSimulationGyro, "Gyroscope", cmpY, cmpX, cmpZ, cmpResultante, sampleRate, f_rot, 1);
+                var calcResult = EquilibrageHelper.CompleteSimulation(lstSimulationGyro, "Gyroscope", cmpY, cmpX, cmpZ, cmpResultante, sampleRate, f_rot, Convert.ToDouble(txtCorrectAngleX.Text), Convert.ToDouble(txtCorrectAngleY.Text), 1);
                 for (int i = 0; i < 5; i++)
                 {
                     if (i == 0)
                     {
                         if (calcResult.dir[i].IsDynamic)
                         {
-                            formsPlotT1I.Plot.AddVerticalLine(calcResult.dir[i].correction.AngleInnerDeg, Color.Yellow, width: 3);
-                            formsPlotT1O.Plot.AddVerticalLine(calcResult.dir[i].correction.AngleOuterDeg, Color.Yellow, width: 3);
+                            formsPlotT1I.Plot.Add.VerticalLine(calcResult.dir[i].correction.AngleInnerDeg, color:Colors.Yellow, width: 3);
+                            formsPlotT1O.Plot.Add.VerticalLine(calcResult.dir[i].correction.AngleOuterDeg, color: Colors.Yellow, width: 3);
                         }
-                        formsPlotT1X.Plot.AddVerticalLine(calcResult.px[i].UnbalanceAngleDeg, Color.Yellow, width: 3);
-                        formsPlotT1Y.Plot.AddVerticalLine(calcResult.py[i].UnbalanceAngleDeg, Color.Yellow, width: 3);
+                        formsPlotT1X.Plot.Add.VerticalLine(calcResult.px[i].UnbalanceAngleDeg, color: Colors.Yellow, width: 3);
+                        formsPlotT1Y.Plot.Add.VerticalLine(calcResult.py[i].UnbalanceAngleDeg, color: Colors.Yellow, width: 3);
                     }
-                    else if (i == 1)
-                    {
-                        if (calcResult.dir[i].IsDynamic)
-                        {
-                            formsPlotT2I.Plot.AddVerticalLine(calcResult.dir[i].correction.AngleInnerDeg, Color.Yellow, width: 3);
-                            formsPlotT2O.Plot.AddVerticalLine(calcResult.dir[i].correction.AngleOuterDeg, Color.Yellow, width: 3);
-                        }
-                        formsPlotT2X.Plot.AddVerticalLine(calcResult.px[i].UnbalanceAngleDeg, Color.Yellow, width: 3);
-                        formsPlotT2Y.Plot.AddVerticalLine(calcResult.py[i].UnbalanceAngleDeg, Color.Yellow, width: 3);
-                    }
-                    else if (i == 2)
-                    {
-                        if (calcResult.dir[i].IsDynamic)
-                        {
-                            formsPlotT3I.Plot.AddVerticalLine(calcResult.dir[i].correction.AngleInnerDeg, Color.Yellow, width: 3);
-                            formsPlotT3O.Plot.AddVerticalLine(calcResult.dir[i].correction.AngleOuterDeg, Color.Yellow, width: 3);
-                        }
-                        formsPlotT3X.Plot.AddVerticalLine(calcResult.px[i].UnbalanceAngleDeg, Color.Yellow, width: 3);
-                        formsPlotT3Y.Plot.AddVerticalLine(calcResult.py[i].UnbalanceAngleDeg, Color.Yellow, width: 3);
-                    }
-                    else if (i == 3)
-                    {
-                        if (calcResult.dir[i].IsDynamic)
-                        {
-                            formsPlotT4I.Plot.AddVerticalLine(calcResult.dir[i].correction.AngleInnerDeg, Color.Yellow, width: 3);
-                            formsPlotT4O.Plot.AddVerticalLine(calcResult.dir[i].correction.AngleOuterDeg, Color.Yellow, width: 3);
-                        }
-                        formsPlotT4X.Plot.AddVerticalLine(calcResult.px[i].UnbalanceAngleDeg, Color.Yellow, width: 3);
-                        formsPlotT4Y.Plot.AddVerticalLine(calcResult.py[i].UnbalanceAngleDeg, Color.Yellow, width: 3);
-                    }
-                    else if (i == 4)
-                    {
-                        if (calcResult.dir[i].IsDynamic)
-                        {
-                            formsPlotT5I.Plot.AddVerticalLine(calcResult.dir[i].correction.AngleInnerDeg, Color.Yellow, width: 3);
-                            formsPlotT5O.Plot.AddVerticalLine(calcResult.dir[i].correction.AngleOuterDeg, Color.Yellow, width: 3);
-                        }
-                        formsPlotT5X.Plot.AddVerticalLine(calcResult.px[i].UnbalanceAngleDeg, Color.Yellow, width: 3);
-                        formsPlotT5Y.Plot.AddVerticalLine(calcResult.py[i].UnbalanceAngleDeg, Color.Yellow, width: 3);
-                    }
+                  
                 }
                 //check if we use gyro X for accel Y
                 if (chkUseXGyro.Checked)
@@ -1757,9 +1710,9 @@ namespace equilibreuse
                 }
                 currentAnalysisX.gAngleGyro = calcResult.py[0].UnbalanceAngleDeg;
             }
-            formsPlotGyro.Render();
+            formsPlotGyro.Refresh();
         }
-        public static void ShowPeakHistogram(List<PeakInfo> peaks, ScottPlot.FormsPlot formsPlot)
+        public static void ShowPeakHistogram(List<PeakInfo> peaks, FormsPlot formsPlot)
         {
             if (peaks == null || peaks.Count == 0)
                 return;
@@ -1776,7 +1729,9 @@ namespace equilibreuse
             formsPlot.Plot.Clear();
 
             // Tracer le bar plot
-            var bars = formsPlot.Plot.PlotBar(positions, heights, barWidth: 8, fillColor: System.Drawing.Color.SteelBlue);
+            var bars = formsPlot.Plot.Add.Bars(positions, heights);
+            bars.Bars.ForEach(b => b.LineWidth = 8); 
+            bars.Color = Colors.SteelBlue;
 
             // Ajouter les labels de fréquence au-dessus de chaque barre
             for (int i = 0; i < positions.Length; i++)
@@ -1784,17 +1739,17 @@ namespace equilibreuse
                 double x = positions[i];
                 double y = heights[i];
                 string label = labels[i];
-                formsPlot.Plot.PlotText(label, x, y + 0.01, color: System.Drawing.Color.Black, fontSize: 10, alignment: Alignment.LowerCenter);
+                formsPlot.Plot.Add.Text(label, x, y + 0.01);
             }
 
             // Ajuster les axes
             formsPlot.Plot.Title("Histogramme des pics groupés par angle");
             formsPlot.Plot.XLabel("Angle (degrés)");
             formsPlot.Plot.YLabel("Amplitude moyenne");
-            formsPlot.Plot.SetAxisLimitsX(0, 360); // pour rester entre 0 et 360°
-            formsPlot.Plot.AxisAutoY();
+            formsPlot.Plot.Axes.SetLimitsX(0, 360); // pour rester entre 0 et 360°
+            formsPlot.Plot.Axes.AutoScaleY();
 
-            formsPlot.Render();
+            formsPlot.Refresh();
         }
 
 
@@ -1876,7 +1831,7 @@ namespace equilibreuse
             }
         }
 
-        private void AnalyzeAxis(string name, FFTData cmp, double sampleRate, ListBox targetList, Color plotColor, ScottPlot.FormsPlot plt, double f_rot)
+        private void AnalyzeAxis(string name, FFTData cmp, double sampleRate, ListBox targetList, ScottPlot.Color plotColor, Plot plt, double f_rot)
         {
             try
             {
@@ -1891,9 +1846,11 @@ namespace equilibreuse
                 var filteredFreqs = filtered.Select(x => x.Freq).ToArray();
                 var filteredMags = filtered.Select(x => x.Mag).ToArray();
                 var filteredAngle = filtered.Select(x => x.Angle).ToArray();
-                var scatter = plt.Plot.AddScatter(filteredFreqs, filteredMags, color: plotColor, label: name);
-                scatter = plt.Plot.AddScatter(filteredFreqs, filteredAngle, color: plotColor, label: "ANGLE" + name);
-                scatter.IsVisible = false;
+                var scatter = plt.Add.Scatter(filteredFreqs, filteredMags, color: plotColor);
+                scatter.LegendText = name;
+                var scatter2 = plt.Add.Scatter(filteredFreqs, filteredAngle, color: plotColor);
+                scatter2.LegendText = "ANGLE" + name;
+                scatter2.IsVisible = false;
                 //find and draw first 5 harmonics
                 for (int i = 0; i < 5; i++)
                 {
@@ -1905,8 +1862,8 @@ namespace equilibreuse
                         double f = fundCandidate.Freq;
                         double m = fundCandidate.Magnitude;
                         double angleOffset = fundCandidate.Angle;
-                        plt.Plot.AddPoint(f, m, Color.Magenta, 8);
-                        plt.Plot.AddText($"{name}: {f:F2}Hz\n{angleOffset:F0}°", f, m, color: Color.DarkGreen);
+                        plt.Add.Marker(f, m, color: Colors.Magenta);
+                        plt.Add.Text($"{name}: {f:F2}Hz\n{angleOffset:F0}°", f, m).Color = Colors.DarkGreen;
                         if (targetList != null)
                             targetList.Items.Add($"{name} ordre {i + 1} à {f:F2} Hz → angle ≈ {angleOffset:F0}° (mag {m:F3})");
                     }
@@ -1929,14 +1886,15 @@ namespace equilibreuse
                     double m = filteredMags[idx];
                     double angleOffset = filteredAngle[idx];
                     //targetList.Items.Add($"{name} {f:F2} Hz → a={a:F3} m/s² → v_peak≈{vPeak:F1} mm/s, v_rms≈{vRms:F1} mm/s");
-                    // plt.Plot.PlotPoint(f, m, Color.Magenta, 8);
-                    //plt.Plot.PlotText($"{name}: {f:F2}Hz\n{angleOffset:F0}°",f, m, color: Color.DarkGreen);
+                    plt.Add.Marker(f, m, color:Colors.Magenta, size:8);
+                    var txt = plt.Add.Text($"{name}: {f:F2}Hz\n{angleOffset:F0}°", f, m);
+                    txt.Color = Colors.DarkGreen;
                     if (targetList != null)
                         targetList.Items.Add($"{name} Peak at {f:F2} Hz → {angleOffset:F0}° (mag {m:F3})");
                 }
 
                 //   plt.Plot.AddSignal(cmp.SignalFFTInverse, sampleRate, Color.Black);
-                plt.Plot.AxisAuto();
+                plt.Axes.AutoScale();
             }
             catch
             {
@@ -1953,7 +1911,7 @@ namespace equilibreuse
                 .Take(5).ToArray();
         }
 
-        private void DisplayPeaksTemporal(double[] data, double[] angle, string axis, ScottPlot.FormsPlot plt, ListBox lst)
+        private void DisplayPeaksTemporal(double[] data, double[] angle, string axis, Plot plt, ListBox lst)
         {
             int range = 7;
             double threshold = data.Average() * 0.02;
@@ -1963,16 +1921,15 @@ namespace equilibreuse
 
             foreach (int idx in peaks)
             {
-                plt.Plot.AddPoint(angle[idx], data[idx], Color.Magenta, 8);
+                plt.Add.Marker(angle[idx], data[idx], color: Colors.Magenta, size:8);
 
-                plt.Plot.AddText($"Force {data[idx]}",
-                   angle[idx], data[idx], color: Color.DarkGreen
-                );
+                plt.Add.Text($"Force {data[idx]}",angle[idx], data[idx]).Color = Colors.DarkGreen;
                 if (lst != null)
                     lst.Items.Add($"[{axis}] : Force {data[idx]}");
 
             }
         }
+       
         private void AnalyzeCSV(string csvFile)
         {
             this.Text = "Equilibreuse - " + csvFile;
@@ -2039,6 +1996,44 @@ namespace equilibreuse
             lstSimulationCompiled.Items.Clear();
             selectedSections.Clear();
         }
+        private void AnalyzeNew(string csvFile)
+        {
+            if (String.IsNullOrEmpty(csvFile))
+                return;
+            if (lstSectionSelector.CheckedIndices.Count < 3)
+                return;
+
+            lstSimulationTurnByTurn.Items.Clear();
+            selectedSections.Clear();
+            iTotalRecordsInCSV = 0;
+           
+            foreach (int s in lstSectionSelector.CheckedIndices)
+            {
+                selectedSections.Add(loadedSections[s]);
+                iTotalRecordsInCSV += loadedSections[s].records.Count;
+            }
+            currentAnalysisX = new AnalysisData() { csvFile = csvFile };
+            currentAnalysisY = new AnalysisData() { csvFile = csvFile };
+            currentAnalysisX.numberOfTurn = selectedSections.Count;
+            currentAnalysisY.numberOfTurn = selectedSections.Count;
+            if (selectedSections.Count > 0)
+            {
+                //get turn by turn signal
+                for(int i = 0; i < selectedSections.Count;i++)
+                {
+                    var data = GetSingleTourSignal(i);
+                }
+                //get compiled signal
+                var compiled = GetCompiledTourSignal();
+                //get global signal
+                var global = GetGlobalTourSignal();
+                //get gyro signal
+                CalculateXYZ();
+                RefreshAnalysisCompiled();
+                RefreshAnalysisGlobal();
+                RefreshGyro();
+            }
+        }
         private void Analyze(string csvFile)
         {
             if (String.IsNullOrEmpty(csvFile))
@@ -2067,10 +2062,7 @@ namespace equilibreuse
 
             //            lblFFTAnalysis.Text = String.Empty;
             formsPlotT1X.Plot.Clear(); formsPlotT1Y.Plot.Clear(); formsPlotT1O.Plot.Clear(); formsPlotT1I.Plot.Clear();
-            formsPlotT2X.Plot.Clear(); formsPlotT2Y.Plot.Clear(); formsPlotT2O.Plot.Clear(); formsPlotT2I.Plot.Clear();
-            formsPlotT3X.Plot.Clear(); formsPlotT3Y.Plot.Clear(); formsPlotT3O.Plot.Clear(); formsPlotT3I.Plot.Clear();
-            formsPlotT4X.Plot.Clear(); formsPlotT4Y.Plot.Clear(); formsPlotT4O.Plot.Clear(); formsPlotT4I.Plot.Clear();
-            formsPlotT5X.Plot.Clear(); formsPlotT5Y.Plot.Clear(); formsPlotT5O.Plot.Clear(); formsPlotT5I.Plot.Clear();
+          
 
             if (selectedSections.Count > 0)
             {
@@ -2079,16 +2071,10 @@ namespace equilibreuse
                 RefreshAnalysisGlobal();
                 RefreshGyro();
             }
-            formsPlotT1X.Plot.SetAxisLimitsX(0, 360); formsPlotT1Y.Plot.SetAxisLimitsX(0, 360); formsPlotT1O.Plot.SetAxisLimitsX(0, 360); formsPlotT1I.Plot.SetAxisLimitsX(0, 360);
-            formsPlotT2X.Plot.SetAxisLimitsX(0, 360); formsPlotT2Y.Plot.SetAxisLimitsX(0, 360); formsPlotT2O.Plot.SetAxisLimitsX(0, 360); formsPlotT2I.Plot.SetAxisLimitsX(0, 360);
-            formsPlotT3X.Plot.SetAxisLimitsX(0, 360); formsPlotT3Y.Plot.SetAxisLimitsX(0, 360); formsPlotT3O.Plot.SetAxisLimitsX(0, 360); formsPlotT3I.Plot.SetAxisLimitsX(0, 360);
-            formsPlotT4X.Plot.SetAxisLimitsX(0, 360); formsPlotT4Y.Plot.SetAxisLimitsX(0, 360); formsPlotT4O.Plot.SetAxisLimitsX(0, 360); formsPlotT4I.Plot.SetAxisLimitsX(0, 360);
-            formsPlotT5X.Plot.SetAxisLimitsX(0, 360); formsPlotT5Y.Plot.SetAxisLimitsX(0, 360); formsPlotT5O.Plot.SetAxisLimitsX(0, 360); formsPlotT5I.Plot.SetAxisLimitsX(0, 360);
-            formsPlotT1X.Render(); formsPlotT1Y.Render(); formsPlotT1O.Render(); formsPlotT1I.Render();
-            formsPlotT2X.Render(); formsPlotT2Y.Render(); formsPlotT2O.Render(); formsPlotT2I.Render();
-            formsPlotT3X.Render(); formsPlotT3Y.Render(); formsPlotT3O.Render(); formsPlotT3I.Render();
-            formsPlotT4X.Render(); formsPlotT4Y.Render(); formsPlotT4O.Render(); formsPlotT4I.Render();
-            formsPlotT5X.Render(); formsPlotT5Y.Render(); formsPlotT5O.Render(); formsPlotT5I.Render();
+            formsPlotT1X.Plot.Axes.SetLimits(0, 360); formsPlotT1Y.Plot.Axes.SetLimits(0, 360); formsPlotT1O.Plot.Axes.SetLimits(0, 360); formsPlotT1I.Plot.Axes.SetLimits(0, 360);
+          
+            formsPlotT1X.Refresh(); formsPlotT1Y.Refresh(); formsPlotT1O.Refresh(); formsPlotT1I.Refresh();
+          
 
             /*   var xCorrect = Convert.ToDouble(txtCorrectAngleX.Text);
                currentAnalysisX.gAngle = (currentAnalysisX.gAngle + xCorrect) % 360;
@@ -2577,30 +2563,46 @@ namespace equilibreuse
         private void formsPlotAnalysis_MouseMove(object sender, MouseEventArgs e)
         {
             if (sender == null) return;
-
             FormsPlot plt = (sender as FormsPlot);
-            var plottable = plt.Plot.GetPlottables();
-            if (plottable.Length == 0) return;
+            // Dans MouseMove ou timer
+            Pixel mousePixel = new Pixel(e.Location.X, e.Location.Y);
+            // Trouver le subplot sous la souris
+            var subplot = plt.Multiplot.GetPlotAtPixel(mousePixel);
+
+            if (subplot is null)
+                return;
+            
+            var plottable = subplot.GetPlottables();
+            if (plottable.Count() == 0)
+            {
+                plottable = plt.Plot.GetPlottables();
+                if(plottable.Count() == 0)
+                    return;
+            }
             // determine point nearest the cursor
-            (double mouseCoordX, double mouseCoordY) = plt.GetMouseCoordinates();
+            
             String sData = String.Empty;
+            Coordinates mouseLocation = subplot.GetCoordinates(mousePixel);
+
             foreach (var p in plottable)
             {
-                if (p is ScottPlot.Plottable.ScatterPlot)  //for each scatterplot check if mouse is on a plot
+                if (p is ScottPlot.Plottables.Scatter)  //for each scatterplot check if mouse is on a plot
                 {
-                    var sp = p as ScottPlot.Plottable.ScatterPlot;
+                    var sp = p as ScottPlot.Plottables.Scatter;
                     if (sp.IsVisible)
                     {
-                        (double pointX, double pointY, int pointIndex) = sp.GetPointNearestX(mouseCoordX);
+                        var nearest = sp.Data.GetNearestX(mouseLocation, subplot.LastRender);
                         //find Y at scatterplot hidden having name ANGLE + label
+                        if (nearest.Index == -1 || nearest.X == double.NaN)
+                            continue;
                         foreach (var p2 in plottable)
                         {
-                            if (p2 is ScottPlot.Plottable.ScatterPlot)  //for each scatterplot check if mouse is on a plot
+                            if (p2 is ScottPlot.Plottables.Scatter)  //for each scatterplot check if mouse is on a plot
                             {
-                                var sp2 = p2 as ScottPlot.Plottable.ScatterPlot;
+                                var sp2 = p2 as ScottPlot.Plottables.Scatter;
                                 if (sp2.Label == "ANGLE" + sp.Label)
                                 {
-                                    sData += $"{sp.Label} Freq: {pointX} Angle: {sp2.Ys[pointIndex]}\r\n";
+                                    sData += $"{sp.Label} Freq: {nearest.X} Angle: {sp2.GetIDataSource().GetY(nearest.Index)}\r\n";
                                 }
                             }
                         }
@@ -2757,6 +2759,17 @@ namespace equilibreuse
             lstAngleYAnalysis.Clear();
             lstAnglesX.Items.Clear();
             lstAnglesY.Items.Clear();
+            //get each turn and perform analysis
+            for (int i = 0; i < selectedSections.Count; i++)
+            {
+                var data = GetSingleTourSignal(i);
+            }
+            //get compiled and perform analysis
+            var compiled = GetCompiledTourSignal();
+            //get global and perform analysis
+            var global = GetGlobalTourSignal();
+            //get gyro and perform analysis
+
             lstAnglesX.Items.Add("200-210");
             lstAnglesY.Items.Add("200-210");
             btnUnselectAll_Click(null, EventArgs.Empty);
@@ -2804,7 +2817,7 @@ namespace equilibreuse
             
         }
 
-        private void FindAnglePlausible(List<double> lstAngles, int windowSize, ScottPlot.FormsPlot plt)
+        private void FindAnglePlausible(List<double> lstAngles, int windowSize, FormsPlot plt)
         {
             double step = 1.0;
 
@@ -2820,12 +2833,12 @@ namespace equilibreuse
 
             // Affichage dans ScottPlot
             plt.Plot.Clear();
-            plt.Plot.AddBar(y.ToArray(), x.ToArray());
+            plt.Plot.Add.Bars(y.ToArray(), x.ToArray());
             plt.Plot.Title("Histogramme linéaire des densités angulaires");
             plt.Plot.XLabel("Angle (°)");
             plt.Plot.YLabel("Nb de valeurs proches");
-            plt.Plot.SetAxisLimits(0, 360);
-            plt.Plot.Grid(true);
+            plt.Plot.Axes.SetLimitsX(0, 360);
+            plt.Plot.ShowGrid();
             plt.Refresh();
         }
 
