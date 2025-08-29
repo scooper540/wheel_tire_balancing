@@ -75,11 +75,6 @@ namespace equilibreuse
         public static PhaseAnalysis AnalyzeSignal(double[] signal, double sampleRate, double f_rot, ComboBox cbxFFT, CheckBox chkDb, double rpm)
         {
             var res = new PhaseAnalysis();
-            //max temporal value
-            var maxValue = signal.Max();
-            int maxIndex = signal.ToList().IndexOf(maxValue);
-            //add timing of the max value
-            res.rMaxTemporal = (maxIndex * 360.0 / signal.Length);
             res.rPhaseLockIn = EquilibrageHelper.ComputeLockInPhase(signal, f_rot, sampleRate);
             res.rFitSinusoid = EquilibrageHelper.FitSinusoidPhase(signal, f_rot, sampleRate);
             res.rDetectPhase = EquilibrageHelper.DetectPhase(signal, sampleRate, f_rot).phaseDegrees;
@@ -113,8 +108,8 @@ namespace equilibreuse
             double angleDeg = (angleRad * 180.0 / Math.PI + 360) % 360;
 
             // 4. Définir les deux angles de correction (opposés de l'effort dynamique)
-            double angleInner = (angleDeg + 90) % 360; // +90° → masse intérieure
-            double angleOuter = (angleDeg - 90 + 360) % 360; // -90° → masse extérieure
+            double angleInner = (angleDeg + 45) % 360; // +45° → masse intérieure
+            double angleOuter = (angleDeg - 45 + 360) % 360; // -45° → masse extérieure
 
             // 5. Estimation simple de la "force" à corriger
             double magnitude = Math.Sqrt(dx * dx + dy * dy);

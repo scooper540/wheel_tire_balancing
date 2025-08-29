@@ -108,12 +108,12 @@ namespace equilibreuse
             this.label43 = new System.Windows.Forms.Label();
             this.label24 = new System.Windows.Forms.Label();
             this.formsPlotT1O = new ScottPlot.WinForms.FormsPlot();
-            this.label25 = new System.Windows.Forms.Label();
-            this.formsPlotT1I = new ScottPlot.WinForms.FormsPlot();
-            this.label23 = new System.Windows.Forms.Label();
-            this.formsPlotT1Y = new ScottPlot.WinForms.FormsPlot();
-            this.label18 = new System.Windows.Forms.Label();
             this.formsPlotT1X = new ScottPlot.WinForms.FormsPlot();
+            this.label25 = new System.Windows.Forms.Label();
+            this.formsPlotT1Y = new ScottPlot.WinForms.FormsPlot();
+            this.formsPlotT1I = new ScottPlot.WinForms.FormsPlot();
+            this.label18 = new System.Windows.Forms.Label();
+            this.label23 = new System.Windows.Forms.Label();
             this.tabPage6 = new System.Windows.Forms.TabPage();
             this.label17 = new System.Windows.Forms.Label();
             this.label16 = new System.Windows.Forms.Label();
@@ -128,8 +128,6 @@ namespace equilibreuse
             this.dataGridY = new System.Windows.Forms.DataGridView();
             this.dataGridX = new System.Windows.Forms.DataGridView();
             this.tabPage7 = new System.Windows.Forms.TabPage();
-            this.formsPlotBestAngleY = new ScottPlot.WinForms.FormsPlot();
-            this.formsPlotBestAngleX = new ScottPlot.WinForms.FormsPlot();
             this.lstAnglesY = new System.Windows.Forms.ListBox();
             this.lstAnglesX = new System.Windows.Forms.ListBox();
             this.btnFindAngles = new System.Windows.Forms.Button();
@@ -189,6 +187,10 @@ namespace equilibreuse
             this.lblStatY = new System.Windows.Forms.Label();
             this.cbxFilterTypes = new System.Windows.Forms.ComboBox();
             this.cbxSmoothing = new System.Windows.Forms.ComboBox();
+            this.label26 = new System.Windows.Forms.Label();
+            this.label27 = new System.Windows.Forms.Label();
+            this.txtCorrectXTemporal = new System.Windows.Forms.TextBox();
+            this.txtCorrectYTemporal = new System.Windows.Forms.TextBox();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -992,9 +994,9 @@ namespace equilibreuse
             this.label24.AutoSize = true;
             this.label24.Location = new System.Drawing.Point(892, 248);
             this.label24.Name = "label24";
-            this.label24.Size = new System.Drawing.Size(104, 13);
+            this.label24.Size = new System.Drawing.Size(113, 13);
             this.label24.TabIndex = 26;
-            this.label24.Text = "Dynamic angle outer";
+            this.label24.Text = "Correction Outer angle";
             // 
             // formsPlotT1O
             // 
@@ -1004,31 +1006,22 @@ namespace equilibreuse
             this.formsPlotT1O.Size = new System.Drawing.Size(555, 227);
             this.formsPlotT1O.TabIndex = 25;
             // 
+            // formsPlotT1X
+            // 
+            this.formsPlotT1X.DisplayScale = 0F;
+            this.formsPlotT1X.Location = new System.Drawing.Point(24, 36);
+            this.formsPlotT1X.Name = "formsPlotT1X";
+            this.formsPlotT1X.Size = new System.Drawing.Size(555, 203);
+            this.formsPlotT1X.TabIndex = 19;
+            // 
             // label25
             // 
             this.label25.AutoSize = true;
             this.label25.Location = new System.Drawing.Point(225, 248);
             this.label25.Name = "label25";
-            this.label25.Size = new System.Drawing.Size(103, 13);
+            this.label25.Size = new System.Drawing.Size(111, 13);
             this.label25.TabIndex = 24;
-            this.label25.Text = "Dynamic angle inner";
-            // 
-            // formsPlotT1I
-            // 
-            this.formsPlotT1I.DisplayScale = 0F;
-            this.formsPlotT1I.Location = new System.Drawing.Point(24, 264);
-            this.formsPlotT1I.Name = "formsPlotT1I";
-            this.formsPlotT1I.Size = new System.Drawing.Size(555, 227);
-            this.formsPlotT1I.TabIndex = 23;
-            // 
-            // label23
-            // 
-            this.label23.AutoSize = true;
-            this.label23.Location = new System.Drawing.Point(877, 20);
-            this.label23.Name = "label23";
-            this.label23.Size = new System.Drawing.Size(128, 13);
-            this.label23.TabIndex = 22;
-            this.label23.Text = "Static angle outer (Y only)";
+            this.label25.Text = "Correction Inner angle";
             // 
             // formsPlotT1Y
             // 
@@ -1038,22 +1031,31 @@ namespace equilibreuse
             this.formsPlotT1Y.Size = new System.Drawing.Size(555, 203);
             this.formsPlotT1Y.TabIndex = 21;
             // 
+            // formsPlotT1I
+            // 
+            this.formsPlotT1I.DisplayScale = 0F;
+            this.formsPlotT1I.Location = new System.Drawing.Point(24, 264);
+            this.formsPlotT1I.Name = "formsPlotT1I";
+            this.formsPlotT1I.Size = new System.Drawing.Size(555, 227);
+            this.formsPlotT1I.TabIndex = 23;
+            // 
             // label18
             // 
             this.label18.AutoSize = true;
             this.label18.Location = new System.Drawing.Point(163, 20);
             this.label18.Name = "label18";
-            this.label18.Size = new System.Drawing.Size(128, 13);
+            this.label18.Size = new System.Drawing.Size(74, 13);
             this.label18.TabIndex = 20;
-            this.label18.Text = "Static angle Inner (X only)";
+            this.label18.Text = "X Angle found";
             // 
-            // formsPlotT1X
+            // label23
             // 
-            this.formsPlotT1X.DisplayScale = 0F;
-            this.formsPlotT1X.Location = new System.Drawing.Point(24, 36);
-            this.formsPlotT1X.Name = "formsPlotT1X";
-            this.formsPlotT1X.Size = new System.Drawing.Size(555, 203);
-            this.formsPlotT1X.TabIndex = 19;
+            this.label23.AutoSize = true;
+            this.label23.Location = new System.Drawing.Point(877, 20);
+            this.label23.Name = "label23";
+            this.label23.Size = new System.Drawing.Size(74, 13);
+            this.label23.TabIndex = 22;
+            this.label23.Text = "Y Angle found";
             // 
             // tabPage6
             // 
@@ -1085,9 +1087,9 @@ namespace equilibreuse
             this.label16.AutoSize = true;
             this.label16.Location = new System.Drawing.Point(965, 14);
             this.label16.Name = "label16";
-            this.label16.Size = new System.Drawing.Size(58, 13);
+            this.label16.Size = new System.Drawing.Size(14, 13);
             this.label16.TabIndex = 22;
-            this.label16.Text = "Resultante";
+            this.label16.Text = "Z";
             // 
             // label8
             // 
@@ -1185,8 +1187,10 @@ namespace equilibreuse
             // 
             // tabPage7
             // 
-            this.tabPage7.Controls.Add(this.formsPlotBestAngleY);
-            this.tabPage7.Controls.Add(this.formsPlotBestAngleX);
+            this.tabPage7.Controls.Add(this.txtCorrectYTemporal);
+            this.tabPage7.Controls.Add(this.txtCorrectXTemporal);
+            this.tabPage7.Controls.Add(this.label27);
+            this.tabPage7.Controls.Add(this.label26);
             this.tabPage7.Controls.Add(this.lstAnglesY);
             this.tabPage7.Controls.Add(this.lstAnglesX);
             this.tabPage7.Controls.Add(this.btnFindAngles);
@@ -1217,45 +1221,29 @@ namespace equilibreuse
             this.tabPage7.Text = "Section selector";
             this.tabPage7.UseVisualStyleBackColor = true;
             // 
-            // formsPlotBestAngleY
-            // 
-            this.formsPlotBestAngleY.DisplayScale = 0F;
-            this.formsPlotBestAngleY.Location = new System.Drawing.Point(1008, 174);
-            this.formsPlotBestAngleY.Name = "formsPlotBestAngleY";
-            this.formsPlotBestAngleY.Size = new System.Drawing.Size(254, 173);
-            this.formsPlotBestAngleY.TabIndex = 86;
-            // 
-            // formsPlotBestAngleX
-            // 
-            this.formsPlotBestAngleX.DisplayScale = 0F;
-            this.formsPlotBestAngleX.Location = new System.Drawing.Point(992, 7);
-            this.formsPlotBestAngleX.Name = "formsPlotBestAngleX";
-            this.formsPlotBestAngleX.Size = new System.Drawing.Size(254, 173);
-            this.formsPlotBestAngleX.TabIndex = 85;
-            // 
             // lstAnglesY
             // 
             this.lstAnglesY.FormattingEnabled = true;
-            this.lstAnglesY.Location = new System.Drawing.Point(772, 111);
+            this.lstAnglesY.Location = new System.Drawing.Point(881, 111);
             this.lstAnglesY.Name = "lstAnglesY";
-            this.lstAnglesY.Size = new System.Drawing.Size(241, 134);
+            this.lstAnglesY.Size = new System.Drawing.Size(311, 134);
             this.lstAnglesY.TabIndex = 84;
             // 
             // lstAnglesX
             // 
             this.lstAnglesX.FormattingEnabled = true;
-            this.lstAnglesX.Location = new System.Drawing.Point(520, 112);
+            this.lstAnglesX.Location = new System.Drawing.Point(546, 111);
             this.lstAnglesX.Name = "lstAnglesX";
-            this.lstAnglesX.Size = new System.Drawing.Size(241, 134);
+            this.lstAnglesX.Size = new System.Drawing.Size(307, 134);
             this.lstAnglesX.TabIndex = 83;
             // 
             // btnFindAngles
             // 
             this.btnFindAngles.Location = new System.Drawing.Point(725, 6);
             this.btnFindAngles.Name = "btnFindAngles";
-            this.btnFindAngles.Size = new System.Drawing.Size(75, 23);
+            this.btnFindAngles.Size = new System.Drawing.Size(165, 23);
             this.btnFindAngles.TabIndex = 82;
-            this.btnFindAngles.Text = "Find angles";
+            this.btnFindAngles.Text = "Complete Analysis";
             this.btnFindAngles.UseVisualStyleBackColor = true;
             this.btnFindAngles.Click += new System.EventHandler(this.btnFindAngles_Click);
             // 
@@ -1273,7 +1261,7 @@ namespace equilibreuse
             // 
             // txtCorrectAngleY
             // 
-            this.txtCorrectAngleY.Location = new System.Drawing.Point(802, 462);
+            this.txtCorrectAngleY.Location = new System.Drawing.Point(827, 462);
             this.txtCorrectAngleY.Name = "txtCorrectAngleY";
             this.txtCorrectAngleY.Size = new System.Drawing.Size(100, 20);
             this.txtCorrectAngleY.TabIndex = 80;
@@ -1281,7 +1269,7 @@ namespace equilibreuse
             // 
             // txtCorrectAngleX
             // 
-            this.txtCorrectAngleX.Location = new System.Drawing.Point(802, 439);
+            this.txtCorrectAngleX.Location = new System.Drawing.Point(829, 439);
             this.txtCorrectAngleX.Name = "txtCorrectAngleX";
             this.txtCorrectAngleX.Size = new System.Drawing.Size(100, 20);
             this.txtCorrectAngleX.TabIndex = 79;
@@ -1292,9 +1280,9 @@ namespace equilibreuse
             this.chkUseYGyro.AutoSize = true;
             this.chkUseYGyro.Location = new System.Drawing.Point(546, 464);
             this.chkUseYGyro.Name = "chkUseYGyro";
-            this.chkUseYGyro.Size = new System.Drawing.Size(256, 17);
+            this.chkUseYGyro.Size = new System.Drawing.Size(278, 17);
             this.chkUseYGyro.TabIndex = 78;
-            this.chkUseYGyro.Text = "Use Y gyro instead of accel X, correct angle with";
+            this.chkUseYGyro.Text = "Use Y gyro instead of accel X, correct angle FFT with";
             this.chkUseYGyro.UseVisualStyleBackColor = true;
             // 
             // chkUseXGyro
@@ -1302,9 +1290,9 @@ namespace equilibreuse
             this.chkUseXGyro.AutoSize = true;
             this.chkUseXGyro.Location = new System.Drawing.Point(546, 441);
             this.chkUseXGyro.Name = "chkUseXGyro";
-            this.chkUseXGyro.Size = new System.Drawing.Size(256, 17);
+            this.chkUseXGyro.Size = new System.Drawing.Size(278, 17);
             this.chkUseXGyro.TabIndex = 77;
-            this.chkUseXGyro.Text = "Use X gyro instead of accel Y, correct angle with";
+            this.chkUseXGyro.Text = "Use X gyro instead of accel Y, correct angle FFT with";
             this.chkUseXGyro.UseVisualStyleBackColor = true;
             // 
             // btnSaveData
@@ -1655,6 +1643,8 @@ namespace equilibreuse
             // chkRemoveDC
             // 
             this.chkRemoveDC.AutoSize = true;
+            this.chkRemoveDC.Checked = true;
+            this.chkRemoveDC.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkRemoveDC.Location = new System.Drawing.Point(788, 23);
             this.chkRemoveDC.Name = "chkRemoveDC";
             this.chkRemoveDC.Size = new System.Drawing.Size(84, 17);
@@ -1820,6 +1810,40 @@ namespace equilibreuse
             this.cbxSmoothing.Size = new System.Drawing.Size(121, 21);
             this.cbxSmoothing.TabIndex = 71;
             this.cbxSmoothing.Text = "None";
+            // 
+            // label26
+            // 
+            this.label26.AutoSize = true;
+            this.label26.Location = new System.Drawing.Point(935, 445);
+            this.label26.Name = "label26";
+            this.label26.Size = new System.Drawing.Size(101, 13);
+            this.label26.TabIndex = 85;
+            this.label26.Text = "Temporal correction";
+            // 
+            // label27
+            // 
+            this.label27.AutoSize = true;
+            this.label27.Location = new System.Drawing.Point(935, 465);
+            this.label27.Name = "label27";
+            this.label27.Size = new System.Drawing.Size(101, 13);
+            this.label27.TabIndex = 86;
+            this.label27.Text = "Temporal correction";
+            // 
+            // txtCorrectXTemporal
+            // 
+            this.txtCorrectXTemporal.Location = new System.Drawing.Point(1042, 439);
+            this.txtCorrectXTemporal.Name = "txtCorrectXTemporal";
+            this.txtCorrectXTemporal.Size = new System.Drawing.Size(100, 20);
+            this.txtCorrectXTemporal.TabIndex = 87;
+            this.txtCorrectXTemporal.Text = "0";
+            // 
+            // txtCorrectYTemporal
+            // 
+            this.txtCorrectYTemporal.Location = new System.Drawing.Point(1042, 465);
+            this.txtCorrectYTemporal.Name = "txtCorrectYTemporal";
+            this.txtCorrectYTemporal.Size = new System.Drawing.Size(100, 20);
+            this.txtCorrectYTemporal.TabIndex = 88;
+            this.txtCorrectYTemporal.Text = "0";
             // 
             // Form1
             // 
@@ -2060,10 +2084,12 @@ namespace equilibreuse
         private System.Windows.Forms.ListBox lstAnglesY;
         private System.Windows.Forms.ListBox lstAnglesX;
         private System.Windows.Forms.Button btnFindAngles;
-        private FormsPlot formsPlotBestAngleY;
-        private FormsPlot formsPlotBestAngleX;
         private System.Windows.Forms.ComboBox cbxFilterTypes;
         private System.Windows.Forms.ComboBox cbxSmoothing;
+        private System.Windows.Forms.TextBox txtCorrectYTemporal;
+        private System.Windows.Forms.TextBox txtCorrectXTemporal;
+        private System.Windows.Forms.Label label27;
+        private System.Windows.Forms.Label label26;
     }
 }
 

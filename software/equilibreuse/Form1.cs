@@ -56,7 +56,7 @@ namespace equilibreuse
             t1.Interval = 1000;
             cbxFFT.SelectedItem = "BlackmanNuttal";
             cbxFFTSingle.SelectedItem = "BlackmanNuttal";
-            cbxFilterTypes.SelectedItem = "BiQuad LP";
+            cbxFilterTypes.SelectedItem = "Chebyshev-II";
             cbxSensor.SelectedIndex = 0; //mpu per default
             Help.FillHelp(richTextBox1);
             btnClearAnalysisHistory_Click(null, EventArgs.Empty);
@@ -71,6 +71,8 @@ namespace equilibreuse
             txtYMagInt.Text = Properties.Settings.Default.YMagFinal.ToString();
             txtCorrectAngleX.Text = Properties.Settings.Default.XAngleCorrect.ToString();
             txtCorrectAngleY.Text = Properties.Settings.Default.YAngleCorrect.ToString();
+            txtCorrectXTemporal.Text = Properties.Settings.Default.XAngleCorrectTemporal.ToString();
+            txtCorrectYTemporal.Text = Properties.Settings.Default.YAngleCorrectTemporal.ToString();
             chkUseXGyro.Checked = Properties.Settings.Default.UseXGyro;
             chkUseYGyro.Checked = Properties.Settings.Default.UseYGyro;
         }
@@ -362,7 +364,122 @@ namespace equilibreuse
             AnalyzeCSV(csvFile);
         }
 
-        private (double[] x, double[] y, double[] z, double[] resultante, double f_rot, double rpm, double sampleRate) GetCompiledTourSignal()
+        private void ApplyFilters(double sampleRate, double f_rot, ref double[] x, ref double[] y, ref double[] z, ref double[] resultante)
+        {
+            int filterOrder = Convert.ToInt32(txtFilterOrder.Text);
+            if (chkLowPassFilter.Checked || chkPassband.Checked)
+            {
+                if (chkLowPassFilter.Checked)
+                {
+                    var l = new LowPassFilter(Convert.ToDouble(txtFilter.Text), sampleRate);
+                    x = LowPassFilter.ApplyZeroPhase(x, l);
+                    l = new LowPassFilter(Convert.ToDouble(txtFilter.Text), sampleRate);
+                    y = LowPassFilter.ApplyZeroPhase(y, l);
+                    l = new LowPassFilter(Convert.ToDouble(txtFilter.Text), sampleRate);
+                    z = LowPassFilter.ApplyZeroPhase(z, l);
+                    l = new LowPassFilter(Convert.ToDouble(txtFilter.Text), sampleRate);
+                    resultante = LowPassFilter.ApplyZeroPhase(resultante, l);
+
+                    /*x = LowPassFilter.ApplyLowPassFilterZeroPhase(x, Convert.ToDouble(txtFilter.Text), sampleRate, filterOrder);
+                    y = LowPassFilter.ApplyLowPassFilterZeroPhase(y, Convert.ToDouble(txtFilter.Text), sampleRate, filterOrder);
+                    z = LowPassFilter.ApplyLowPassFilterZeroPhase(z, Convert.ToDouble(txtFilter.Text), sampleRate, filterOrder);
+                    resultante = LowPassFilter.ApplyLowPassFilterZeroPhase(resultante, Convert.ToDouble(txtFilter.Text), sampleRate, filterOrder);
+                    */
+                }
+
+                if (chkPassband.Checked)
+                {
+                    x = LowPassFilter.ApplyNarrowBandPassFilter(x, f_rot, sampleRate, filterOrder);
+                    y = LowPassFilter.ApplyNarrowBandPassFilter(y, f_rot, sampleRate, filterOrder);
+                    z = LowPassFilter.ApplyNarrowBandPassFilter(z, f_rot, sampleRate, filterOrder);
+                    resultante = LowPassFilter.ApplyNarrowBandPassFilter(resultante, f_rot, sampleRate, filterOrder);
+                }
+            }
+            else
+            {
+                if (cbxFilterTypes.SelectedItem.ToString() != "None")
+                {
+                    var xFilter = LowPassFilter.ApplyFilter(x, sampleRate, f_rot, filterOrder, cbxFilterTypes.SelectedItem.ToString(), Convert.ToDouble(txtFilter.Text));
+                    x = xFilter.Samples.Select(d => (double)d).ToArray();
+                    var yFilter = LowPassFilter.ApplyFilter(y, sampleRate, f_rot, filterOrder, cbxFilterTypes.SelectedItem.ToString(), Convert.ToDouble(txtFilter.Text));
+                    y = yFilter.Samples.Select(d => (double)d).ToArray();
+                    var zFilter = LowPassFilter.ApplyFilter(z, sampleRate, f_rot, filterOrder, cbxFilterTypes.SelectedItem.ToString(), Convert.ToDouble(txtFilter.Text));
+                    z = zFilter.Samples.Select(d => (double)d).ToArray();
+                    var resultanteFilter = LowPassFilter.ApplyFilter(resultante, sampleRate, f_rot, filterOrder, cbxFilterTypes.SelectedItem.ToString(), Convert.ToDouble(txtFilter.Text));
+                    resultante = resultanteFilter.Samples.Select(d => (double)d).ToArray();
+                }
+                if (cbxSmoothing.SelectedItem.ToString() != "None")
+                {
+                    if (cbxSmoothing.SelectedItem.ToString() == "IQ")
+                    {
+                        x = LowPassFilter.ComputePhaseIQ(x, sampleRate, f_rot);
+                        y = LowPassFilter.ComputePhaseIQ(y, sampleRate, f_rot);
+                        z = LowPassFilter.ComputePhaseIQ(z, sampleRate, f_rot);
+                        resultante = LowPassFilter.ComputePhaseIQ(resultante, sampleRate, f_rot);
+                    }
+                    else
+                    {
+                        var xFilter = LowPassFilter.ApplyFilter(x, sampleRate, f_rot, filterOrder, cbxFilterTypes.SelectedItem.ToString(), Convert.ToDouble(txtFilter.Text));
+                        x = xFilter.Samples.Select(d => (double)d).ToArray();
+                        var yFilter = LowPassFilter.ApplyFilter(y, sampleRate, f_rot, filterOrder, cbxFilterTypes.SelectedItem.ToString(), Convert.ToDouble(txtFilter.Text));
+                        y = yFilter.Samples.Select(d => (double)d).ToArray();
+                        var zFilter = LowPassFilter.ApplyFilter(z, sampleRate, f_rot, filterOrder, cbxFilterTypes.SelectedItem.ToString(), Convert.ToDouble(txtFilter.Text));
+                        z = zFilter.Samples.Select(d => (double)d).ToArray();
+                        var resultanteFilter = LowPassFilter.ApplyFilter(resultante, sampleRate, f_rot, filterOrder, cbxFilterTypes.SelectedItem.ToString(), Convert.ToDouble(txtFilter.Text));
+                        resultante = resultanteFilter.Samples.Select(d => (double)d).ToArray();
+                    }
+                }
+            }
+
+            
+              if(chkRemoveDC.Checked)
+              {
+                  x = LowPassFilter.RemoveDCOffset(x);
+                  y = LowPassFilter.RemoveDCOffset(y);
+                  z = LowPassFilter.RemoveDCOffset(z);
+                  resultante = LowPassFilter.RemoveDCOffset(resultante);
+              }
+
+            //apply gain on signal
+            var gain = Convert.ToDouble(txtGain.Text);
+            x = x.Select(r => Math.Sign(r) * Math.Pow(Math.Abs(r), gain)).ToArray();
+            y = y.Select(r => Math.Sign(r) * Math.Pow(Math.Abs(r), gain)).ToArray();
+            z = z.Select(r => Math.Sign(r) * Math.Pow(Math.Abs(r), gain)).ToArray();
+            if (resultante == null || resultante.Length == 0)
+                return;
+            resultante = resultante.Select(r => Math.Sign(r) * Math.Pow(Math.Abs(r), gain)).ToArray();
+        }
+
+        private (double[] x, double[] y, double[] z, double[] resultante, double[] angle, double f_rot, double rpm, double sampleRate) GetSingleTourSignal(section s)
+        {
+            double sampleRate = s.SamplingRate;
+            double rpm = s.Rpm;
+            int count = s.records.Count;
+            double[] x = new double[count];
+            double[] y = new double[count];
+            double[] z = new double[count];
+            double[] resultante = new double[count];
+            for (int i = 0; i < count; i++)
+            {
+                x[i] = s.records[i].x;
+                y[i] = s.records[i].y;
+                z[i] = s.records[i].z;
+            }
+            for (int i = 0; i < count; i++)
+            {
+                resultante[i] = Math.Sqrt(Math.Pow(x[i], 2)
+                                            + Math.Pow(y[i], 2)
+                                            );
+            }
+            double avgTourTime = count / sampleRate;
+            double f_rot = 1.0 / avgTourTime;
+            double[] angle = new double[count];
+            double anglePerCount = 360.0 / count;
+            for (int i = 0; i < count; i++)
+                angle[i] = i * anglePerCount;
+            return (x, y, z, resultante, angle,f_rot, rpm, sampleRate);
+        }
+        private (double[] x, double[] y, double[] z, double[] resultante, double[] angle, double f_rot, double rpm, double sampleRate) GetCompiledTourSignal()
         {
             // analysis of all segments in one graph aligned on the max size of segment
             int alignedCount = selectedSections.Select(x => x.records.Count).Max();
@@ -375,6 +492,7 @@ namespace equilibreuse
             double[] analyzedZ = new double[alignedCount];
             double[] resultante = new double[alignedCount];
             int[] countAngle = new int[alignedCount];
+            
             //apply options on signal
             //find all selected sections
 
@@ -423,7 +541,87 @@ namespace equilibreuse
             }
             double avgTourTime = alignedCount / sampleRate;
             double f_rot = 1.0 / avgTourTime;
-            return (analyzedX, analyzedY, analyzedZ, resultante, f_rot, rpm, sampleRate);
+            //display the graph on 360° basis
+            double[] angles = new double[alignedCount];
+            double anglePerCount = 360.0 / alignedCount;
+            for (int i = 0; i < alignedCount; i++)
+                angles[i] = i * anglePerCount;
+
+            return (analyzedX, analyzedY, analyzedZ, resultante, angles,f_rot, rpm, sampleRate);
+        }
+        // analysis of all consecutives segments
+        private (double[] x, double[] y, double[] z, double[] resultante, double[] whiteLine, double[] angle, double f_rot, double rpm, double sampleRate) GetGlobalTourSignal()
+        {
+            int countTotal = iTotalRecordsInCSV; //number of total records for selected sections in the dataset
+            int alignedCount = selectedSections.Select(x => x.records.Count).Max();
+            double rpm = selectedSections.Select(x => x.Rpm).Min();
+            //get avg samplerate
+            double sampleRate = selectedSections.Select(x => x.SamplingRate).Average();
+            if (chkOrderTracking.Checked) //resample on 360 points per sections
+                countTotal = selectedSections.Count * alignedCount; //made a count total based on the max number of data
+
+            double[] analyzedX = new double[countTotal];
+            double[] analyzedY = new double[countTotal];
+            double[] analyzedZ = new double[countTotal];
+            double[] whiteLine = new double[countTotal];
+            double[] resultante = new double[countTotal];
+            //display peaks
+            double[] angle = new double[countTotal];
+
+
+            int iCount = 0, tourNumber = 0;
+            foreach (section se in selectedSections)
+            {
+                int startCount = iCount;
+                whiteLine[iCount] = 10;
+                int count = se.records.Count;
+                double angleIncrement = 360.0 / count;
+                if (!chkOrderTracking.Checked)
+                {
+                    for (int i = 0; i < count; i++)
+                    {
+                        angle[iCount] = i*angleIncrement;
+                        if (chkAbsolute.Checked)
+                        {
+                            analyzedX[iCount] = Math.Abs(se.records[i].x);
+                            analyzedY[iCount] = Math.Abs(se.records[i].y);
+                            analyzedZ[iCount] = Math.Abs(se.records[i].z);
+                        }
+                        else
+                        {
+                            analyzedX[iCount] = se.records[i].x;
+                            analyzedY[iCount] = se.records[i].y;
+                            analyzedZ[iCount] = se.records[i].z;
+                        }
+                        iCount++;
+                    }
+                }
+                else
+                {
+                    angleIncrement = 360.0 / alignedCount;
+                    for (int i = 0; i < alignedCount; i++)
+                        angle[i+ (tourNumber* alignedCount)] = i * angleIncrement;
+                    iCount += alignedCount;
+
+                    MathHelper.ResampleSectionAngularXYZ(se.records, alignedCount, 1.0 / sampleRate, analyzedX, analyzedY, analyzedZ, tourNumber * alignedCount);
+
+                }
+
+
+                tourNumber++;
+
+            }
+            int countX = analyzedX.Count();
+            for (int i = 0; i < countX; i++)
+            {
+                resultante[i] = Math.Sqrt(Math.Pow(analyzedX[i], 2)
+                                            + Math.Pow(analyzedY[i], 2)
+                                            );
+            }
+
+            double avgTourTime = countTotal / sampleRate / selectedSections.Count;  // en secondes  
+            double f_rot = 1.0 / avgTourTime;
+            return (analyzedX, analyzedY, analyzedZ, resultante, whiteLine, angle,f_rot, rpm, sampleRate);
         }
 
         private void RefreshAnalysisCompiled()
@@ -434,166 +632,43 @@ namespace equilibreuse
             double[] analyzedY = data.y;
             double[] analyzedZ = data.z;
             double[] resultante = data.resultante;
+            double[] angle = data.angle;
             double sampleRate = data.sampleRate;
             double rpm = data.rpm;
             ApplyFilters(sampleRate, f_rot, ref analyzedX, ref analyzedY, ref analyzedZ, ref resultante);
-            
-            int alignedCount = analyzedX.Length;
-
-            //display the graph on 360° basis
-            double[] angle = new double[alignedCount];
-            double anglePerCount = 360.0 / alignedCount;
-            for (int i = 0; i < alignedCount; i++)
-                angle[i] = i * anglePerCount;
-
-            int[][] peakX = new int[1][]; peakX[0] = GetPeakPerTurn(analyzedX);
-            int[][] peakY = new int[1][]; peakY[0] = GetPeakPerTurn(analyzedY);
-            int[][] peakZ = new int[1][]; peakZ[0] = GetPeakPerTurn(analyzedZ);
-            int[][] peakResultante = new int[1][]; peakResultante[0] = GetPeakPerTurn(resultante);
 
             lstPeakXCompiled.Items.Clear();
             lstPeakYCompiled.Items.Clear();
             lstPeakZCompiled.Items.Clear();
             lstPeakResultanteCompiled.Items.Clear();
-
-            var top5 = GetTopCommonPeaksWithAmplitude(peakX, analyzedX, tol: 10, minSamples: 2, topN: 5);
-            foreach (var item in top5)
-                lstPeakXCompiled.Items.Add($"PeakX: Angle {item.Mean} – Fréquence {item.Freq} - Force {item.AverageAmplitude}");
-            top5 = GetTopCommonPeaksWithAmplitude(peakY, analyzedY, tol: 10, minSamples: 2, topN: 5);
-            foreach (var item in top5)
-                lstPeakYCompiled.Items.Add($"PeakY: Angle {item.Mean} – Fréquence {item.Freq} - Force {item.AverageAmplitude}");
-            top5 = GetTopCommonPeaksWithAmplitude(peakZ, analyzedZ, tol: 10, minSamples: 2, topN: 5);
-            foreach (var item in top5)
-                lstPeakZCompiled.Items.Add($"PeakZ: Angle {item.Mean} – Fréquence {item.Freq} - Force {item.AverageAmplitude}");
-            top5 = GetTopCommonPeaksWithAmplitude(peakResultante, resultante, tol: 10, minSamples: 2, topN: 5);
-            foreach (var item in top5)
-                lstPeakResultanteCompiled.Items.Add($"Resultante: Angle {item.Mean} – Fréquence {item.Freq} - Force {item.AverageAmplitude}");
+            double fftLimit = Convert.ToDouble(txtFFTLimit.Text);
 
             formsPlotAnalysis.Reset();
             formsPlotAnalysis.Multiplot.Reset();
             var plotTemporal = formsPlotAnalysis.Plot;
+            var plotFFT = formsPlotAnalysis.Multiplot.AddPlot();
             if (chkShowX.Checked)
-            {
-                var sp = plotTemporal.Add.Scatter(angle, analyzedX, ScottPlot.Colors.Blue);
-                sp.LegendText = "X";
-                DisplayPeaksTemporal(analyzedX, angle, "Top Peak X", plotTemporal, lstPeakXCompiled);
-            }
+                DisplayData(analyzedX, angle, f_rot, rpm, sampleRate, lstPeakXCompiled,plotTemporal, plotFFT, "X", Colors.Blue);
             if (chkShowY.Checked)
-            {
-                plotTemporal.Add.Scatter(angle, analyzedY, Colors.Red).LegendText = "Y";
-                    
-                DisplayPeaksTemporal(analyzedY, angle, "Top Peak Y", plotTemporal, lstPeakYCompiled);
-            }
+                DisplayData(analyzedY, angle, f_rot, rpm, sampleRate, lstPeakYCompiled,plotTemporal, plotFFT, "Y", Colors.Red);
             if (chkShowZ.Checked)
-            {
-                plotTemporal.Add.Scatter(angle, analyzedZ, Colors.Yellow).LegendText = "Z";
-                DisplayPeaksTemporal(analyzedX, angle, "Top Peak Z", plotTemporal, lstPeakZCompiled);
-            }
+                DisplayData(analyzedZ, angle, f_rot, rpm, sampleRate, lstPeakZCompiled, plotTemporal, plotFFT, "Z", Colors.Yellow);
             if (chkShowResultante.Checked)
-            {
-                plotTemporal.Add.Scatter(angle, resultante, Colors.Black).LegendText = "Resultante";
-                DisplayPeaksTemporal(analyzedX, angle, "Top Peak Resultante", plotTemporal, lstPeakResultanteCompiled);
-            }
-            //formsPlotAnalysis.Plot.Axis(0, 360, -1, 1);
-
-            plotTemporal.Axes.SetLimits(0.0, 360.0);
-            plotTemporal.Axes.AutoScaleY();
+                DisplayData(resultante, angle, f_rot, rpm, sampleRate, lstPeakResultanteCompiled, plotTemporal, plotFFT, "Resultante", Colors.DeepPink);
+            
+            
+            plotTemporal.Axes.AutoScale();
             plotTemporal.ShowLegend();
 
-            var plotFFT = formsPlotAnalysis.Multiplot.AddPlot();
-            FFTData dataX = EquilibrageHelper.CalculateFFT(analyzedX, sampleRate, cbxFFTSingle, chkDb.Checked, rpm, f_rot);
-            FFTData dataY = EquilibrageHelper.CalculateFFT(analyzedY, sampleRate, cbxFFTSingle, chkDb.Checked, rpm, f_rot);
-            FFTData dataZ = EquilibrageHelper.CalculateFFT(analyzedZ, sampleRate, cbxFFTSingle, chkDb.Checked, rpm, f_rot);
-            FFTData dataResultante = EquilibrageHelper.CalculateFFT(resultante, sampleRate, cbxFFTSingle, chkDb.Checked, rpm, f_rot);
-
-            lstPeakZCompiled.Items.Clear();
-            lstPeakXCompiled.Items.Clear();
-            lstPeakYCompiled.Items.Clear();
-            lstPeakResultanteCompiled.Items.Clear();
-            if (chkShowX.Checked)
-            {
-                AnalyzeAxis("X", dataX, sampleRate, lstPeakXCompiled, Colors.Blue, plotFFT, f_rot);
-            }
-            if (chkShowY.Checked)
-            {
-                AnalyzeAxis("Y", dataY, sampleRate, lstPeakYCompiled, Colors.Red, plotFFT, f_rot);
-            }
-            if (chkShowZ.Checked)
-            {
-                AnalyzeAxis("Z", dataZ, sampleRate, lstPeakZCompiled, Colors.Yellow, plotFFT, f_rot);
-            }
-            if (chkShowResultante.Checked)
-            {
-                AnalyzeAxis("Resultante", dataResultante, sampleRate, lstPeakResultanteCompiled, Colors.DeepPink, plotFFT, f_rot);
-            }
+            plotFFT.Axes.AutoScale();
+            plotFFT.ShowLegend();
             String sText = $"Fundamental: {f_rot}Hz\r\n1er order: {f_rot * 2}\r\n2eme order: {f_rot * 3}\r\n3eme order: {f_rot * 4}\r\n4er order: {f_rot * 5}\r\n5er order: {f_rot * 6}\r\n";
             plotFFT.Add.Annotation(sText);
-            lstSimulationCompiled.Items.Clear();
-            var calcResult = EquilibrageHelper.CompleteSimulation(lstSimulationCompiled, "Compiled", dataX, dataY, dataZ, dataResultante, sampleRate, Convert.ToDouble(txtCorrectAngleX.Text), Convert.ToDouble(txtCorrectAngleY.Text), f_rot);
-            for (int i = 0; i < 5; i++)
-            {
-                if (i == 0)
-                {
-                    if (calcResult.dir[i].IsDynamic)
-                    {
-                        formsPlotT1I.Plot.Add.VerticalLine(calcResult.dir[i].correction.AngleInnerDeg, width:3, color: Colors.Red);
-                        formsPlotT1O.Plot.Add.VerticalLine(calcResult.dir[i].correction.AngleOuterDeg, width: 3, color: Colors.Red);
-                    }
-                    formsPlotT1X.Plot.Add.VerticalLine(calcResult.px[i].UnbalanceAngleDeg, color: Colors.Red, width: 3);
-                    formsPlotT1Y.Plot.Add.VerticalLine(calcResult.py[i].UnbalanceAngleDeg, color: Colors.Red, width: 3);
-                }
-                   
-            }
-            //lblFFTAnalysis.Text += "Compiled X AVG Mag: " + calcResult.px[0].ActualAmplitude.ToString("F4") + "\r\n";
-            //lblFFTAnalysis.Text += "Compiled Y AVG Mag: " + calcResult.py[0].ActualAmplitude.ToString("F4") + "\r\n";
-            currentAnalysisX.coMagAvg = calcResult.px[0].ActualAmplitude;
-            currentAnalysisX.coAngle = calcResult.px[0].UnbalanceAngleDeg;
-            currentAnalysisX.coPkPkInverse = dataX.SignalFFTInverse.Max() - dataX.SignalFFTInverse.Min();
-            currentAnalysisY.coMagAvg = calcResult.py[0].ActualAmplitude;
-            currentAnalysisY.coAngle = calcResult.py[0].UnbalanceAngleDeg;
-            currentAnalysisY.coPkPkInverse = dataY.SignalFFTInverse.Max() - dataY.SignalFFTInverse.Min();
-            if (calcResult.dir[0].IsDynamic)
-            {
-                currentAnalysisX.coAngleDynamicSimple = calcResult.dir[0].correction.AngleInnerDeg;
-                currentAnalysisY.coAngleDynamicSimple = calcResult.dir[0].correction.AngleOuterDeg;
-            }
-
-
             formsPlotAnalysis.Refresh();
 
 
-            if (selectedSections.Count > 0)
-            {
-                lblRecordNumber.Text = "0";
-                RefreshXYZ(selectedSections[0]);
-            }
-
         }
-        private (double[] x, double[] y, double[] z, double[] resultante, double f_rot) GetSingleTourSignal(int iSignal)
-        {
-            var s = selectedSections[iSignal];
-            double sampleRate = s.SamplingRate;
-            int count = s.records.Count;
-            double[] x = new double[count];
-            double[] y = new double[count];
-            double[] z = new double[count];
-            double[] resultante = new double[count];
-            for (int i = 0; i < count; i++)
-            {
-                x[i] = s.records[i].x;
-                y[i] = s.records[i].y;
-                z[i] = s.records[i].z;
-            }
-            for (int i = 0; i < count; i++)
-            {
-                resultante[i] = Math.Sqrt(Math.Pow(x[i], 2)
-                                            + Math.Pow(y[i], 2)
-                                            );
-            }
-            double avgTourTime = count / sampleRate;
-            double f_rot = 1.0 / avgTourTime;
-            return (x, y, z, resultante, f_rot);
-        }
+/*
         private void CalculateXYZ()
         {
             List<CalculationResult> lstCR = new List<CalculationResult>();
@@ -723,40 +798,40 @@ namespace equilibreuse
                 lstSimulationTurnByTurn.Items.Add($"Order {i} AVG Magnitude X {lstMagnitudeX.Average(t => t.Item2)} Magnitude Y {lstMagnitudeY.Average(t => t.Item2)} Magnitude Z {lstMagnitudeZ.Average(t => t.Item2)}");
                 lstSimulationTurnByTurn.Items.Add($"Order {i} AVG Magnitude Resultante {lstMagnitudeRes.Average(t => t.Item2)}");
                 double mean = 0, coeffVariation = 0, variance = 0, standardDeviation = 0;
-                CalculateStatistics("Angle Inner", i, lstBestAngleInner, ref mean, ref coeffVariation, ref variance, ref standardDeviation);
+                MathHelper.CalculateStatistics("Angle Inner", i, lstBestAngleInner, ref mean, ref coeffVariation, ref variance, ref standardDeviation, lstSimulationTurnByTurn);
                 if (i == 0 && mean != double.NaN)
                 {
                     formsPlotT1I.Plot.Add.VerticalLine(mean, color: Colors.Black, width: 3);
                     currentAnalysisX.ttAngleDynamicSimple = mean;
 
                 }
-                CalculateStatistics("Angle Outer", i, lstBestAngleOuter, ref mean, ref coeffVariation, ref variance, ref standardDeviation);
+                MathHelper.CalculateStatistics("Angle Outer", i, lstBestAngleOuter, ref mean, ref coeffVariation, ref variance, ref standardDeviation, lstSimulationTurnByTurn);
                 if (i == 0 && mean != double.NaN)
                 {
-                    formsPlotT1O.Plot.Add.VerticalLine(mean, color:Colors.Black, width: 3);
+                    formsPlotT1O.Plot.Add.VerticalLine(mean, color: Colors.Black, width: 3);
                     currentAnalysisY.ttAngleDynamicSimple = mean;
                 }
-                CalculateStatistics("X", i, lstBestAngleX, ref mean, ref coeffVariation, ref variance, ref standardDeviation);
+                MathHelper.CalculateStatistics("X", i, lstBestAngleX, ref mean, ref coeffVariation, ref variance, ref standardDeviation, lstSimulationTurnByTurn);
                 if (i == 0 && mean != double.NaN)
                 {
-                    formsPlotT1X.Plot.Add.VerticalLine(mean, color:Colors.Black, width: 3);
+                    formsPlotT1X.Plot.Add.VerticalLine(mean, color: Colors.Black, width: 3);
                     currentAnalysisX.ttAngle = mean;
                 }
-                CalculateStatistics("Y", i, lstBestAngleY, ref mean, ref coeffVariation, ref variance, ref standardDeviation);
+                MathHelper.CalculateStatistics("Y", i, lstBestAngleY, ref mean, ref coeffVariation, ref variance, ref standardDeviation, lstSimulationTurnByTurn);
                 if (i == 0 && mean != double.NaN)
                 {
-                    formsPlotT1Y.Plot.Add.VerticalLine(mean, color:Colors.Black, width: 3);
+                    formsPlotT1Y.Plot.Add.VerticalLine(mean, color: Colors.Black, width: 3);
                     currentAnalysisY.ttAngle = mean;
                 }
-                CalculateStatistics("Z", i, lstBestAngleZ, ref mean, ref coeffVariation, ref variance, ref standardDeviation);
-                CalculateStatistics("Resultante", i, lstBestAngleRes, ref mean, ref coeffVariation, ref variance, ref standardDeviation);
+                MathHelper.CalculateStatistics("Z", i, lstBestAngleZ, ref mean, ref coeffVariation, ref variance, ref standardDeviation, lstSimulationTurnByTurn);
+                MathHelper.CalculateStatistics("Resultante", i, lstBestAngleRes, ref mean, ref coeffVariation, ref variance, ref standardDeviation, lstSimulationTurnByTurn);
 
 
 
                 if (i == 0)
                 {
-                    DisplayTurnByTurnGraph(lstBestAngleInner, lstBestAngleOuter, lstBestAngleX, lstBestAngleY, formsPlotT1I, formsPlotT1O, formsPlotT1X, formsPlotT1Y);
-                    
+                    MathHelper.DisplayTurnByTurnGraph(lstBestAngleInner, lstBestAngleOuter, lstBestAngleX, lstBestAngleY, formsPlotT1I, formsPlotT1O, formsPlotT1X, formsPlotT1Y);
+
                     //    lblFFTAnalysis.Text += "Turn by turn X AVG Mag: " + lstMagnitudeX.Average(t => t.Item2).ToString("F4") + "\r\n";
                     //    lblFFTAnalysis.Text += "Turn by turn Y AVG Mag: " + lstMagnitudeY.Average(t => t.Item2).ToString("F4") + "\r\n";
                     currentAnalysisX.ttMagAvg = lstMagnitudeX.Average(t => t.Item2);
@@ -780,439 +855,158 @@ namespace equilibreuse
                     currentAnalysisX.ttAngleDynamicComplex = res.AngleIntDeg;
                     currentAnalysisY.ttAngleDynamicComplex = res.AngleExtDeg;
                     currentAnalysisX.ttWeight = res.MassInt;
-                    currentAnalysisY.ttWeight = res.MassExt;*/
+                    currentAnalysisY.ttWeight = res.MassExt;
                 }
-            
+
             }
 
         }
-
-        private void ApplyFilters(double sampleRate, double f_rot, ref double[] x, ref double[] y, ref double[] z, ref double[] resultante)
-        {
-            int filterOrder = Convert.ToInt32(txtFilterOrder.Text);
-            if (chkLowPassFilter.Checked || chkPassband.Checked)
-            {
-                if (chkLowPassFilter.Checked)
-                {
-                    var l = new LowPassFilter(Convert.ToDouble(txtFilter.Text), sampleRate);
-                    x = LowPassFilter.ApplyZeroPhase(x, l);
-                    l = new LowPassFilter(Convert.ToDouble(txtFilter.Text), sampleRate);
-                    y = LowPassFilter.ApplyZeroPhase(y, l);
-                    l = new LowPassFilter(Convert.ToDouble(txtFilter.Text), sampleRate);
-                    z = LowPassFilter.ApplyZeroPhase(z, l);
-                    l = new LowPassFilter(Convert.ToDouble(txtFilter.Text), sampleRate);
-                    resultante = LowPassFilter.ApplyZeroPhase(resultante, l);
-
-                    /*x = LowPassFilter.ApplyLowPassFilterZeroPhase(x, Convert.ToDouble(txtFilter.Text), sampleRate, filterOrder);
-                    y = LowPassFilter.ApplyLowPassFilterZeroPhase(y, Convert.ToDouble(txtFilter.Text), sampleRate, filterOrder);
-                    z = LowPassFilter.ApplyLowPassFilterZeroPhase(z, Convert.ToDouble(txtFilter.Text), sampleRate, filterOrder);
-                    resultante = LowPassFilter.ApplyLowPassFilterZeroPhase(resultante, Convert.ToDouble(txtFilter.Text), sampleRate, filterOrder);
-                    */
-                }
-
-                if (chkPassband.Checked)
-                {
-                    x = LowPassFilter.ApplyNarrowBandPassFilter(x, f_rot, sampleRate, filterOrder);
-                    y = LowPassFilter.ApplyNarrowBandPassFilter(y, f_rot, sampleRate, filterOrder);
-                    z = LowPassFilter.ApplyNarrowBandPassFilter(z, f_rot, sampleRate, filterOrder);
-                    resultante = LowPassFilter.ApplyNarrowBandPassFilter(resultante, f_rot, sampleRate, filterOrder);
-                }
-            }
-            else
-            {
-                if (cbxFilterTypes.SelectedItem.ToString() != "None")
-                {
-                    var xFilter = LowPassFilter.ApplyFilter(x, sampleRate, f_rot, filterOrder, cbxFilterTypes.SelectedItem.ToString(), Convert.ToDouble(txtFilter.Text));
-                    x = xFilter.Samples.Select(d => (double)d).ToArray();
-                    var yFilter = LowPassFilter.ApplyFilter(y, sampleRate, f_rot, filterOrder, cbxFilterTypes.SelectedItem.ToString(), Convert.ToDouble(txtFilter.Text));
-                    y = yFilter.Samples.Select(d => (double)d).ToArray();
-                    var zFilter = LowPassFilter.ApplyFilter(z, sampleRate, f_rot, filterOrder, cbxFilterTypes.SelectedItem.ToString(), Convert.ToDouble(txtFilter.Text));
-                    z = zFilter.Samples.Select(d => (double)d).ToArray();
-                    var resultanteFilter = LowPassFilter.ApplyFilter(resultante, sampleRate, f_rot, filterOrder, cbxFilterTypes.SelectedItem.ToString(), Convert.ToDouble(txtFilter.Text));
-                    resultante = resultanteFilter.Samples.Select(d => (double)d).ToArray();
-                }
-                if (cbxSmoothing.SelectedItem.ToString() != "None")
-                {
-                    if (cbxSmoothing.SelectedItem.ToString() == "IQ")
-                    {
-                        x = LowPassFilter.ComputePhaseIQ(x, sampleRate, f_rot);
-                        y = LowPassFilter.ComputePhaseIQ(y, sampleRate, f_rot);
-                        z = LowPassFilter.ComputePhaseIQ(z, sampleRate, f_rot);
-                        resultante = LowPassFilter.ComputePhaseIQ(resultante, sampleRate, f_rot);
-                    }
-                    else
-                    {
-                        var xFilter = LowPassFilter.ApplyFilter(x, sampleRate, f_rot, filterOrder, cbxFilterTypes.SelectedItem.ToString(), Convert.ToDouble(txtFilter.Text));
-                        x = xFilter.Samples.Select(d => (double)d).ToArray();
-                        var yFilter = LowPassFilter.ApplyFilter(y, sampleRate, f_rot, filterOrder, cbxFilterTypes.SelectedItem.ToString(), Convert.ToDouble(txtFilter.Text));
-                        y = yFilter.Samples.Select(d => (double)d).ToArray();
-                        var zFilter = LowPassFilter.ApplyFilter(z, sampleRate, f_rot, filterOrder, cbxFilterTypes.SelectedItem.ToString(), Convert.ToDouble(txtFilter.Text));
-                        z = zFilter.Samples.Select(d => (double)d).ToArray();
-                        var resultanteFilter = LowPassFilter.ApplyFilter(resultante, sampleRate, f_rot, filterOrder, cbxFilterTypes.SelectedItem.ToString(), Convert.ToDouble(txtFilter.Text));
-                        resultante = resultanteFilter.Samples.Select(d => (double)d).ToArray();
-                    }
-                }
-            }
-
-            
-              if(chkRemoveDC.Checked)
-              {
-                  x = LowPassFilter.RemoveDCOffset(x);
-                  y = LowPassFilter.RemoveDCOffset(y);
-                  z = LowPassFilter.RemoveDCOffset(z);
-                  resultante = LowPassFilter.RemoveDCOffset(resultante);
-              }
-
-              //apply gain on signal
-              var gain = Convert.ToDouble(txtGain.Text);
-            x = x.Select(r => Math.Sign(r) * Math.Pow(Math.Abs(r), gain)).ToArray();
-              y = y.Select(r => Math.Sign(r) * Math.Pow(Math.Abs(r), gain)).ToArray();
-              z = z.Select(r => Math.Sign(r) * Math.Pow(Math.Abs(r), gain)).ToArray();
-              if (resultante == null || resultante.Length == 0)
-                  return;
-              resultante = resultante.Select(r => Math.Sign(r) * Math.Pow(Math.Abs(r), gain)).ToArray();
-        }
-        private PhaseAnalysis CalculateMeanPhaseAnalysis(List<PhaseAnalysis> phaseAnalyses)
-        {
-            var pa = new PhaseAnalysis();
-            double[] rMaxTemporalAngles = phaseAnalyses.Select(p => p.rMaxTemporal).ToArray();
-            double[] rPhaseLockInAngles = phaseAnalyses.Select(p => p.rPhaseLockIn).ToArray();
-            double[] rFitSinusoidAngles = phaseAnalyses.Select(p => p.rFitSinusoid).ToArray();
-            double[] rDetectPhaseAngles = phaseAnalyses.Select(p => p.rDetectPhase).ToArray();
-            double[] rFFTAngles = phaseAnalyses.Select(p => p.rFFT).ToArray();
-
-            pa.rMaxTemporal = CalculateMeanAngle(rMaxTemporalAngles);
-            pa.rPhaseLockIn = CalculateMeanAngle(rPhaseLockInAngles);
-            pa.rFitSinusoid = CalculateMeanAngle(rFitSinusoidAngles);
-            pa.rDetectPhase = CalculateMeanAngle(rDetectPhaseAngles);
-            pa.rFFT = CalculateMeanAngle(rFFTAngles);
-            return pa;
-        }
-        private double CalculateMeanAngle(double[] angles)
-        {
-            int totalOccurrences = angles.Length;
-
-            double sommeCos = 0;
-            double sommeSin = 0;
-
-            for (int i = 0; i < totalOccurrences; i++)
-            {
-                double angle = angles[i];
-                double radian = angle * (Math.PI / 180); // Conversion en radians
-                sommeCos += Math.Cos(radian);
-                sommeSin += Math.Sin(radian);
-            }
-
-            double moyenneRad = Math.Atan2(sommeSin, sommeCos); // Calcul de l'angle moyen en radians
-            var mean = moyenneRad * (180 / Math.PI); // Conversion en degrés
-            mean = (mean + 360) % 360;
-            return mean;
-        }
-        private void CalculateStatistics(string data, int i, Dictionary<int, int> lstData, ref double mean, ref double coeffVariation, ref double variance, ref double standardDeviation)
-        {
-            int totalOccurrences = lstData.Values.Sum();
-
-            double sommeCos = 0;
-            double sommeSin = 0;
-
-            foreach (var t in lstData)
-            {
-                for (int j = 0; j < t.Value; j++)
-                {
-                    double angle = t.Key;
-                    double radian = angle * (Math.PI / 180); // Conversion en radians
-                    sommeCos += Math.Cos(radian);
-                    sommeSin += Math.Sin(radian);
-                }
-            }
-
-            double moyenneRad = Math.Atan2(sommeSin, sommeCos); // Calcul de l'angle moyen en radians
-            mean = moyenneRad * (180 / Math.PI); // Conversion en degrés
-            mean = (mean + 360) % 360;
-            double mean2 = mean;
-            // Variance pondérée
-            variance = lstData.Sum(kv => kv.Value * Math.Pow(kv.Key - mean2, 2)) / totalOccurrences;
-
-            // Écart-type pondéré
-            standardDeviation = Math.Sqrt(variance);
-
-            //codef variation
-            coeffVariation = standardDeviation / mean;
-            lstSimulationTurnByTurn.Items.Add($"Order {i} Statistic {data} : AVG Angle {mean:F2} Variation {coeffVariation:F2} Variance {variance:F2} Ecart-type {standardDeviation:F2}");
-        }
-
-        private void DisplayTurnByTurnGraph(Dictionary<int, int> lstBestAngleInner, Dictionary<int, int> lstBestAngleOuter, Dictionary<int, int> lstBestAngleX, Dictionary<int, int> lstBestAngleY, FormsPlot frmInner, FormsPlot frmOuter, FormsPlot frmX, FormsPlot frmY)
-        {
-            try
-            {
-                double[] xs = lstBestAngleInner.Keys.Select(x => (double)x).ToArray();
-                double[] ys = lstBestAngleInner.Values.Select(y => (double)y).ToArray();
-                if (xs.Length > 0)
-                {
-                    //frmInner.Plot.Add.Bars(xs, ys, barWidth: 0.5, fillColor: Color.Blue, outlineColor: Color.Blue);
-                }
-                xs = lstBestAngleOuter.Keys.Select(x => (double)x).ToArray();
-                ys = lstBestAngleOuter.Values.Select(y => (double)y).ToArray();
-                if (xs.Length > 0)
-                {
-                    //frmOuter.Plot.PlotBar(xs, ys, barWidth: 0.5, fillColor: Color.Blue, outlineColor: Color.Blue);
-
-                }
-                xs = lstBestAngleX.Keys.Select(x => (double)x).ToArray();
-                ys = lstBestAngleX.Values.Select(y => (double)y).ToArray();
-                if (xs.Length > 0)
-                {
-                    //frmX.Plot.PlotBar(xs, ys, barWidth: 0.5, fillColor: Color.Blue, outlineColor: Color.Blue);
-
-                }
-                xs = lstBestAngleY.Keys.Select(x => (double)x).ToArray();
-                ys = lstBestAngleY.Values.Select(y => (double)y).ToArray();
-                if (xs.Length > 0)
-                {
-                 //   frmY.Plot.PlotBar(xs, ys, barWidth: 0.5, fillColor: Color.Blue, outlineColor: Color.Blue);
-                }
-            }
-            catch
-            { }
-        }
-
+*/
         private void RefreshXYZ(section s)
         {
-            int count = s.records.Count;
-            double[] x = new double[count];
-            double[] y = new double[count];
-            double[] z = new double[count];
+            var data = GetSingleTourSignal(s);
+            double f_rot = data.f_rot;
+            double[] analyzedX = data.x;
+            double[] analyzedY = data.y;
+            double[] analyzedZ = data.z;
+            double[] resultante = data.resultante;
+            double[] angle = data.angle;
+            double sampleRate = data.sampleRate;
+            double rpm = data.rpm;
+            ApplyFilters(sampleRate, f_rot, ref analyzedX, ref analyzedY, ref analyzedZ, ref resultante);
 
-            double sampleRate = s.SamplingRate;
-            for (int i = 0; i < count; i++)
-            {
-                x[i] = s.records[i].x;
-                y[i] = s.records[i].y;
-                z[i] = s.records[i].z;
+            formsPlotX.Reset();
+            formsPlotX.Multiplot.Reset();
+            var plotTemporalX = formsPlotX.Plot;
+            var plotFFTX = formsPlotX.Multiplot.AddPlot();
 
-            }
+            formsPlotY.Reset();
+            formsPlotY.Multiplot.Reset();
+            var plotTemporalY = formsPlotY.Plot;
+            var plotFFTY = formsPlotY.Multiplot.AddPlot();
 
-            double avgTourTime = count / sampleRate;  // en secondes
-            double f_rot = 1.0 / avgTourTime;
-            double[] resultante = new double[0];
-            ApplyFilters(sampleRate, f_rot, ref x, ref y, ref z, ref resultante);
-            count = x.Length;
-            double anglePerRecord = 360.0 / count;
-            double[] axis = new double[count];
-            for (int i = 0; i < count; i++)
-            {
-                axis[i] = i * anglePerRecord;
-            }
-            formsPlotX.Plot.Clear();
+            formsPlotZ.Reset();
+            formsPlotZ.Multiplot.Reset();
+            var plotTemporalZ = formsPlotZ.Plot;
+            var plotFFTZ = formsPlotZ.Multiplot.AddPlot();
+
             lstPeakX.Items.Clear();
-            formsPlotY.Plot.Clear();
             lstPeakY.Items.Clear();
-            formsPlotZ.Plot.Clear();
             lstPeakZ.Items.Clear();
-            if (!chkFFTSingle.Checked)
-            {
-                formsPlotX.Plot.Add.Scatter(axis, x);
-                formsPlotY.Plot.Add.Scatter(axis, y);
-                formsPlotZ.Plot.Add.Scatter(axis, z);
-                formsPlotX.Plot.Axes.AutoScale();
-                formsPlotY.Plot.Axes.AutoScale(); 
-                formsPlotZ.Plot.Axes.AutoScale();
-                formsPlotX.Refresh();
-                formsPlotY.Refresh();
-                formsPlotZ.Refresh();
-                return;
-            }
-            else
-            {
-                FFTData cmpX = EquilibrageHelper.CalculateFFT(x, sampleRate, cbxFFTSingle, chkDb.Checked, s.Rpm, f_rot);
-                FFTData cmpY = EquilibrageHelper.CalculateFFT(y, sampleRate, cbxFFTSingle, chkDb.Checked, s.Rpm, f_rot);
-                FFTData cmpZ = EquilibrageHelper.CalculateFFT(z, sampleRate, cbxFFTSingle, chkDb.Checked, s.Rpm, f_rot);
+            double fftLimit = Convert.ToDouble(txtFFTLimit.Text);
 
-                AnalyzeAxis("X", cmpX, sampleRate, lstPeakX, Colors.Blue, formsPlotX.Plot, f_rot);
-                AnalyzeAxis("Y", cmpY, sampleRate, lstPeakY, Colors.Blue, formsPlotY.Plot, f_rot);
-                AnalyzeAxis("Z", cmpZ, sampleRate, lstPeakZ, Colors.Blue, formsPlotZ.Plot, f_rot);
-                String sText = $"Fundamental: {f_rot}Hz\r\n1er order: {f_rot * 2}\r\n2eme order: {f_rot * 3}\r\n3eme order: {f_rot * 4}\r\n4er order: {f_rot * 5}\r\n5er order: {f_rot * 6}\r\n";
-                formsPlotX.Plot.Add.Annotation(sText);
+            if (chkShowX.Checked)
+                DisplayData(analyzedX, angle, f_rot, rpm, sampleRate, lstPeakX, plotTemporalX, plotFFTX, "X", Colors.Blue);
+            if (chkShowY.Checked)
+                DisplayData(analyzedY, angle, f_rot, rpm, sampleRate, lstPeakY, plotTemporalY, plotFFTY, "Y", Colors.Red);
+            if (chkShowZ.Checked)
+                DisplayData(analyzedZ, angle, f_rot, rpm, sampleRate, lstPeakZ, plotTemporalZ, plotFFTZ, "Z", Colors.Yellow);
 
-                formsPlotX.Refresh();
-                formsPlotY.Refresh();
-                formsPlotZ.Refresh();
-            }
+            plotTemporalX.Axes.AutoScale();
+            plotTemporalX.ShowLegend();
+            plotFFTX.Axes.AutoScale();
+            plotFFTX.ShowLegend();
+            String sText = $"Fundamental: {f_rot}Hz";
+            plotFFTX.Add.Annotation(sText);
+
+            
+            plotTemporalY.Axes.AutoScale();
+            plotTemporalY.ShowLegend();
+            plotFFTY.Axes.AutoScale();
+            plotFFTY.ShowLegend();
+            plotFFTY.Add.Annotation(sText);
+
+            
+            plotTemporalZ.Axes.AutoScale();
+            plotTemporalZ.ShowLegend();
+            plotFFTZ.Axes.AutoScale();
+            plotFFTZ.ShowLegend();
+            plotFFTZ.Add.Annotation(sText);
+
+
+            formsPlotX.Refresh();
+            formsPlotY.Refresh();
+            formsPlotZ.Refresh();
         }
-        // analysis of all consecutives segments
-        private (double[] x, double[] y, double[] z, double[] resultante, double[] whiteLine, double f_rot, double rpm, double sampleRate) GetGlobalTourSignal()
-        {
-            int countTotal = iTotalRecordsInCSV; //number of total records for selected sections in the dataset
-            int alignedCount = selectedSections.Select(x => x.records.Count).Max();
-            double rpm = selectedSections.Select(x => x.Rpm).Min();
-            //get avg samplerate
-            double sampleRate = selectedSections.Select(x => x.SamplingRate).Average();
-            if (chkOrderTracking.Checked) //resample on 360 points per sections
-                countTotal = selectedSections.Count * alignedCount; //made a count total based on the max number of data
-
-            double[] analyzedX = new double[countTotal];
-            double[] analyzedY = new double[countTotal];
-            double[] analyzedZ = new double[countTotal];
-            double[] whiteLine = new double[countTotal];
-            double[] resultante = new double[countTotal];
-            //display peaks
-            //double[] angle = new double[countTotal];
-            int[][] peakX = new int[selectedSections.Count][];
-            int[][] peakY = new int[selectedSections.Count][];
-            int[][] peakZ = new int[selectedSections.Count][];
-
-            int iCount = 0, tourNumber = 0;
-            foreach (section se in selectedSections)
-            {
-                int startCount = iCount;
-                whiteLine[iCount] = 10;
-                int count = se.records.Count;
-                double angleIncrement = 360.0 / count;
-                if (!chkOrderTracking.Checked)
-                {
-                    for (int i = 0; i < count; i++)
-                    {
-                        //   angle[iCount] = i*angleIncrement;
-                        if (chkAbsolute.Checked)
-                        {
-                            analyzedX[iCount] = Math.Abs(se.records[i].x);
-                            analyzedY[iCount] = Math.Abs(se.records[i].y);
-                            analyzedZ[iCount] = Math.Abs(se.records[i].z);
-                        }
-                        else
-                        {
-                            analyzedX[iCount] = se.records[i].x;
-                            analyzedY[iCount] = se.records[i].y;
-                            analyzedZ[iCount] = se.records[i].z;
-                        }
-                        iCount++;
-                    }
-                }
-                else
-                {
-                    angleIncrement = 360.0 / alignedCount;
-                    //for (int i = 0; i < alignedCount; i++)
-                    //    angle[i+ (tourNumber* alignedCount)] = i * angleIncrement;
-                    iCount += alignedCount;
-
-                    ResampleSectionAngularXYZ(se.records, alignedCount, 1.0 / sampleRate, analyzedX, analyzedY, analyzedZ, tourNumber * alignedCount);
-
-                }
-
-                //convert the return x axis (0 to number of sample for 1 turn) to 360°
-                peakX[tourNumber] = GetPeakPerTurn(analyzedX.Skip(startCount).Take(iCount - startCount).ToArray()).Select(x => (int)(x * angleIncrement)).ToArray();
-                peakY[tourNumber] = GetPeakPerTurn(analyzedY.Skip(startCount).Take(iCount - startCount).ToArray()).Select(x => (int)(x * angleIncrement)).ToArray();
-                peakZ[tourNumber] = GetPeakPerTurn(analyzedZ.Skip(startCount).Take(iCount - startCount).ToArray()).Select(x => (int)(x * angleIncrement)).ToArray();
-
-
-                tourNumber++;
-
-            }
-            int countX = analyzedX.Count();
-            for (int i = 0; i < countX; i++)
-            {
-                resultante[i] = Math.Sqrt(Math.Pow(analyzedX[i], 2)
-                                            + Math.Pow(analyzedY[i], 2)
-                                            );
-            }
-
-            double avgTourTime = countTotal / sampleRate / selectedSections.Count;  // en secondes  
-            double f_rot = 1.0 / avgTourTime;
-            return (analyzedX, analyzedY, analyzedZ, resultante, whiteLine, f_rot, rpm, sampleRate);
-        }
-
+        
         // analysis of all consecutives segments
         private void RefreshAnalysisGlobal()
         {
-            if (String.IsNullOrEmpty(sLastCSV)) return;
-
-            int countTotal = iTotalRecordsInCSV; //number of total records for selected sections in the dataset
-            int alignedCount = selectedSections.Select(x => x.records.Count).Max();
-            double rpm = selectedSections.Select(x => x.Rpm).Min();
-            //get avg samplerate
-            double sampleRate = selectedSections.Select(x => x.SamplingRate).Average();
-            if (chkOrderTracking.Checked) //resample on 360 points per sections
-                countTotal = selectedSections.Count * alignedCount; //made a count total based on the max number of data
-
-            double[] analyzedX = new double[countTotal];
-            double[] analyzedY = new double[countTotal];
-            double[] analyzedZ = new double[countTotal];
-            double[] whiteLine = new double[countTotal];
-            double[] resultante = new double[countTotal];
-            //display peaks
-            //double[] angle = new double[countTotal];
-            int[][] peakX = new int[selectedSections.Count][];
-            int[][] peakY = new int[selectedSections.Count][];
-            int[][] peakZ = new int[selectedSections.Count][];
-
-            int iCount = 0, tourNumber = 0;
-            foreach (section se in selectedSections)
-            {
-                int startCount = iCount;
-                whiteLine[iCount] = 10;
-                int count = se.records.Count;
-                double angleIncrement = 360.0 / count;
-                if (!chkOrderTracking.Checked)
-                {
-                    for (int i = 0; i < count; i++)
-                    {
-                        //   angle[iCount] = i*angleIncrement;
-                        if (chkAbsolute.Checked)
-                        {
-                            analyzedX[iCount] = Math.Abs(se.records[i].x);
-                            analyzedY[iCount] = Math.Abs(se.records[i].y);
-                            analyzedZ[iCount] = Math.Abs(se.records[i].z);
-                        }
-                        else
-                        {
-                            analyzedX[iCount] = se.records[i].x;
-                            analyzedY[iCount] = se.records[i].y;
-                            analyzedZ[iCount] = se.records[i].z;
-                        }
-                        iCount++;
-                    }
-                }
-                else
-                {
-                    angleIncrement = 360.0 / alignedCount;
-                    //for (int i = 0; i < alignedCount; i++)
-                    //    angle[i+ (tourNumber* alignedCount)] = i * angleIncrement;
-                    iCount += alignedCount;
-
-                    ResampleSectionAngularXYZ(se.records, alignedCount, 1.0 / sampleRate, analyzedX, analyzedY, analyzedZ, tourNumber * alignedCount);
-
-                }
-
-                //convert the return x axis (0 to number of sample for 1 turn) to 360°
-                peakX[tourNumber] = GetPeakPerTurn(analyzedX.Skip(startCount).Take(iCount - startCount).ToArray()).Select(x => (int)(x * angleIncrement)).ToArray();
-                peakY[tourNumber] = GetPeakPerTurn(analyzedY.Skip(startCount).Take(iCount - startCount).ToArray()).Select(x => (int)(x * angleIncrement)).ToArray();
-                peakZ[tourNumber] = GetPeakPerTurn(analyzedZ.Skip(startCount).Take(iCount - startCount).ToArray()).Select(x => (int)(x * angleIncrement)).ToArray();
-
-
-                tourNumber++;
-
-            }
-            int countX = analyzedX.Count();
-            for (int i = 0; i < countX; i++)
-            {
-                resultante[i] = Math.Sqrt(Math.Pow(analyzedX[i], 2)
-                                            + Math.Pow(analyzedY[i], 2)
-                                            );
-            }
-
-            double avgTourTime = countTotal / sampleRate / selectedSections.Count;  // en secondes  
-            double f_rot = 1.0 / avgTourTime;
-
-            /*FiltersForm f = new FiltersForm();
-            f._signal = new DiscreteSignal((int)sampleRate, analyzedX.Select(s => (float)s).ToArray());
-            f._f_rot = f_rot;
-            f.ShowDialog();
-            */
+            var data = GetGlobalTourSignal();
+            double f_rot = data.f_rot;
+            double[] resultante = data.resultante;
+            double rpm = data.rpm;
+            double sampleRate = data.sampleRate;
+            double[] whiteLine = data.whiteLine;
+            double[] analyzedX = data.x;
+            double[] analyzedY = data.y;
+            double[] analyzedZ = data.z;
+            double[] angle = data.angle;
             ApplyFilters(sampleRate, f_rot, ref analyzedX, ref analyzedY, ref analyzedZ, ref resultante);
-            countTotal = analyzedX.Length;
+
+
+            lstPeakGlobalX.Items.Clear();
+            lstPeakGlobalY.Items.Clear();
+            lstPeakGlobalZ.Items.Clear();
+            lstPeakResultanteGlobal.Items.Clear();
+            double fftLimit = Convert.ToDouble(txtFFTLimit.Text);
+
+            formsPlotGlobal.Reset();
+            formsPlotGlobal.Multiplot.Reset();
+            var plotTemporal = formsPlotGlobal.Plot;
+            var plotFFT = formsPlotGlobal.Multiplot.AddPlot();
+            double max = 0.001;
+            if (chkShowX.Checked)
+            {
+                DisplayData(analyzedX, angle, f_rot, rpm, sampleRate, lstPeakGlobalX, plotTemporal, plotFFT, "X", Colors.Blue);
+                max = Math.Max(max, analyzedX.Max());
+            }
+            if (chkShowY.Checked)
+            {
+                DisplayData(analyzedY, angle, f_rot, rpm, sampleRate, lstPeakGlobalY, plotTemporal, plotFFT, "Y", Colors.Red);
+                max = Math.Max(max, analyzedY.Max());
+            }
+            if (chkShowZ.Checked)
+            {
+                DisplayData(analyzedZ, angle, f_rot, rpm, sampleRate, lstPeakGlobalZ, plotTemporal, plotFFT, "Z", Colors.Yellow);
+                max = Math.Max(max, analyzedZ.Max());
+            }
+            if (chkShowResultante.Checked)
+            {
+                DisplayData(resultante, angle, f_rot, rpm, sampleRate, lstPeakResultanteCompiled, plotTemporal, plotFFT, "Resultante", Colors.DeepPink);
+                max = Math.Max(max, resultante.Max());
+            }
+            max = max * 2;
+            for (int i = 0; i < whiteLine.Length; i++)
+            {
+                if (whiteLine[i] == 10)
+                    whiteLine[i] = max;
+            }
+            double[] temporal = Enumerable.Range(0, whiteLine.Length)
+                                 .Select(i => (double)i)
+                                 .ToArray();
+
+            plotTemporal.Add.Scatter(temporal, whiteLine, Colors.Black).LegendText = "WhiteLine";
+            //formsPlotAnalysis.Plot.Axis(0, 360, -1, 1);
+            plotTemporal.Axes.SetLimitsX(0, angle.Length);
+            plotTemporal.Axes.AutoScaleY();
+            plotTemporal.ShowLegend();
+
+            plotFFT.Axes.AutoScale();
+            plotFFT.ShowLegend();
+            String sText = $"Fundamental: {f_rot}Hz\r\n1er order: {f_rot * 2}\r\n2eme order: {f_rot * 3}\r\n3eme order: {f_rot * 4}\r\n4er order: {f_rot * 5}\r\n5er order: {f_rot * 6}\r\n";
+            plotFFT.Add.Annotation(sText);
+
+
+            formsPlotGlobal.Refresh();
+
+
+
+            /*
+
             //split filtered signal by removing first and last section and analyze one by one
-            var dataX = GetSegments(analyzedX, whiteLine);
-            var dataY = GetSegments(analyzedY, whiteLine);
+            var dataX = MathHelper.GetSegments(analyzedX, whiteLine);
+            var dataY = MathHelper.GetSegments(analyzedY, whiteLine);
             List<PhaseAnalysis> lstPhaseX = new List<PhaseAnalysis>();
             List<PhaseAnalysis> lstPhaseY = new List<PhaseAnalysis>();
             //analysis only the mid segments
@@ -1220,6 +1014,8 @@ namespace equilibreuse
             
             int use = selectedSections.Count/2;// selectedSections.Count - 2 * skip;
             int end = use + skip;   // analyser les 50% centrau
+            analyzedX = dataX.dataSegments.Skip(skip).Take(use).SelectMany(arr => arr).ToArray();
+            analyzedY = dataY.dataSegments.Skip(skip).Take(use).SelectMany(arr => arr).ToArray();
             for (int i = skip; i < end; i++) //skip 2 firsts segments
             {
                 var signalX = dataX.dataSegments[i];
@@ -1228,11 +1024,9 @@ namespace equilibreuse
                 lstPhaseY.Add(EquilibrageHelper.AnalyzeSignal(signalY, sampleRate, f_rot, cbxFFT, chkDb, rpm));
             }
             
-            var globalX = EquilibrageHelper.AnalyzeSignal(dataX.dataSegments.Skip(skip).Take(use).SelectMany(arr => arr).ToArray(), sampleRate, f_rot, cbxFFT, chkDb, rpm);
-            var globalY = EquilibrageHelper.AnalyzeSignal(dataY.dataSegments.Skip(skip).Take(use).SelectMany(arr => arr).ToArray(), sampleRate, f_rot, cbxFFT, chkDb, rpm);
-            var ttX = CalculateMeanPhaseAnalysis(lstPhaseX);
-            var ttY = CalculateMeanPhaseAnalysis(lstPhaseY);
-
+            var globalX = EquilibrageHelper.AnalyzeSignal(analyzedX, sampleRate, f_rot, cbxFFT, chkDb, rpm);
+            var globalY = EquilibrageHelper.AnalyzeSignal(analyzedY, sampleRate, f_rot, cbxFFT, chkDb, rpm);
+          
             //reconstruct whiteLine in case of modification in the filter
             whiteLine = dataX.dataSegments.SelectMany(signal =>
             {
@@ -1244,6 +1038,11 @@ namespace equilibreuse
                 // les autres sont déjà à 0 par défaut
                 return modified;
             }).ToArray();
+
+            //find temporal peaks in globalX and Y
+            int[] maxAmpIdxX = MathHelper.FindPeaks(globalX, 7, globalX.Average() * 0.02);
+
+            int[] maxAmpIdxY = MathHelper.FindPeaks(globalY, 7, globalY.Average() * 0.02);
 
             Console.WriteLine($"Moyenne rMaxTemporal X G + TT: {globalX.rMaxTemporal} {ttX.rMaxTemporal}");
             Console.WriteLine($"Moyenne rPhaseLockIn X G + TT: {globalX.rPhaseLockIn} {ttX.rPhaseLockIn}");
@@ -1262,12 +1061,12 @@ namespace equilibreuse
             currentAnalysisX.gRMS = Statistics.RootMeanSquare(analyzedX);
             currentAnalysisY.gRMS = Statistics.RootMeanSquare(analyzedY);
 
-            var tpx = GetTopCommonPeaksWithAmplitude(peakX, analyzedX, 10, 2, peakX.Count());
-            ShowPeakHistogram(tpx, formsPlotAnalysisTemporalX);
-            var tpy = GetTopCommonPeaksWithAmplitude(peakY, analyzedY, 10, 2, peakY.Count());
-            ShowPeakHistogram(tpy, formsPlotAnalysisTemporalY);
-            var tpz = GetTopCommonPeaksWithAmplitude(peakZ, analyzedZ, 10, 2, peakZ.Count());
-            ShowPeakHistogram(tpz, formsPlotAnalysisTemporalZ);
+            var tpx = MathHelper.GetTopCommonPeaksWithAmplitude(peakX, analyzedX, 10, 2, peakX.Count());
+            MathHelper.ShowPeakHistogram(tpx, formsPlotAnalysisTemporalX);
+            var tpy = MathHelper.GetTopCommonPeaksWithAmplitude(peakY, analyzedY, 10, 2, peakY.Count());
+            MathHelper.ShowPeakHistogram(tpy, formsPlotAnalysisTemporalY);
+            var tpz = MathHelper.GetTopCommonPeaksWithAmplitude(peakZ, analyzedZ, 10, 2, peakZ.Count());
+            MathHelper.ShowPeakHistogram(tpz, formsPlotAnalysisTemporalZ);
 
 
             formsPlotGlobal.Plot.Clear();
@@ -1297,25 +1096,25 @@ namespace equilibreuse
                 if (chkShowX.Checked)
                 {
                     formsPlotGlobal.Plot.Add.Scatter(temporal, analyzedX, Colors.Blue).LegendText = "X";
-                    DisplayPeaksTemporal(analyzedX, temporal, "Top Peak X", formsPlotGlobal.Plot, lstPeakGlobalX);
+                    MathHelper.DisplayPeaksTemporal(analyzedX, temporal, "Top Peak X", formsPlotGlobal.Plot, lstPeakGlobalX);
                     max = analyzedX.Max();
                 }
                 if (chkShowY.Checked)
                 {
                     formsPlotGlobal.Plot.Add.Scatter(temporal, analyzedY, Colors.Red).LegendText = "Y";
-                    DisplayPeaksTemporal(analyzedY, temporal, "Top Peak Y", formsPlotGlobal.Plot, lstPeakGlobalY);
+                    MathHelper.DisplayPeaksTemporal(analyzedY, temporal, "Top Peak Y", formsPlotGlobal.Plot, lstPeakGlobalY);
                     max = Math.Max(max, analyzedY.Max());
                 }
                 if (chkShowZ.Checked)
                 {
                     formsPlotGlobal.Plot.Add.Scatter(temporal, analyzedZ, Colors.Yellow).LegendText = "Z";
-                    DisplayPeaksTemporal(analyzedZ, temporal, "Top Peak Z", formsPlotGlobal.Plot, lstPeakGlobalZ);
+                    MathHelper.DisplayPeaksTemporal(analyzedZ, temporal, "Top Peak Z", formsPlotGlobal.Plot, lstPeakGlobalZ);
                     max = Math.Max(max, analyzedZ.Max());
                 }
                 if (chkShowResultante.Checked)
                 {
                     formsPlotGlobal.Plot.Add.Scatter(temporal, resultante, Colors.DeepPink).LegendText= "Resultante";
-                    DisplayPeaksTemporal(resultante, temporal, "Resultante", formsPlotGlobal.Plot, lstPeakResultanteGlobal);
+                    MathHelper.DisplayPeaksTemporal(resultante, temporal, "Resultante", formsPlotGlobal.Plot, lstPeakResultanteGlobal);
                     max = Math.Max(max, resultante.Max());
                 }
                 max = max * 2;
@@ -1348,9 +1147,9 @@ namespace equilibreuse
                 lstAnglesY.Items.Add("Angle FFT Global complete: " + (fundY.Angle + Convert.ToDouble(txtCorrectAngleY.Text)) % 360);
 
                 //check if values are in the same range
-                var a1 = CalcAngleDistance(globalX.rFFT, ttX.rFFT);
-                var a2 = CalcAngleDistance(globalX.rFFT, fundX.Angle);
-                var a3 = CalcAngleDistance(ttX.rFFT, fundX.Angle);
+                var a1 = MathHelper.CalcAngleDistance(globalX.rFFT, ttX.rFFT);
+                var a2 = MathHelper.CalcAngleDistance(globalX.rFFT, fundX.Angle);
+                var a3 = MathHelper.CalcAngleDistance(ttX.rFFT, fundX.Angle);
                 var t = new List<double>() { a1, a2, a3 };
                 if (t.Max() < 45) // consider
                 {
@@ -1359,9 +1158,9 @@ namespace equilibreuse
                     lstAngleXAnalysis.Add((fundX.Angle + Convert.ToDouble(txtCorrectAngleX.Text)) % 360);
                 }
 
-                a1 = CalcAngleDistance(globalY.rFFT, ttY.rFFT);
-                a2 = CalcAngleDistance(globalY.rFFT, fundY.Angle);
-                a3 = CalcAngleDistance(ttY.rFFT, fundY.Angle);
+                a1 = MathHelper.CalcAngleDistance(globalY.rFFT, ttY.rFFT);
+                a2 = MathHelper.CalcAngleDistance(globalY.rFFT, fundY.Angle);
+                a3 = MathHelper.CalcAngleDistance(ttY.rFFT, fundY.Angle);
                 t = new List<double>() { a1, a2, a3 };
                 if (t.Max() - t.Min() > 45) // do not consider
                 {
@@ -1374,21 +1173,22 @@ namespace equilibreuse
                 lstPeakGlobalY.Items.Clear();
                 lstPeakGlobalZ.Items.Clear();
                 lstPeakResultanteGlobal.Items.Clear();
+                double fftLimit = Convert.ToDouble(txtFFTLimit.Text);
                 if (chkShowX.Checked)
                 {
-                    AnalyzeAxis("X", cmpX, sampleRate, lstPeakGlobalX, Colors.Blue, formsPlotGlobal.Plot, f_rot);
+                    MathHelper.AnalyzeAxis("X", cmpX, sampleRate, lstPeakGlobalX, Colors.Blue, formsPlotGlobal.Plot, f_rot, fftLimit);
                 }
                 if (chkShowY.Checked)
                 {
-                    AnalyzeAxis("Y", cmpY, sampleRate, lstPeakGlobalY, Colors.Red, formsPlotGlobal.Plot, f_rot);
+                    MathHelper.AnalyzeAxis("Y", cmpY, sampleRate, lstPeakGlobalY, Colors.Red, formsPlotGlobal.Plot, f_rot, fftLimit);
                 }
                 if (chkShowZ.Checked)
                 {
-                    AnalyzeAxis("Z", cmpZ, sampleRate, lstPeakGlobalZ, Colors.Yellow, formsPlotGlobal.Plot, f_rot);
+                    MathHelper.AnalyzeAxis("Z", cmpZ, sampleRate, lstPeakGlobalZ, Colors.Yellow, formsPlotGlobal.Plot, f_rot, fftLimit);
                 }
                 if (chkShowResultante.Checked)
                 {
-                    AnalyzeAxis("Resultante", cmpResultante, sampleRate, lstPeakResultanteGlobal, Colors.DeepPink, formsPlotGlobal.Plot, f_rot);
+                    MathHelper.AnalyzeAxis("Resultante", cmpResultante, sampleRate, lstPeakResultanteGlobal, Colors.DeepPink, formsPlotGlobal.Plot, f_rot, fftLimit);
                 }
                 String sText = $"Fundamental: {f_rot}Hz\r\n1er order: {f_rot * 2}\r\n2eme order: {f_rot * 3}\r\n3eme order: {f_rot * 4}\r\n4er order: {f_rot * 5}\r\n5er order: {f_rot * 6}\r\n";
                 formsPlotGlobal.Plot.Add.Annotation(sText);
@@ -1464,11 +1264,7 @@ namespace equilibreuse
                                 currentAnalysisY.gWeight = EquilibrageHelper.CalculateRequiredMass(k, currentAnalysisY.gMagRatio, Convert.ToDouble(txtYMagBalanced.Text));
                   */
 
-            }
-            formsPlotGlobal.Refresh();
         }
-
-
 
         private void RefreshGyro()
         {
@@ -1534,14 +1330,14 @@ namespace equilibreuse
                     //      angle[i+ (tourNumber* alignedCount)] = i * angleIncrement;
                     iCount += alignedCount;
 
-                    ResampleSectionGyroXYZ(se.records, alignedCount, 1.0 / sampleRate, analyzedX, analyzedY, analyzedZ, tourNumber * alignedCount);
+                    MathHelper.ResampleSectionGyroXYZ(se.records, alignedCount, 1.0 / sampleRate, analyzedX, analyzedY, analyzedZ, tourNumber * alignedCount);
 
                 }
 
                 //convert the return x axis (0 to number of sample for 1 turn) to 360°
-                peakX[tourNumber] = GetPeakPerTurn(analyzedX.Skip(startCount).Take(iCount - startCount).ToArray()).Select(x => (int)(x * angleIncrement)).ToArray();
-                peakY[tourNumber] = GetPeakPerTurn(analyzedY.Skip(startCount).Take(iCount - startCount).ToArray()).Select(x => (int)(x * angleIncrement)).ToArray();
-                peakZ[tourNumber] = GetPeakPerTurn(analyzedZ.Skip(startCount).Take(iCount - startCount).ToArray()).Select(x => (int)(x * angleIncrement)).ToArray();
+                peakX[tourNumber] = MathHelper.GetPeakPerTurn(analyzedX.Skip(startCount).Take(iCount - startCount).ToArray()).Select(x => (int)(x * angleIncrement)).ToArray();
+                peakY[tourNumber] = MathHelper.GetPeakPerTurn(analyzedY.Skip(startCount).Take(iCount - startCount).ToArray()).Select(x => (int)(x * angleIncrement)).ToArray();
+                peakZ[tourNumber] = MathHelper.GetPeakPerTurn(analyzedZ.Skip(startCount).Take(iCount - startCount).ToArray()).Select(x => (int)(x * angleIncrement)).ToArray();
 
 
                 tourNumber++;
@@ -1576,13 +1372,13 @@ namespace equilibreuse
                                     .Select(i => (double)i)
                                     .ToArray();
 
-                var top5 = GetTopCommonPeaksWithAmplitude(peakX, analyzedX, tol: 10, minSamples: 2, topN: 5);
+                var top5 = MathHelper.GetTopCommonPeaksWithAmplitude(peakX, analyzedX, tol: 10, minSamples: 2, topN: 5);
                 foreach (var item in top5)
                     lstPeakGyroX.Items.Add($"Average PeakX: Angle {item.Mean} – Fréquence {item.Freq} - Force {item.AverageAmplitude}");
-                top5 = GetTopCommonPeaksWithAmplitude(peakY, analyzedY, tol: 10, minSamples: 2, topN: 5);
+                top5 = MathHelper.GetTopCommonPeaksWithAmplitude(peakY, analyzedY, tol: 10, minSamples: 2, topN: 5);
                 foreach (var item in top5)
                     lstPeakGyroY.Items.Add($"Average PeakY: Angle {item.Mean} – Fréquence {item.Freq} - Force {item.AverageAmplitude}");
-                top5 = GetTopCommonPeaksWithAmplitude(peakZ, analyzedZ, tol: 10, minSamples: 2, topN: 5);
+                top5 = MathHelper.GetTopCommonPeaksWithAmplitude(peakZ, analyzedZ, tol: 10, minSamples: 2, topN: 5);
                 foreach (var item in top5)
                     lstPeakGyroZ.Items.Add($"Average PeakZ: Angle {item.Mean} – Fréquence {item.Freq} - Force {item.AverageAmplitude}");
 
@@ -1590,25 +1386,25 @@ namespace equilibreuse
                 if (chkShowX.Checked)
                 {
                     formsPlotGyro.Plot.Add.Scatter(temporal, analyzedX, Colors.Blue).LegendText = "X";
-                    DisplayPeaksTemporal(analyzedX, temporal, "Top Peak X", formsPlotGyro.Plot, lstPeakGyroX);
+                    MathHelper.DisplayPeaksTemporal(analyzedX, temporal, "Top Peak X", formsPlotGyro.Plot, lstPeakGyroX);
                     max = analyzedX.Max();
                 }
                 if (chkShowY.Checked)
                 {
                     formsPlotGyro.Plot.Add.Scatter(temporal, analyzedY, Colors.Red).LegendText = "Y";
-                    DisplayPeaksTemporal(analyzedY, temporal, "Top Peak Y", formsPlotGyro.Plot, lstPeakGyroY);
+                    MathHelper.DisplayPeaksTemporal(analyzedY, temporal, "Top Peak Y", formsPlotGyro.Plot, lstPeakGyroY);
                     max = Math.Max(max, analyzedY.Max());
                 }
                 if (chkShowZ.Checked)
                 {
                     formsPlotGyro.Plot.Add.Scatter(temporal, analyzedZ, Colors.Yellow).LegendText = "Z";
-                    DisplayPeaksTemporal(analyzedZ, temporal, "Top Peak Z", formsPlotGyro.Plot, lstPeakGyroZ);
+                    MathHelper.DisplayPeaksTemporal(analyzedZ, temporal, "Top Peak Z", formsPlotGyro.Plot, lstPeakGyroZ);
                     max = Math.Max(max, analyzedZ.Max());
                 }
                 if (chkShowResultante.Checked)
                 {
                     formsPlotGyro.Plot.Add.Scatter(temporal, resultante, Colors.DeepPink).LegendText = "Resultante"; ;
-                    DisplayPeaksTemporal(resultante, temporal, "Top Peak Resultante", formsPlotGyro.Plot, lstPeakResultanteGyro);
+                    MathHelper.DisplayPeaksTemporal(resultante, temporal, "Top Peak Resultante", formsPlotGyro.Plot, lstPeakResultanteGyro);
                     max = Math.Max(max, resultante.Max());
                 }
                 max += 5;
@@ -1637,21 +1433,22 @@ namespace equilibreuse
                 lstPeakGyroY.Items.Clear();
                 lstPeakGyroZ.Items.Clear();
                 lstPeakResultanteGyro.Items.Clear();
+                double fftLimit = Convert.ToDouble(txtFFTLimit.Text);
                 if (chkShowX.Checked)
                 {
-                    AnalyzeAxis("X", cmpX, sampleRate, lstPeakGyroX, Colors.Blue, formsPlotGyro.Plot, f_rot);
+                    MathHelper.AnalyzeAxis("X", cmpX, sampleRate, lstPeakGyroX, Colors.Blue, formsPlotGyro.Plot, f_rot, fftLimit);
                 }
                 if (chkShowY.Checked)
                 {
-                    AnalyzeAxis("Y", cmpY, sampleRate, lstPeakGyroY, Colors.Red, formsPlotGyro.Plot, f_rot);
+                    MathHelper.AnalyzeAxis("Y", cmpY, sampleRate, lstPeakGyroY, Colors.Red, formsPlotGyro.Plot, f_rot, fftLimit);
                 }
                 if (chkShowZ.Checked)
                 {
-                    AnalyzeAxis("Z", cmpZ, sampleRate, lstPeakGyroZ, Colors.Yellow, formsPlotGyro.Plot, f_rot);
+                    MathHelper.AnalyzeAxis("Z", cmpZ, sampleRate, lstPeakGyroZ, Colors.Yellow, formsPlotGyro.Plot, f_rot, fftLimit);
                 }
                 if (chkShowResultante.Checked)
                 {
-                    AnalyzeAxis("Resultante", cmpResultante, sampleRate, lstPeakResultanteGyro, Colors.DeepPink, formsPlotGyro.Plot, f_rot);
+                    MathHelper.AnalyzeAxis("Resultante", cmpResultante, sampleRate, lstPeakResultanteGyro, Colors.DeepPink, formsPlotGyro.Plot, f_rot, fftLimit);
                 }
                 String sText = $"Fundamental: {f_rot}Hz\r\n1er order: {f_rot * 2}\r\n2eme order: {f_rot * 3}\r\n3eme order: {f_rot * 4}\r\n4er order: {f_rot * 5}\r\n5er order: {f_rot * 6}\r\n";
                 formsPlotGyro.Plot.Add.Annotation(sText);
@@ -1688,11 +1485,10 @@ namespace equilibreuse
                     currentAnalysisY.gMagAvg = magnitude;
                     currentAnalysisY.gMagRatio = magPerTurn;
                     currentAnalysisY.gMagPSD = psd;
-                    currentAnalysisY.gPkPkInverse = (cmpX.SignalFFTInverse.Max() - cmpX.SignalFFTInverse.Min());
-                    currentAnalysisY.gPkPkInverseRatio = (cmpX.SignalFFTInverse.Max() - cmpX.SignalFFTInverse.Min()) / selectedSections.Count;
+                    
 
                 }
-                currentAnalysisY.gAngleGyro = calcResult.px[0].UnbalanceAngleDeg;
+                
                 if (chkUseYGyro.Checked)
                 {
                     var magnitude = calcResult.py[0].ActualAmplitude;
@@ -1704,230 +1500,12 @@ namespace equilibreuse
                     currentAnalysisX.gMagAvg = magnitude;
                     currentAnalysisX.gMagRatio = magPerTurn;
                     currentAnalysisX.gMagPSD = psd;
-                    currentAnalysisX.gPkPkInverse = (cmpY.SignalFFTInverse.Max() - cmpY.SignalFFTInverse.Min());
-                    currentAnalysisX.gPkPkInverseRatio = (cmpY.SignalFFTInverse.Max() - cmpY.SignalFFTInverse.Min()) / selectedSections.Count;
+                   
 
                 }
-                currentAnalysisX.gAngleGyro = calcResult.py[0].UnbalanceAngleDeg;
+                
             }
             formsPlotGyro.Refresh();
-        }
-        public static void ShowPeakHistogram(List<PeakInfo> peaks, FormsPlot formsPlot)
-        {
-            if (peaks == null || peaks.Count == 0)
-                return;
-
-            // Tri par angle croissant
-            var ordered = peaks.OrderBy(p => p.Mean).ToList();
-
-            // Récupération des données
-            double[] positions = ordered.Select(p => p.Mean).ToArray();
-            double[] heights = ordered.Select(p => p.AverageAmplitude).ToArray();
-            string[] labels = ordered.Select(p => p.Freq.ToString()).ToArray();
-
-            // Nettoyer le graphe
-            formsPlot.Plot.Clear();
-
-            // Tracer le bar plot
-            var bars = formsPlot.Plot.Add.Bars(positions, heights);
-            bars.Bars.ForEach(b => b.LineWidth = 8); 
-            bars.Color = Colors.SteelBlue;
-
-            // Ajouter les labels de fréquence au-dessus de chaque barre
-            for (int i = 0; i < positions.Length; i++)
-            {
-                double x = positions[i];
-                double y = heights[i];
-                string label = labels[i];
-                formsPlot.Plot.Add.Text(label, x, y + 0.01);
-            }
-
-            // Ajuster les axes
-            formsPlot.Plot.Title("Histogramme des pics groupés par angle");
-            formsPlot.Plot.XLabel("Angle (degrés)");
-            formsPlot.Plot.YLabel("Amplitude moyenne");
-            formsPlot.Plot.Axes.SetLimitsX(0, 360); // pour rester entre 0 et 360°
-            formsPlot.Plot.Axes.AutoScaleY();
-
-            formsPlot.Refresh();
-        }
-
-
-        private double CalcAngle(double ang)
-        {
-            if (ang > 1.0)
-            {
-                ang = 1.0;
-            }
-            else if (ang < -1.0)
-            {
-                ang = -1.0;
-            }
-            return (double)((Math.Asin(ang)) * 57.296);
-        }
-        private double Interpolate(double t0, double x0, double t1, double x1, double t)
-        {
-            return x0 + (x1 - x0) * ((t - t0) / (t1 - t0));
-        }
-
-        // Rééchantillonne une section en N points angulaires pour X,Y,Z
-        void ResampleSectionAngularXYZ(List<xyz> records, int N, double dt,
-            double[] outX, double[] outY, double[] outZ, int offset)
-        {
-            int raw = records.Count;
-            double T = raw * dt;
-
-            for (int j = 0; j < N; j++)
-            {
-                double tTarget = j * T / (N - 1);
-                int i = Math.Min((int)(tTarget / dt), raw - 2);
-                double t0 = i * dt, t1 = (i + 1) * dt;
-
-                var r0 = records[i];
-                var r1 = records[i + 1];
-
-                outX[offset + j] = Interpolate(t0, r0.x, t1, r1.x, tTarget);
-                outY[offset + j] = Interpolate(t0, r0.y, t1, r1.y, tTarget);
-                outZ[offset + j] = Interpolate(t0, r0.z, t1, r1.z, tTarget);
-            }
-        }
-        // Rééchantillonne une section en N points angulaires pour X,Y,Z
-        void ResampleSectionAngularXYZ(double[] inX, double[] inY, double[] inZ, int N, double dt,
-            double[] outX, double[] outY, double[] outZ, int offset)
-        {
-            int raw = inX.Length;
-            double T = raw * dt;
-
-            for (int j = 0; j < N; j++)
-            {
-                double tTarget = j * T / (N - 1);
-                int i = Math.Min((int)(tTarget / dt), raw - 2);
-                double t0 = i * dt, t1 = (i + 1) * dt;
-
-                outX[offset + j] = Interpolate(t0, inX[i], t1, inX[i + 1], tTarget);
-                outY[offset + j] = Interpolate(t0, inY[i], t1, inY[i + 1], tTarget);
-                outZ[offset + j] = Interpolate(t0, inZ[i], t1, inZ[i + 1], tTarget);
-            }
-        }
-        // Rééchantillonne une section en N points angulaires pour X,Y,Z
-        void ResampleSectionGyroXYZ(List<xyz> records, int N, double dt,
-            double[] outX, double[] outY, double[] outZ, int offset)
-        {
-            int raw = records.Count;
-            double T = raw * dt;
-
-            for (int j = 0; j < N; j++)
-            {
-                double tTarget = j * T / (N - 1);
-                int i = Math.Min((int)(tTarget / dt), raw - 2);
-                double t0 = i * dt, t1 = (i + 1) * dt;
-
-                var r0 = records[i];
-                var r1 = records[i + 1];
-
-                outX[offset + j] = Interpolate(t0, r0.gx, t1, r1.gx, tTarget);
-                outY[offset + j] = Interpolate(t0, r0.gy, t1, r1.gy, tTarget);
-                outZ[offset + j] = Interpolate(t0, r0.gz, t1, r1.gz, tTarget);
-            }
-        }
-
-        private void AnalyzeAxis(string name, FFTData cmp, double sampleRate, ListBox targetList, ScottPlot.Color plotColor, Plot plt, double f_rot)
-        {
-            try
-            {
-                double filterFFT = Convert.ToDouble(txtFFTLimit.Text);
-                // Filtrer pour ne garder que les fréquences < filterFFT Hz
-                var filtered = cmp.Frequence
-                    .Select((f, i) => new { Freq = f, Mag = cmp.Magnitude[i], Index = i, Angle = cmp.AngleDeg[i] })
-                    .Where(x => x.Freq < filterFFT)
-                    .ToArray();
-
-                // Extraction des fréquences et magnitudes filtrées
-                var filteredFreqs = filtered.Select(x => x.Freq).ToArray();
-                var filteredMags = filtered.Select(x => x.Mag).ToArray();
-                var filteredAngle = filtered.Select(x => x.Angle).ToArray();
-                var scatter = plt.Add.Scatter(filteredFreqs, filteredMags, color: plotColor);
-                scatter.LegendText = name;
-                var scatter2 = plt.Add.Scatter(filteredFreqs, filteredAngle, color: plotColor);
-                scatter2.LegendText = "ANGLE" + name;
-                scatter2.IsVisible = false;
-                //find and draw first 5 harmonics
-                for (int i = 0; i < 5; i++)
-                {
-                    Fundamentale fundCandidate = EquilibrageHelper.GetFundamentalPhase(filteredFreqs, filteredMags, filteredAngle, f_rot * (i + 1));
-
-                    if (fundCandidate != null)
-                    {
-                        int idxFund = fundCandidate.Index;
-                        double f = fundCandidate.Freq;
-                        double m = fundCandidate.Magnitude;
-                        double angleOffset = fundCandidate.Angle;
-                        plt.Add.Marker(f, m, color: Colors.Magenta);
-                        plt.Add.Text($"{name}: {f:F2}Hz\n{angleOffset:F0}°", f, m).Color = Colors.DarkGreen;
-                        if (targetList != null)
-                            targetList.Items.Add($"{name} ordre {i + 1} à {f:F2} Hz → angle ≈ {angleOffset:F0}° (mag {m:F3})");
-                    }
-                    else
-                    {
-                        if (targetList != null)
-                            targetList.Items.Add($"{name} ordre {i + 1} (~{f_rot:F2} Hz) non trouvé");
-                    }
-                }
-                //find max peaks
-                int range = 7;
-                double threshold = filteredMags.Average() * 0.02;
-                var peaks = FindPeaks(filteredMags, range, threshold)
-                             .OrderByDescending(i => filteredMags[i])
-                             .Take(5);
-
-                foreach (int idx in peaks)
-                {
-                    double f = filteredFreqs[idx];
-                    double m = filteredMags[idx];
-                    double angleOffset = filteredAngle[idx];
-                    //targetList.Items.Add($"{name} {f:F2} Hz → a={a:F3} m/s² → v_peak≈{vPeak:F1} mm/s, v_rms≈{vRms:F1} mm/s");
-                    plt.Add.Marker(f, m, color:Colors.Magenta, size:8);
-                    var txt = plt.Add.Text($"{name}: {f:F2}Hz\n{angleOffset:F0}°", f, m);
-                    txt.Color = Colors.DarkGreen;
-                    if (targetList != null)
-                        targetList.Items.Add($"{name} Peak at {f:F2} Hz → {angleOffset:F0}° (mag {m:F3})");
-                }
-
-                //   plt.Plot.AddSignal(cmp.SignalFFTInverse, sampleRate, Color.Black);
-                plt.Axes.AutoScale();
-            }
-            catch
-            {
-
-            }
-        }
-        private int[] GetPeakPerTurn(double[] data)
-        {
-
-            double threshold = data.Average() * 0.02;
-            //find peak in each segment to display average of each peak in the listbox
-            return FindPeaks(data, 7, threshold)
-                .OrderByDescending(i => data[i])
-                .Take(5).ToArray();
-        }
-
-        private void DisplayPeaksTemporal(double[] data, double[] angle, string axis, Plot plt, ListBox lst)
-        {
-            int range = 7;
-            double threshold = data.Average() * 0.02;
-            var peaks = FindPeaks(data, range, threshold)
-                         .OrderByDescending(i => data[i])
-                         .Take(5);
-
-            foreach (int idx in peaks)
-            {
-                plt.Add.Marker(angle[idx], data[idx], color: Colors.Magenta, size:8);
-
-                plt.Add.Text($"Force {data[idx]}",angle[idx], data[idx]).Color = Colors.DarkGreen;
-                if (lst != null)
-                    lst.Items.Add($"[{axis}] : Force {data[idx]}");
-
-            }
         }
        
         private void AnalyzeCSV(string csvFile)
@@ -1996,44 +1574,16 @@ namespace equilibreuse
             lstSimulationCompiled.Items.Clear();
             selectedSections.Clear();
         }
-        private void AnalyzeNew(string csvFile)
-        {
-            if (String.IsNullOrEmpty(csvFile))
-                return;
-            if (lstSectionSelector.CheckedIndices.Count < 3)
-                return;
 
-            lstSimulationTurnByTurn.Items.Clear();
-            selectedSections.Clear();
-            iTotalRecordsInCSV = 0;
-           
-            foreach (int s in lstSectionSelector.CheckedIndices)
-            {
-                selectedSections.Add(loadedSections[s]);
-                iTotalRecordsInCSV += loadedSections[s].records.Count;
-            }
-            currentAnalysisX = new AnalysisData() { csvFile = csvFile };
-            currentAnalysisY = new AnalysisData() { csvFile = csvFile };
-            currentAnalysisX.numberOfTurn = selectedSections.Count;
-            currentAnalysisY.numberOfTurn = selectedSections.Count;
-            if (selectedSections.Count > 0)
-            {
-                //get turn by turn signal
-                for(int i = 0; i < selectedSections.Count;i++)
-                {
-                    var data = GetSingleTourSignal(i);
-                }
-                //get compiled signal
-                var compiled = GetCompiledTourSignal();
-                //get global signal
-                var global = GetGlobalTourSignal();
-                //get gyro signal
-                CalculateXYZ();
-                RefreshAnalysisCompiled();
-                RefreshAnalysisGlobal();
-                RefreshGyro();
-            }
+        private void DisplayData(double[] data, double[] angle, double f_rot, double rpm, double sampleRate, ListBox lstPeak, Plot pltTemporal, Plot pltFFT, string axis, ScottPlot.Color c)
+        {
+            lstPeak.Items.Clear();
+            MathHelper.AnalyzeAxisTemporal(axis, data, angle, sampleRate, lstPeak, c, pltTemporal, f_rot);
+            FFTData dataFFT = EquilibrageHelper.CalculateFFT(data, sampleRate, cbxFFTSingle, chkDb.Checked, rpm, f_rot);
+            double fftLimit = Convert.ToDouble(txtFFTLimit.Text);
+            MathHelper.AnalyzeAxis(axis, dataFFT, sampleRate, lstPeak, c, pltFFT, f_rot, fftLimit);
         }
+
         private void Analyze(string csvFile)
         {
             if (String.IsNullOrEmpty(csvFile))
@@ -2045,11 +1595,7 @@ namespace equilibreuse
             lstSimulationTurnByTurn.Items.Clear();
             selectedSections.Clear();
             iTotalRecordsInCSV = 0;
-            //if not enough selected data, display warning
-            /* if(lstSectionSelector.CheckedIndices.Count < 8)
-             {
-                 MessageBox.Show("Please select at least 8 data to have valid results");
-             }*/
+           
             foreach (int s in lstSectionSelector.CheckedIndices)
             {
                 selectedSections.Add(loadedSections[s]);
@@ -2066,15 +1612,17 @@ namespace equilibreuse
 
             if (selectedSections.Count > 0)
             {
-                CalculateXYZ();
                 RefreshAnalysisCompiled();
                 RefreshAnalysisGlobal();
                 RefreshGyro();
+                lblRecordNumber.Text = "0";
+                RefreshXYZ(selectedSections[0]);
+                ExecuteAnalysis();
             }
             formsPlotT1X.Plot.Axes.SetLimits(0, 360); formsPlotT1Y.Plot.Axes.SetLimits(0, 360); formsPlotT1O.Plot.Axes.SetLimits(0, 360); formsPlotT1I.Plot.Axes.SetLimits(0, 360);
           
             formsPlotT1X.Refresh(); formsPlotT1Y.Refresh(); formsPlotT1O.Refresh(); formsPlotT1I.Refresh();
-          
+
 
             /*   var xCorrect = Convert.ToDouble(txtCorrectAngleX.Text);
                currentAnalysisX.gAngle = (currentAnalysisX.gAngle + xCorrect) % 360;
@@ -2092,14 +1640,14 @@ namespace equilibreuse
                currentAnalysisX.gAngleGyro = (currentAnalysisX.gAngleGyro + 90) % 360;
 
                */
-            if (chkUseXGyro.Checked && chkScaleGyro.Checked) //scale X Gyro
-            {
-                currentAnalysisY.gMagRatio *= 0.1;
-            }
-            if (chkUseYGyro.Checked && chkScaleGyro.Checked) //scale X Gyro
-            {
-                currentAnalysisX.gMagRatio *= 0.1;
-            }
+            /*  if (chkUseXGyro.Checked && chkScaleGyro.Checked) //scale X Gyro
+              {
+                  currentAnalysisY.gMagRatio *= 0.1;
+              }
+              if (chkUseYGyro.Checked && chkScaleGyro.Checked) //scale X Gyro
+              {
+                  currentAnalysisX.gMagRatio *= 0.1;
+              }*/
             /*var result = EquilibrageHelper.CalculateAttenuationConstantsXY(Convert.ToDouble(txtXMagGrams.Text) / 1000.0,
                                       Convert.ToDouble(txtXMagBalanced.Text),
                                       Convert.ToDouble(txtYMagBalanced.Text),
@@ -2114,9 +1662,11 @@ namespace equilibreuse
             currentAnalysisX.gWeight = res.MassInt;
             currentAnalysisY.gWeight = res.MassExt;
             */
+            var dynamic = EquilibrageHelper.EstimateDynamicImbalanceCorrection(currentAnalysisX.gAngleFFT, currentAnalysisX.gMagRatio, currentAnalysisY.gAngleFFT, currentAnalysisY.gMagRatio);
+            
             dataGridX.Rows.Add(currentAnalysisX.toArray());
             dataGridY.Rows.Add(currentAnalysisY.toArray());
-
+/*
             lblStatX.Text = $"X\r\nGlobal {currentAnalysisX.gWeight.ToString("F0")}g @ {currentAnalysisX.gAngleDynamicComplex.ToString("F0")}°\r\nTurn-turn {currentAnalysisX.ttWeight.ToString("F0")}g @ {currentAnalysisX.ttAngle.ToString("F0")}°\r\nCompiled {currentAnalysisX.coWeight.ToString("F0")}g @ {currentAnalysisX.coAngle.ToString("F0")}°";
             lblStatY.Text = $"Y\r\nGlobal {currentAnalysisY.gWeight.ToString("F0")}g @ {currentAnalysisY.gAngleDynamicComplex.ToString("F0")}°\r\nTurn-turn {currentAnalysisY.ttWeight.ToString("F0")}g @ {currentAnalysisY.ttAngle.ToString("F0")}°\r\nCompiled {currentAnalysisY.coWeight.ToString("F0")}g @ {currentAnalysisY.coAngle.ToString("F0")}°";
             lblStatX.Refresh();
@@ -2126,81 +1676,223 @@ namespace equilibreuse
             //if not enough selected data, display warning
             if (Math.Abs(currentAnalysisX.gAngle - currentAnalysisX.gAngleGyro) > 45 || Math.Abs(currentAnalysisY.gAngle - currentAnalysisY.gAngleGyro) > 45)
             {
-                //     MessageBox.Show("Be carefull, X or Y angles have more than 45° between Global and Gyro ! results may not be good");
+                //     MessageBox.Show("Be carefull, X or Y angles have more than 45° between Global and Gyro ! results may not be good");*
+            }*/
+        }
+        private void ExecuteAnalysis()
+        {
+            //get signal, apply low pass filter with 5hz to get temporal peaks, then apply selected user signal to determine phase and magnitude
+            var dataCompiled = GetCompiledTourSignal();
+            var dataCompiledX = GetPhaseMagnitude(dataCompiled.x, dataCompiled.angle, dataCompiled.sampleRate, dataCompiled.rpm, dataCompiled.f_rot);
+            var dataCompiledY = GetPhaseMagnitude(dataCompiled.y, dataCompiled.angle, dataCompiled.sampleRate, dataCompiled.rpm, dataCompiled.f_rot);
+
+            var dataGlobal = GetGlobalTourSignal();
+            var dataGlobalX = GetPhaseMagnitude(dataGlobal.x, dataGlobal.angle, dataGlobal.sampleRate, dataGlobal.rpm, dataGlobal.f_rot);
+            var dataGlobalY = GetPhaseMagnitude(dataGlobal.y, dataGlobal.angle, dataGlobal.sampleRate, dataGlobal.rpm, dataGlobal.f_rot);
+
+            currentAnalysisX.coAngleTemporal = dataCompiledX.angleTemporal;
+            currentAnalysisX.coAngleFFT = dataCompiledX.fund.Angle;
+            currentAnalysisX.coMagAvg = dataCompiledX.fund.Magnitude;
+            currentAnalysisX.coPkPk = dataCompiledX.pkpk;
+            currentAnalysisX.coRMS = dataCompiledX.rms;
+
+            currentAnalysisY.coAngleTemporal = dataCompiledY.angleTemporal;
+            currentAnalysisY.coAngleFFT = dataCompiledY.fund.Angle;
+            currentAnalysisY.coMagAvg = dataCompiledY.fund.Magnitude;
+            currentAnalysisY.coPkPk = dataCompiledY.pkpk;
+            currentAnalysisY.coRMS = dataCompiledY.rms;
+
+            currentAnalysisX.gAngleTemporal = dataGlobalX.angleTemporal;
+            currentAnalysisX.gAngleFFT = dataGlobalX.fund.Angle;
+            currentAnalysisX.gMagAvg = dataGlobalX.fund.Magnitude;
+            currentAnalysisX.gPkPk = dataGlobalX.pkpk;
+            currentAnalysisX.gRMS = dataGlobalX.rms;
+            //psd = (magnitude * magnitude) / analyzedY.Length;
+            currentAnalysisX.gMagPSD = (dataGlobalX.fund.Magnitude * dataGlobalX.fund.Magnitude) / dataGlobal.x.Length;
+            currentAnalysisX.gMagRatio = dataGlobalX.fund.Magnitude / currentAnalysisX.numberOfTurn;
+
+            currentAnalysisY.gAngleTemporal = dataGlobalY.angleTemporal;
+            currentAnalysisY.gAngleFFT = dataGlobalY.fund.Angle;
+            currentAnalysisY.gMagAvg = dataGlobalY.fund.Magnitude;
+            currentAnalysisY.gPkPk = dataGlobalY.pkpk;
+            currentAnalysisY.gRMS = dataGlobalY.rms;
+            //psd = (magnitude * magnitude) / analyzedY.Length;
+            currentAnalysisY.gMagPSD = (dataGlobalY.fund.Magnitude * dataGlobalY.fund.Magnitude) / dataGlobal.y.Length;
+            currentAnalysisY.gMagRatio = dataGlobalY.fund.Magnitude / currentAnalysisY.numberOfTurn;
+
+            List<double> lstAngleFFTX = new List<double>();
+            List<double> lstAngleTemporalX = new List<double>();
+            List<double> lstAngleFFTY = new List<double>();
+            List<double> lstAngleTemporalY = new List<double>();
+            foreach (section s in selectedSections)
+            {
+                var dataSingle = GetSingleTourSignal(s);
+                var dataSingleX = GetPhaseMagnitude(dataSingle.x, dataSingle.angle, dataSingle.sampleRate, dataSingle.rpm, dataSingle.f_rot);
+                var dataSingleY = GetPhaseMagnitude(dataSingle.y, dataSingle.angle, dataSingle.sampleRate, dataSingle.rpm, dataSingle.f_rot);
+                lstAngleFFTX.Add(dataSingleX.fund.Angle); lstAngleTemporalX.Add(dataSingleX.angleTemporal);
+                lstAngleFFTY.Add(dataSingleY.fund.Angle); lstAngleTemporalY.Add(dataSingleY.angleTemporal);
+
+                currentAnalysisX.ttMagAvg += dataSingleX.fund.Magnitude;
+                currentAnalysisX.ttPkPk += dataSingleX.pkpk;
+                currentAnalysisX.ttRMS += dataSingleX.rms;
+
+                currentAnalysisY.ttMagAvg += dataSingleY.fund.Magnitude;
+                currentAnalysisY.ttPkPk += dataSingleY.pkpk;
+                currentAnalysisY.ttRMS += dataSingleY.rms;
+            }
+            currentAnalysisX.ttAngleFFT = MathHelper.CalculateMeanAngle(lstAngleFFTX.ToArray());
+            currentAnalysisX.ttAngleTemporal = MathHelper.CalculateMeanAngle(lstAngleTemporalX.ToArray());
+            currentAnalysisY.ttAngleFFT = MathHelper.CalculateMeanAngle(lstAngleFFTY.ToArray());
+            currentAnalysisY.ttAngleTemporal = MathHelper.CalculateMeanAngle(lstAngleTemporalY.ToArray());
+
+            currentAnalysisX.ttMagAvg /= currentAnalysisX.numberOfTurn;
+            currentAnalysisX.ttPkPk /= currentAnalysisX.numberOfTurn;
+            currentAnalysisX.ttRMS /= currentAnalysisX.numberOfTurn;
+            currentAnalysisY.ttMagAvg /= currentAnalysisY.numberOfTurn;
+            currentAnalysisY.ttPkPk /= currentAnalysisY.numberOfTurn;
+            currentAnalysisY.ttRMS /= currentAnalysisY.numberOfTurn;
+
+            //Adjust the angles and draw the data to the graphs
+            var xCorrect = Convert.ToDouble(txtCorrectAngleX.Text);
+            var yCorrect = Convert.ToDouble(txtCorrectAngleY.Text);
+            var xCorrectTemp = Convert.ToDouble(txtCorrectXTemporal.Text);
+            var yCorrectTemp = Convert.ToDouble(txtCorrectYTemporal.Text);
+            currentAnalysisX.ttAngleFFT = (currentAnalysisX.ttAngleFFT + xCorrect) % 360;
+            currentAnalysisX.ttAngleTemporal = (currentAnalysisX.ttAngleTemporal + xCorrectTemp) % 360;
+            currentAnalysisX.coAngleFFT = (currentAnalysisX.coAngleFFT + xCorrect) % 360;
+            currentAnalysisX.coAngleTemporal = (currentAnalysisX.coAngleTemporal + xCorrectTemp) % 360;
+            currentAnalysisX.gAngleFFT = (currentAnalysisX.gAngleFFT + xCorrect) % 360;
+            currentAnalysisX.gAngleTemporal = (currentAnalysisX.gAngleTemporal + xCorrectTemp) % 360;
+
+            currentAnalysisY.ttAngleFFT = (currentAnalysisY.ttAngleFFT + yCorrect) % 360;
+            currentAnalysisY.ttAngleTemporal = (currentAnalysisY.ttAngleTemporal + yCorrectTemp) % 360;
+            currentAnalysisY.coAngleFFT = (currentAnalysisY.coAngleFFT + yCorrect) % 360;
+            currentAnalysisY.coAngleTemporal = (currentAnalysisY.coAngleTemporal + yCorrectTemp) % 360;
+            currentAnalysisY.gAngleFFT = (currentAnalysisY.gAngleFFT + yCorrect) % 360;
+            currentAnalysisY.gAngleTemporal = (currentAnalysisY.gAngleTemporal + yCorrectTemp) % 360;
+
+            formsPlotT1X.Plot.Add.VerticalLine(currentAnalysisX.gAngleFFT, color: Colors.Green, width: 3);
+            formsPlotT1Y.Plot.Add.VerticalLine(currentAnalysisY.gAngleFFT, color: Colors.Green, width: 3);
+            formsPlotT1X.Plot.Add.VerticalLine(currentAnalysisX.coAngleFFT, color: Colors.Red, width: 3);
+            formsPlotT1Y.Plot.Add.VerticalLine(currentAnalysisY.coAngleFFT, color: Colors.Red, width: 3);
+            formsPlotT1X.Plot.Add.VerticalLine(currentAnalysisX.ttAngleFFT, color: Colors.Black, width: 3);
+            formsPlotT1Y.Plot.Add.VerticalLine(currentAnalysisY.ttAngleFFT, color: Colors.Black, width: 3);
+
+            // convert turn by turn to int and sort to key, count data for displaying blue bars
+            var ttFFTX = lstAngleFFTX.Select(v => (int)(v + xCorrect) % 360).GroupBy(v => v).Select(g => new { Value = g.Key, Occurrence = g.Count() }).ToList();
+            var ttFFTY = lstAngleFFTY.Select(v => (int)(v + yCorrect) % 360).GroupBy(v => v).Select(g => new { Value = g.Key, Occurrence = g.Count() }).ToList();
+            var b = formsPlotT1X.Plot.Add.Bars(ttFFTX.Select(v => (double)v.Value).ToArray(), ttFFTX.Select(v => v.Occurrence).ToArray());
+            b.Bars.ForEach(ba => { ba.LineWidth = 0.5f; ba.FillColor = ba.LineColor = Colors.Blue; });
+            b = formsPlotT1Y.Plot.Add.Bars(ttFFTY.Select(v => (double)v.Value).ToArray(), ttFFTY.Select(v => v.Occurrence).ToArray());
+            b.Bars.ForEach(ba => { ba.LineWidth = 0.5f; ba.FillColor = ba.LineColor = Colors.Blue; });
+
+        }
+
+        private (double angleTemporal, double pkpk,double rms, Fundamentale fund) GetPhaseMagnitude(double[] data, double[] angle, double sampleRate, double rpm,double f_rot)
+        {
+            double angleTemporal = 0;
+            var l = new LowPassFilter(5, sampleRate);
+            var dataFiltered = LowPassFilter.ApplyZeroPhase(data, l);
+            if (chkRemoveDC.Checked)
+                dataFiltered = LowPassFilter.RemoveDCOffset(dataFiltered);
+            //apply gain on signal
+            var gain = Convert.ToDouble(txtGain.Text);
+            dataFiltered  = dataFiltered.Select(r => Math.Sign(r) * Math.Pow(Math.Abs(r), gain)).ToArray();
+            var peaks = MathHelper.GetPeakPerTurn(dataFiltered);
+            List<double> lstAnglePeaks = new List<double>();
+            foreach(var p in peaks)
+                lstAnglePeaks.Add(angle[p]);
+
+            angleTemporal = MathHelper.CalculateMeanAngle(lstAnglePeaks.ToArray());
+            
+            //fake data
+            double[] y = new double[0];
+            double[] z = new double[0];
+            double[] resultante = new double[0];
+            ApplyFilters(sampleRate, f_rot, ref data, ref y, ref z, ref resultante);
+            FFTData dataFFT = EquilibrageHelper.CalculateFFT(data, sampleRate, cbxFFTSingle, chkDb.Checked, rpm, f_rot);
+            var fund = EquilibrageHelper.GetFundamentalPhase(dataFFT.Frequence, dataFFT.Magnitude, dataFFT.AngleDeg, f_rot);
+            return (angleTemporal, dataFiltered.Max()- dataFiltered.Min(), Statistics.RootMeanSquare(data),fund);
+        }
+
+        private void btnFindAngles_Click(object sender, EventArgs e)
+        {
+            lstAngleXAnalysis.Clear();
+            lstAngleYAnalysis.Clear();
+            lstAnglesX.Items.Clear();
+            lstAnglesY.Items.Clear();
+            //get each turn and perform analysis
+            for (int i = 0; i < selectedSections.Count; i++)
+            {
+                var data = GetSingleTourSignal(selectedSections[i]);
+            }
+            //get compiled and perform analysis
+            var compiled = GetCompiledTourSignal();
+            //get global and perform analysis
+            var global = GetGlobalTourSignal();
+            //get gyro and perform analysis
+
+            lstAnglesX.Items.Add("200-210");
+            lstAnglesY.Items.Add("200-210");
+            btnUnselectAll_Click(null, EventArgs.Empty);
+            btn200210_Click(null, EventArgs.Empty);
+
+            Analyze(sLastCSV);
+            lstAnglesX.Items.Add("210-220");
+            lstAnglesY.Items.Add("210-220");
+            btnUnselectAll_Click(null, EventArgs.Empty);
+            btn210220_Click(null, EventArgs.Empty);
+            Analyze(sLastCSV);
+
+            lstAnglesX.Items.Add("220-230");
+            lstAnglesY.Items.Add("220-230");
+            btnUnselectAll_Click(null, EventArgs.Empty);
+            btn220230_Click(null, EventArgs.Empty);
+            Analyze(sLastCSV);
+
+            lstAnglesX.Items.Add("230-240");
+            lstAnglesY.Items.Add("230-240");
+            btnUnselectAll_Click(null, EventArgs.Empty);
+            btn230240_Click(null, EventArgs.Empty);
+            Analyze(sLastCSV);
+
+            lstAnglesX.Items.Add("240-250");
+            lstAnglesY.Items.Add("240-250");
+            btnUnselectAll_Click(null, EventArgs.Empty);
+            btn240250_Click(null, EventArgs.Empty);
+            Analyze(sLastCSV);
+
+            lstAnglesX.Items.Add("230-250");
+            lstAnglesY.Items.Add("230-250");
+            btn230240_Click(null, EventArgs.Empty);
+            Analyze(sLastCSV);
+
+            lstAnglesX.Items.Add("200-230");
+            lstAnglesY.Items.Add("200-230");
+            btnUnselectAll_Click(null, EventArgs.Empty);
+            btn200210_Click(null, EventArgs.Empty);
+            btn210220_Click(null, EventArgs.Empty);
+            btn220230_Click(null, EventArgs.Empty);
+            Analyze(sLastCSV);
+            
+
+        }
+
+
+        private void UpdateAnalysis()
+        {
+            if (String.IsNullOrEmpty(sLastCSV)) return;
+            int nIndex = Convert.ToInt32(lblRecordNumber.Text);
+            Analyze(sLastCSV);
+
+            var section = loadedSections[nIndex];
+            if (section != null)
+            {
+                lblRecordNumber.Text = nIndex.ToString();
+                RefreshXYZ(section);
             }
         }
 
-        public float FirstPeakPosition(float[] spectrum, float[] frequencies)
-        {
-            for (var i = 2; i < spectrum.Length - 2; i++)
-            {
-                if (spectrum[i] > spectrum[i - 2] && spectrum[i] > spectrum[i - 1] &&
-                    spectrum[i] > spectrum[i + 2] && spectrum[i] > spectrum[i + 1])
-                {
-                    return (float)i / spectrum.Length;
-                }
-            }
-            return 0;
-        }
-        private void CalculateGyroAngles(ref double[] analyzedX, ref double[] analyzedY, ref double[] analyzedZ, ref double[] resultante, ref double[] angleX, ref double[] angleY, ref double[] angleZ, ref double[] pitch, ref double[] roll)
-        {
-            int count = analyzedX.Count();
-            for (int i = 0; i < count; i++)
-            {
-                resultante[i] = Math.Sqrt(Math.Pow(analyzedX[i], 2)
-                                            + Math.Pow(analyzedY[i], 2)
-                                            + Math.Pow(analyzedZ[i], 2));
-                angleX[i] = CalcAngle(analyzedX[i]);
-                angleY[i] = CalcAngle(analyzedY[i]);
-                angleZ[i] = CalcAngle(analyzedZ[i]);
-                pitch[i] = (Math.Atan2(-angleX[i], Math.Sqrt(Math.Abs((angleY[i] * angleY[i] + angleZ[i] * angleZ[i])))) * 180.0) / Math.PI;
-                roll[i] = (Math.Atan2(angleY[i], angleZ[i]) * 180.0) / Math.PI;
-            }
-        }
-
-        private double[] InterpolateNaNsCircular(double[] values)
-        {
-            int N = values.Length;
-            double[] result = new double[N];
-            Array.Copy(values, result, N);
-
-            for (int i = 0; i < N; i++)
-            {
-                if (double.IsNaN(result[i]))
-                {
-                    Console.WriteLine("found NAN");
-                    // trouver précédent et suivant valides
-                    int prev = (i - 1 + N) % N;
-                    while (prev != i && double.IsNaN(result[prev]))
-                        prev = (prev - 1 + N) % N;
-                    int next = (i + 1) % N;
-                    while (next != i && double.IsNaN(result[next]))
-                        next = (next + 1) % N;
-
-                    if (prev != i && next != i)
-                    {
-                        double v0 = result[prev], v1 = result[next];
-                        int d = (next - prev + N) % N;
-                        int idx = (i - prev + N) % N;
-                        result[i] = v0 + (v1 - v0) * idx / d;
-                    }
-                }
-            }
-            return result;
-        }
-        private static List<int> FindPeaks(IList<double> values, int range, double threshold)
-        {
-            var peaks = new List<int>();
-            int half = range / 2;
-            for (int i = half; i < values.Count - half; i++)
-            {
-                double current = values[i];
-                var window = values.Skip(i - half).Take(range);
-                if (window.Max() == current && current - window.Min() > threshold)
-                    peaks.Add(i);
-            }
-            return peaks;
-        }
         private void btnAnalyze_Click(object sender, EventArgs e)
         {
             try
@@ -2379,19 +2071,7 @@ namespace equilibreuse
             { }
         }
 
-        private void UpdateAnalysis()
-        {
-            if (String.IsNullOrEmpty(sLastCSV)) return;
-            int nIndex = Convert.ToInt32(lblRecordNumber.Text);
-            Analyze(sLastCSV);
-
-            var section = loadedSections[nIndex];
-            if (section != null)
-            {
-                lblRecordNumber.Text = nIndex.ToString();
-                RefreshXYZ(section);
-            }
-        }
+     
 
         private void btnStartCapture_Click(object sender, EventArgs e)
         {
@@ -2445,68 +2125,7 @@ namespace equilibreuse
             EquilibrageHelper.SaveWav(wavFile, dataY.ToArray(), Convert.ToInt32(txtSampleRate.Text));
         }
 
-        private static List<PeakInfo> GetTopCommonPeaksWithAmplitude(
-             int[][] samples,       // pics détectés par tour
-             double[] data,         // tableau des amplitudes (360 * tourNumber)
-             double tol = 10.0,
-             int minSamples = 2,
-             int topN = 5)
-        {
-            var all = samples.SelectMany(s => s).Distinct().OrderBy(v => v).ToList();
-
-            // Clusterisation angulaire
-            var clusters = new List<List<double>>();
-            foreach (var v in all)
-            {
-                var cluster = clusters.FirstOrDefault(c => c.Any(u => Math.Abs(u - v) <= tol));
-                if (cluster != null) cluster.Add(v);
-                else clusters.Add(new List<double> { v });
-            }
-
-            var peaks = new List<PeakInfo>();
-
-            foreach (var c in clusters)
-            {
-                int freq = 0;
-                double sumAmp = 0;
-
-                for (int t = 0; t < samples.Length; t++)
-                {
-                    foreach (int x in samples[t])
-                    {
-                        if (c.Any(v => Math.Abs(x - v) <= tol))
-                        {
-                            int index = x + t * 360;
-                            if (index < data.Length)
-                            {
-                                sumAmp += Math.Abs(data[index]);
-                                freq++;
-                            }
-                        }
-                    }
-                }
-
-                if (freq >= minSamples)
-                {
-                    peaks.Add(new PeakInfo
-                    {
-                        Mean = c.Average(),
-                        Freq = freq,
-                        SumAmplitude = sumAmp
-                    });
-                }
-            }
-            if (topN > peaks.Count)
-                return peaks
-                .OrderByDescending(p => p.SumAmplitude)
-                .ThenBy(p => p.Mean)
-                .ToList();
-            return peaks
-                .OrderByDescending(p => p.SumAmplitude)
-                .ThenBy(p => p.Mean)
-                .Take(topN)
-                .ToList();
-        }
+     
 
 
         private void btn200210_Click(object sender, EventArgs e)
@@ -2634,6 +2253,8 @@ namespace equilibreuse
             Properties.Settings.Default.YMagFinal = Convert.ToDouble(txtYMagInt.Text);
             Properties.Settings.Default.XAngleCorrect = Convert.ToDouble(txtCorrectAngleX.Text);
             Properties.Settings.Default.YAngleCorrect = Convert.ToDouble(txtCorrectAngleY.Text);
+            Properties.Settings.Default.XAngleCorrectTemporal = Convert.ToDouble(txtCorrectXTemporal.Text);
+            Properties.Settings.Default.YAngleCorrectTemporal = Convert.ToDouble(txtCorrectYTemporal.Text);
             Properties.Settings.Default.UseXGyro = chkUseXGyro.Checked;
             Properties.Settings.Default.UseYGyro = chkUseYGyro.Checked;
             Properties.Settings.Default.Save();
@@ -2645,104 +2266,53 @@ namespace equilibreuse
             dataGridY.Rows.Clear();
             dataGridX.Columns.Clear();
             dataGridY.Columns.Clear();
+            
             List<DataGridViewColumn> dgvcX = new List<DataGridViewColumn>()
             {
                 new DataGridViewColumn(){ HeaderText = "CSV File", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells} ,
                 new DataGridViewColumn(){ HeaderText = "Selected Nb of turn", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Global Mag", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Global Mag PSD", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Global Mag Ratio" , CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-
-                new DataGridViewColumn(){ HeaderText = "Global Angle FFT", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Global Angle Alternatif FFT", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Global Angle Gyro FFT", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Compiled Angle FFT", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Compiled Angle Max Temporal", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Turn-Turn Angle FFT", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Turn-Turn Angle Max Temporal", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-
-                new DataGridViewColumn(){ HeaderText = "Turn-Turn Mag AVG", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Compiled Mag AVG", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Global Angle correction Simple", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Compiled Angle correction Simple", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Turn-Turn Angle correction Simple", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "AVG Angle correction Simple", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-
-                new DataGridViewColumn(){ HeaderText = "Global Angle correction Complex", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Compiled Angle correction Complex", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Turn-Turn Angle correction Complex", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "AVG Angle correction Complex", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-
-                new DataGridViewColumn(){ HeaderText = "Global Weight Estimate", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Compiled Weight Estimate", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Turn-Turn Weight Estimate", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "AVG Weight Estimate", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-
-
+                new DataGridViewColumn(){ HeaderText = "Turn-Turn Mag AVG", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                
+                new DataGridViewColumn(){ HeaderText = "Global Angle FFT", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Compiled Angle FFT", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Turn-Turn Angle FFT", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "AVG Angle FFT", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Global Angle Temporal", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Compiled Angle Temporal", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Turn-Turn Angle Temporal", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Global Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Turn-Turn Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Compiled Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Global FFT inverse Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Global FFT inverse Ratio Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Turn-Turn FFT inverse Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Compiled FFT inverse Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Turn-Turn Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Global RMS", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Turn-Turn RMS", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Compiled RMS", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Global Mag Avg", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Turn-Turn RMS", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
             };
             List<DataGridViewColumn> dgvcY = new List<DataGridViewColumn>()
             {
-                  new DataGridViewColumn(){ HeaderText = "CSV File", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells} ,
+                new DataGridViewColumn(){ HeaderText = "CSV File", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells} ,
                 new DataGridViewColumn(){ HeaderText = "Selected Nb of turn", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Global Mag", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Global Mag PSD", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Global Mag Ratio" , CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Compiled Mag AVG", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Turn-Turn Mag AVG", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
 
                 new DataGridViewColumn(){ HeaderText = "Global Angle FFT", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Global Angle Alternatif FFT", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Global Angle Gyro FFT", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Compiled Angle FFT", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Compiled Angle Max Temporal", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Turn-Turn Angle FFT", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Turn-Turn Angle Max Temporal", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-
-                new DataGridViewColumn(){ HeaderText = "Turn-Turn Mag AVG", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Compiled Mag AVG", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-
-                new DataGridViewColumn(){ HeaderText = "Global Angle correction Simple", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Compiled Angle correction Simple", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Turn-Turn Angle correction Simple", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "AVG Angle correction Simple", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-
-                new DataGridViewColumn(){ HeaderText = "Global Angle correction Complex", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Compiled Angle correction Complex", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Turn-Turn Angle correction Complex", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "AVG Angle correction Complex", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-
-                new DataGridViewColumn(){ HeaderText = "Global Weight Estimate", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Compiled Weight Estimate", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Turn-Turn Weight Estimate", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "AVG Weight Estimate", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-
-
                 new DataGridViewColumn(){ HeaderText = "Compiled Angle FFT", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Turn-Turn Angle FFT", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "AVG Angle FFT", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Global Angle Temporal", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Compiled Angle Temporal", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Turn-Turn Angle Temporal", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Global Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Turn-Turn Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Compiled Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Global FFT inverse Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Global FFT inverse Ratio Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Turn-Turn FFT inverse Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Compiled FFT inverse Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Turn-Turn Pk-Pk", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Global RMS", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Turn-Turn RMS", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Compiled RMS", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Global Mag Avg", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Turn-Turn RMS", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
             };
-
 
             foreach (var c in dgvcX)
                 dataGridX.Columns.Add(c);
@@ -2752,102 +2322,9 @@ namespace equilibreuse
 
 
         }
-
-        private void btnFindAngles_Click(object sender, EventArgs e)
-        {
-            lstAngleXAnalysis.Clear();
-            lstAngleYAnalysis.Clear();
-            lstAnglesX.Items.Clear();
-            lstAnglesY.Items.Clear();
-            //get each turn and perform analysis
-            for (int i = 0; i < selectedSections.Count; i++)
-            {
-                var data = GetSingleTourSignal(i);
-            }
-            //get compiled and perform analysis
-            var compiled = GetCompiledTourSignal();
-            //get global and perform analysis
-            var global = GetGlobalTourSignal();
-            //get gyro and perform analysis
-
-            lstAnglesX.Items.Add("200-210");
-            lstAnglesY.Items.Add("200-210");
-            btnUnselectAll_Click(null, EventArgs.Empty);
-            btn200210_Click(null, EventArgs.Empty);
-
-            Analyze(sLastCSV);
-            lstAnglesX.Items.Add("210-220");
-            lstAnglesY.Items.Add("210-220");
-            btnUnselectAll_Click(null, EventArgs.Empty);
-            btn210220_Click(null, EventArgs.Empty);
-            Analyze(sLastCSV);
-
-            lstAnglesX.Items.Add("220-230");
-            lstAnglesY.Items.Add("220-230");
-            btnUnselectAll_Click(null, EventArgs.Empty);
-            btn220230_Click(null, EventArgs.Empty);
-            Analyze(sLastCSV);
-
-            lstAnglesX.Items.Add("230-240");
-            lstAnglesY.Items.Add("230-240");
-            btnUnselectAll_Click(null, EventArgs.Empty);
-            btn230240_Click(null, EventArgs.Empty);
-            Analyze(sLastCSV);
-
-            lstAnglesX.Items.Add("240-250");
-            lstAnglesY.Items.Add("240-250");
-            btnUnselectAll_Click(null, EventArgs.Empty);
-            btn240250_Click(null, EventArgs.Empty);
-            Analyze(sLastCSV);
-
-            lstAnglesX.Items.Add("230-250");
-            lstAnglesY.Items.Add("230-250");
-            btn230240_Click(null, EventArgs.Empty);
-            Analyze(sLastCSV);
-
-            lstAnglesX.Items.Add("200-230");
-            lstAnglesY.Items.Add("200-230");
-            btnUnselectAll_Click(null, EventArgs.Empty);
-            btn200210_Click(null, EventArgs.Empty);
-            btn210220_Click(null, EventArgs.Empty);
-            btn220230_Click(null, EventArgs.Empty);
-            Analyze(sLastCSV);
-            FindAnglePlausible(lstAngleXAnalysis, 45,formsPlotBestAngleX);
-            FindAnglePlausible(lstAngleYAnalysis, 45, formsPlotBestAngleY);
-            
-        }
-
-        private void FindAnglePlausible(List<double> lstAngles, int windowSize, FormsPlot plt)
-        {
-            double step = 1.0;
-
-            List<double> x = new List<double>();
-            List<double> y = new List<double>();
-
-            for (double center = 0; center < 360; center += step)
-            {
-                int count = lstAngles.Count(a => CalcAngleDistance(a, center) <= windowSize / 2);
-                x.Add(center);
-                y.Add(count);
-            }
-
-            // Affichage dans ScottPlot
-            plt.Plot.Clear();
-            plt.Plot.Add.Bars(y.ToArray(), x.ToArray());
-            plt.Plot.Title("Histogramme linéaire des densités angulaires");
-            plt.Plot.XLabel("Angle (°)");
-            plt.Plot.YLabel("Nb de valeurs proches");
-            plt.Plot.Axes.SetLimitsX(0, 360);
-            plt.Plot.ShowGrid();
-            plt.Refresh();
-        }
-
-    private double CalcAngleDistance(double a1, double a2)
-    {
-        double diff = Math.Abs(a1 - a2) % 360;
-        return diff > 180 ? 360 - diff : diff;
-    }
-    private void btn250300_Click(object sender, EventArgs e)
+        
+   
+        private void btn250300_Click(object sender, EventArgs e)
         {
             for (int i = 0; i < lstSectionSelector.Items.Count; i++)
             {
@@ -2857,36 +2334,7 @@ namespace equilibreuse
             }
         }
 
-        private (List<double[]> dataSegments, List<double[]> whiteLineSegments) GetSegments(double[] data, double[] whiteLine)
-        {
-            // Étape 1 : Trouver les indices de début de segment (valeur == 10 dans whiteLine)
-            var segmentStartIndices = whiteLine
-                .Select((value, index) => new { value, index })
-                .Where(x => x.value == 10)
-                .Select(x => x.index)
-                .ToList();
-
-
-            var dataSegments = new List<double[]>();
-            var whiteLineSegments = new List<double[]>();
-
-            for (int i = 0; i < segmentStartIndices.Count-1; i++)
-            {
-                int start = segmentStartIndices[i];
-                int end = segmentStartIndices[i + 1];
-
-                var dataSegment = data.Skip(start).Take(end - start).ToArray();
-                var whiteLineSegment = whiteLine.Skip(start).Take(end - start).ToArray();
-
-                dataSegments.Add(dataSegment);
-                whiteLineSegments.Add(whiteLineSegment);
-            }
-            //last data
-            dataSegments.Add(data.Skip(segmentStartIndices.Last()).ToArray());
-            whiteLineSegments.Add(whiteLine.Skip(segmentStartIndices.Last()).ToArray());
-
-            return (dataSegments, whiteLineSegments);
-        }
+     
 
     }
     [Delimiter(",")]
@@ -2984,35 +2432,23 @@ namespace equilibreuse
         public double gMagAvg;
         public double gMagPSD;
         public double gMagRatio;
-        public double gAngle;
-        public double gAngleAlternatif;
-        public double gAngleGyro;
+        public double gAngleFFT;
+        public double gAngleTemporal;
+        
         public double ttPkPk;
         public double ttMagAvg;
+        public double ttAngleFFT;
+        public double ttAngleTemporal;
+
         public double coPkPk;
         public double coMagAvg;
-        public double ttPkTiming;
-        public double coPkTiming;
-        public double gWeight;
-        public double ttAngle;
-        public double ttWeight;
-        public double coAngle;
-        public double coWeight;
-        public double avgAngle;
-        public double avgWeight;
+        public double coAngleFFT;
+        public double coAngleTemporal;
+
         public double gRMS;
         public double ttRMS;
         public double coRMS;
-        public double gPkPkInverse;
-        public double gPkPkInverseRatio;
-        public double coPkPkInverse;
-        public double ttPkPkInverse;
-        public double gAngleDynamicSimple;
-        public double gAngleDynamicComplex;
-        public double coAngleDynamicSimple;
-        public double coAngleDynamicComplex;
-        public double ttAngleDynamicSimple;
-        public double ttAngleDynamicComplex;
+
         public String[] toArray()
         {
             /*
@@ -3063,47 +2499,23 @@ namespace equilibreuse
             {
                 Path.GetFileName(csvFile),
                 numberOfTurn.ToString(),
-               
+                gMagAvg.ToString("F4"),
                 gMagPSD.ToString("F4"),
                 gMagRatio.ToString("F4"),
-               
-                gAngle.ToString("F4"),
-                gAngleAlternatif.ToString("F4"),
-                gAngleGyro.ToString("F4"),
-                coAngle.ToString("F4"),
-                coPkTiming.ToString("F4"),
-                ttAngle.ToString("F4"),
-                ttPkTiming.ToString("F4"),
-                ttMagAvg.ToString("F4"),
                 coMagAvg.ToString("F4"),
-                gAngleDynamicSimple.ToString("F4"),
-                coAngleDynamicSimple.ToString("F4"),
-                ttAngleDynamicSimple.ToString("F4"),
-                 ((gAngleDynamicSimple + coAngleDynamicSimple + ttAngleDynamicSimple)/3).ToString("F4"),
-                gAngleDynamicComplex.ToString("F4"),
-                coAngleDynamicComplex.ToString("F4"),
-                ttAngleDynamicComplex.ToString("F4"),
-                 ((gAngleDynamicComplex + coAngleDynamicComplex + ttAngleDynamicComplex)/3).ToString("F4"),
-               
-                gWeight.ToString("F4"),
-                coWeight.ToString("F4"),
-                ttWeight.ToString("F4"),
-                ((gWeight+ coWeight + ttWeight)/3).ToString("F4"),
-                 
-                coAngle.ToString("F4"),
-                ttAngle.ToString("F4"),
-                ((gAngle + coAngle + ttAngle)/3).ToString("F4"),
-                 gPkPk.ToString("F4"),
-                ttPkPk.ToString("F4"),
+                ttMagAvg.ToString("F4"),
+                gAngleFFT.ToString("F4"),
+                coAngleFFT.ToString("F4"),
+                ttAngleFFT.ToString("F4"),
+                gAngleTemporal.ToString("F4"),
+                coAngleTemporal.ToString("F4"),
+                ttAngleTemporal.ToString("F4"),
+                gPkPk.ToString("F4"),
                 coPkPk.ToString("F4"),
-                gPkPkInverse.ToString("F4"),
-                gPkPkInverseRatio.ToString("F4"),
-                ttPkPkInverse.ToString("F4"),
-                coPkPkInverse.ToString("F4"),
+                ttPkPk.ToString("F4"),
                 gRMS.ToString("F4"),
-                ttRMS.ToString("F4"),
                 coRMS.ToString("F4"),
-                gMagAvg.ToString("F4"),
+                ttRMS.ToString("F4")
             };
             return s.ToArray();
         }

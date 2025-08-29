@@ -166,5 +166,29 @@ namespace equilibreuse.Properties {
                 this["UseYGyro"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double XAngleCorrectTemporal {
+            get {
+                return ((double)(this["XAngleCorrectTemporal"]));
+            }
+            set {
+                this["XAngleCorrectTemporal"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double YAngleCorrectTemporal {
+            get {
+                return ((double)(this["YAngleCorrectTemporal"]));
+            }
+            set {
+                this["YAngleCorrectTemporal"] = value;
+            }
+        }
     }
 }
