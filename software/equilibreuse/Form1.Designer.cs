@@ -128,6 +128,10 @@ namespace equilibreuse
             this.dataGridY = new System.Windows.Forms.DataGridView();
             this.dataGridX = new System.Windows.Forms.DataGridView();
             this.tabPage7 = new System.Windows.Forms.TabPage();
+            this.txtCorrectYTemporal = new System.Windows.Forms.TextBox();
+            this.txtCorrectXTemporal = new System.Windows.Forms.TextBox();
+            this.label27 = new System.Windows.Forms.Label();
+            this.label26 = new System.Windows.Forms.Label();
             this.lstAnglesY = new System.Windows.Forms.ListBox();
             this.lstAnglesX = new System.Windows.Forms.ListBox();
             this.btnFindAngles = new System.Windows.Forms.Button();
@@ -187,10 +191,6 @@ namespace equilibreuse
             this.lblStatY = new System.Windows.Forms.Label();
             this.cbxFilterTypes = new System.Windows.Forms.ComboBox();
             this.cbxSmoothing = new System.Windows.Forms.ComboBox();
-            this.label26 = new System.Windows.Forms.Label();
-            this.label27 = new System.Windows.Forms.Label();
-            this.txtCorrectXTemporal = new System.Windows.Forms.TextBox();
-            this.txtCorrectYTemporal = new System.Windows.Forms.TextBox();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -1221,6 +1221,40 @@ namespace equilibreuse
             this.tabPage7.Text = "Section selector";
             this.tabPage7.UseVisualStyleBackColor = true;
             // 
+            // txtCorrectYTemporal
+            // 
+            this.txtCorrectYTemporal.Location = new System.Drawing.Point(1042, 465);
+            this.txtCorrectYTemporal.Name = "txtCorrectYTemporal";
+            this.txtCorrectYTemporal.Size = new System.Drawing.Size(100, 20);
+            this.txtCorrectYTemporal.TabIndex = 88;
+            this.txtCorrectYTemporal.Text = "0";
+            // 
+            // txtCorrectXTemporal
+            // 
+            this.txtCorrectXTemporal.Location = new System.Drawing.Point(1042, 439);
+            this.txtCorrectXTemporal.Name = "txtCorrectXTemporal";
+            this.txtCorrectXTemporal.Size = new System.Drawing.Size(100, 20);
+            this.txtCorrectXTemporal.TabIndex = 87;
+            this.txtCorrectXTemporal.Text = "0";
+            // 
+            // label27
+            // 
+            this.label27.AutoSize = true;
+            this.label27.Location = new System.Drawing.Point(935, 465);
+            this.label27.Name = "label27";
+            this.label27.Size = new System.Drawing.Size(101, 13);
+            this.label27.TabIndex = 86;
+            this.label27.Text = "Temporal correction";
+            // 
+            // label26
+            // 
+            this.label26.AutoSize = true;
+            this.label26.Location = new System.Drawing.Point(935, 445);
+            this.label26.Name = "label26";
+            this.label26.Size = new System.Drawing.Size(101, 13);
+            this.label26.TabIndex = 85;
+            this.label26.Text = "Temporal correction";
+            // 
             // lstAnglesY
             // 
             this.lstAnglesY.FormattingEnabled = true;
@@ -1724,7 +1758,7 @@ namespace equilibreuse
             this.txtGain.Name = "txtGain";
             this.txtGain.Size = new System.Drawing.Size(50, 20);
             this.txtGain.TabIndex = 64;
-            this.txtGain.Text = "2";
+            this.txtGain.Text = "10000";
             // 
             // label6
             // 
@@ -1810,40 +1844,6 @@ namespace equilibreuse
             this.cbxSmoothing.Size = new System.Drawing.Size(121, 21);
             this.cbxSmoothing.TabIndex = 71;
             this.cbxSmoothing.Text = "None";
-            // 
-            // label26
-            // 
-            this.label26.AutoSize = true;
-            this.label26.Location = new System.Drawing.Point(935, 445);
-            this.label26.Name = "label26";
-            this.label26.Size = new System.Drawing.Size(101, 13);
-            this.label26.TabIndex = 85;
-            this.label26.Text = "Temporal correction";
-            // 
-            // label27
-            // 
-            this.label27.AutoSize = true;
-            this.label27.Location = new System.Drawing.Point(935, 465);
-            this.label27.Name = "label27";
-            this.label27.Size = new System.Drawing.Size(101, 13);
-            this.label27.TabIndex = 86;
-            this.label27.Text = "Temporal correction";
-            // 
-            // txtCorrectXTemporal
-            // 
-            this.txtCorrectXTemporal.Location = new System.Drawing.Point(1042, 439);
-            this.txtCorrectXTemporal.Name = "txtCorrectXTemporal";
-            this.txtCorrectXTemporal.Size = new System.Drawing.Size(100, 20);
-            this.txtCorrectXTemporal.TabIndex = 87;
-            this.txtCorrectXTemporal.Text = "0";
-            // 
-            // txtCorrectYTemporal
-            // 
-            this.txtCorrectYTemporal.Location = new System.Drawing.Point(1042, 465);
-            this.txtCorrectYTemporal.Name = "txtCorrectYTemporal";
-            this.txtCorrectYTemporal.Size = new System.Drawing.Size(100, 20);
-            this.txtCorrectYTemporal.TabIndex = 88;
-            this.txtCorrectYTemporal.Text = "0";
             // 
             // Form1
             // 

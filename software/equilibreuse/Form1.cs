@@ -56,7 +56,7 @@ namespace equilibreuse
             t1.Interval = 1000;
             cbxFFT.SelectedItem = "BlackmanNuttal";
             cbxFFTSingle.SelectedItem = "BlackmanNuttal";
-            cbxFilterTypes.SelectedItem = "Chebyshev-II";
+            cbxFilterTypes.SelectedItem = "Butterworth";
             cbxSensor.SelectedIndex = 0; //mpu per default
             Help.FillHelp(richTextBox1);
             btnClearAnalysisHistory_Click(null, EventArgs.Empty);
@@ -442,12 +442,12 @@ namespace equilibreuse
 
             //apply gain on signal
             var gain = Convert.ToDouble(txtGain.Text);
-            x = x.Select(r => Math.Sign(r) * Math.Pow(Math.Abs(r), gain)).ToArray();
-            y = y.Select(r => Math.Sign(r) * Math.Pow(Math.Abs(r), gain)).ToArray();
-            z = z.Select(r => Math.Sign(r) * Math.Pow(Math.Abs(r), gain)).ToArray();
+            x = x.Select(r => r * gain).ToArray();
+            y = y.Select(r => r * gain).ToArray();
+            z = z.Select(r => r * gain).ToArray();
             if (resultante == null || resultante.Length == 0)
                 return;
-            resultante = resultante.Select(r => Math.Sign(r) * Math.Pow(Math.Abs(r), gain)).ToArray();
+            resultante = resultante.Select(r => r * gain).ToArray();
         }
 
         private (double[] x, double[] y, double[] z, double[] resultante, double[] angle, double f_rot, double rpm, double sampleRate) GetSingleTourSignal(section s)
@@ -1584,7 +1584,7 @@ namespace equilibreuse
             MathHelper.AnalyzeAxis(axis, dataFFT, sampleRate, lstPeak, c, pltFFT, f_rot, fftLimit);
         }
 
-        private void Analyze(string csvFile)
+        private void Analyze(string csvFile,bool bDisplayGraph = true)
         {
             if (String.IsNullOrEmpty(csvFile))
                 return;
@@ -1612,18 +1612,23 @@ namespace equilibreuse
 
             if (selectedSections.Count > 0)
             {
-                RefreshAnalysisCompiled();
-                RefreshAnalysisGlobal();
-                RefreshGyro();
-                lblRecordNumber.Text = "0";
-                RefreshXYZ(selectedSections[0]);
+                if (bDisplayGraph)
+                {
+                    RefreshAnalysisCompiled();
+                    RefreshAnalysisGlobal();
+                    RefreshGyro();
+                    lblRecordNumber.Text = "0";
+                    RefreshXYZ(selectedSections[0]);
+                }
                 ExecuteAnalysis();
             }
+
+            dataGridX.Rows.Add(currentAnalysisX.toArray());
+            dataGridY.Rows.Add(currentAnalysisY.toArray());
+
             formsPlotT1X.Plot.Axes.SetLimits(0, 360); formsPlotT1Y.Plot.Axes.SetLimits(0, 360); formsPlotT1O.Plot.Axes.SetLimits(0, 360); formsPlotT1I.Plot.Axes.SetLimits(0, 360);
-          
+
             formsPlotT1X.Refresh(); formsPlotT1Y.Refresh(); formsPlotT1O.Refresh(); formsPlotT1I.Refresh();
-
-
             /*   var xCorrect = Convert.ToDouble(txtCorrectAngleX.Text);
                currentAnalysisX.gAngle = (currentAnalysisX.gAngle + xCorrect) % 360;
                currentAnalysisX.gAngleAlternatif = (currentAnalysisX.gAngleAlternatif+ xCorrect) % 360;
@@ -1662,22 +1667,20 @@ namespace equilibreuse
             currentAnalysisX.gWeight = res.MassInt;
             currentAnalysisY.gWeight = res.MassExt;
             */
-            var dynamic = EquilibrageHelper.EstimateDynamicImbalanceCorrection(currentAnalysisX.gAngleFFT, currentAnalysisX.gMagRatio, currentAnalysisY.gAngleFFT, currentAnalysisY.gMagRatio);
-            
-            dataGridX.Rows.Add(currentAnalysisX.toArray());
-            dataGridY.Rows.Add(currentAnalysisY.toArray());
-/*
-            lblStatX.Text = $"X\r\nGlobal {currentAnalysisX.gWeight.ToString("F0")}g @ {currentAnalysisX.gAngleDynamicComplex.ToString("F0")}°\r\nTurn-turn {currentAnalysisX.ttWeight.ToString("F0")}g @ {currentAnalysisX.ttAngle.ToString("F0")}°\r\nCompiled {currentAnalysisX.coWeight.ToString("F0")}g @ {currentAnalysisX.coAngle.ToString("F0")}°";
-            lblStatY.Text = $"Y\r\nGlobal {currentAnalysisY.gWeight.ToString("F0")}g @ {currentAnalysisY.gAngleDynamicComplex.ToString("F0")}°\r\nTurn-turn {currentAnalysisY.ttWeight.ToString("F0")}g @ {currentAnalysisY.ttAngle.ToString("F0")}°\r\nCompiled {currentAnalysisY.coWeight.ToString("F0")}g @ {currentAnalysisY.coAngle.ToString("F0")}°";
-            lblStatX.Refresh();
-            lblStatY.Refresh();
 
-            //verify if there is not big gap between angles
-            //if not enough selected data, display warning
-            if (Math.Abs(currentAnalysisX.gAngle - currentAnalysisX.gAngleGyro) > 45 || Math.Abs(currentAnalysisY.gAngle - currentAnalysisY.gAngleGyro) > 45)
-            {
-                //     MessageBox.Show("Be carefull, X or Y angles have more than 45° between Global and Gyro ! results may not be good");*
-            }*/
+
+            /*
+                        lblStatX.Text = $"X\r\nGlobal {currentAnalysisX.gWeight.ToString("F0")}g @ {currentAnalysisX.gAngleDynamicComplex.ToString("F0")}°\r\nTurn-turn {currentAnalysisX.ttWeight.ToString("F0")}g @ {currentAnalysisX.ttAngle.ToString("F0")}°\r\nCompiled {currentAnalysisX.coWeight.ToString("F0")}g @ {currentAnalysisX.coAngle.ToString("F0")}°";
+                        lblStatY.Text = $"Y\r\nGlobal {currentAnalysisY.gWeight.ToString("F0")}g @ {currentAnalysisY.gAngleDynamicComplex.ToString("F0")}°\r\nTurn-turn {currentAnalysisY.ttWeight.ToString("F0")}g @ {currentAnalysisY.ttAngle.ToString("F0")}°\r\nCompiled {currentAnalysisY.coWeight.ToString("F0")}g @ {currentAnalysisY.coAngle.ToString("F0")}°";
+                        lblStatX.Refresh();
+                        lblStatY.Refresh();
+
+                        //verify if there is not big gap between angles
+                        //if not enough selected data, display warning
+                        if (Math.Abs(currentAnalysisX.gAngle - currentAnalysisX.gAngleGyro) > 45 || Math.Abs(currentAnalysisY.gAngle - currentAnalysisY.gAngleGyro) > 45)
+                        {
+                            //     MessageBox.Show("Be carefull, X or Y angles have more than 45° between Global and Gyro ! results may not be good");*
+                        }*/
         }
         private void ExecuteAnalysis()
         {
@@ -1786,6 +1789,34 @@ namespace equilibreuse
             b = formsPlotT1Y.Plot.Add.Bars(ttFFTY.Select(v => (double)v.Value).ToArray(), ttFFTY.Select(v => v.Occurrence).ToArray());
             b.Bars.ForEach(ba => { ba.LineWidth = 0.5f; ba.FillColor = ba.LineColor = Colors.Blue; });
 
+            var dynamicGlobal = EquilibrageHelper.EstimateDynamicImbalanceCorrection(currentAnalysisX.gAngleFFT, currentAnalysisX.gMagRatio, currentAnalysisY.gAngleFFT, currentAnalysisY.gMagRatio);
+            var dynamicCompiled = EquilibrageHelper.EstimateDynamicImbalanceCorrection(currentAnalysisX.coAngleFFT, currentAnalysisX.coMagAvg, currentAnalysisY.coAngleFFT, currentAnalysisY.coMagAvg);
+            var dynamicTT = EquilibrageHelper.EstimateDynamicImbalanceCorrection(currentAnalysisX.ttAngleFFT, currentAnalysisX.ttMagAvg, currentAnalysisY.ttAngleFFT, currentAnalysisY.ttMagAvg);
+            currentAnalysisX.gCorrection = dynamicGlobal.AngleInnerDeg;
+            currentAnalysisX.coCorrection = dynamicCompiled.AngleInnerDeg;
+            currentAnalysisX.ttCorrection = dynamicTT.AngleInnerDeg;
+            currentAnalysisY.gCorrection = dynamicGlobal.AngleOuterDeg;
+            currentAnalysisY.coCorrection = dynamicCompiled.AngleOuterDeg;
+            currentAnalysisY.ttCorrection = dynamicTT.AngleOuterDeg;
+            formsPlotT1I.Plot.Add.VerticalLine(dynamicGlobal.AngleInnerDeg, color: Colors.Green, width: 3);
+            formsPlotT1O.Plot.Add.VerticalLine(dynamicGlobal.AngleOuterDeg, color: Colors.Green, width: 3);
+            formsPlotT1I.Plot.Add.VerticalLine(dynamicCompiled.AngleInnerDeg, color: Colors.Red, width: 3);
+            formsPlotT1O.Plot.Add.VerticalLine(dynamicCompiled.AngleOuterDeg, color: Colors.Red, width: 3);
+            formsPlotT1I.Plot.Add.VerticalLine(dynamicTT.AngleInnerDeg, color: Colors.Black, width: 3);
+            formsPlotT1O.Plot.Add.VerticalLine(dynamicTT.AngleOuterDeg, color: Colors.Black, width: 3);
+
+            var result = EquilibrageHelper.CalculateAttenuationConstantsXY(Convert.ToDouble(txtXMagGrams.Text) / 1000.0,
+                                      Convert.ToDouble(txtXMagBalanced.Text),
+                                      Convert.ToDouble(txtYMagBalanced.Text),
+                                      Convert.ToDouble(txtXMagExt.Text),
+                                      Convert.ToDouble(txtYMagExt.Text),
+                                      Convert.ToDouble(txtYMagGrams.Text) / 1000.0,
+                                      Convert.ToDouble(txtXMagInt.Text),
+                                      Convert.ToDouble(txtYMagInt.Text));
+            var res = EquilibrageHelper.EstimateDynamicBalancing(currentAnalysisX.gMagRatio, currentAnalysisX.gAngleFFT, currentAnalysisY.gMagRatio, currentAnalysisY.gAngleFFT, result.KextX, result.KextY, result.KintX, result.KintY);
+
+
+
         }
 
         private (double angleTemporal, double pkpk,double rms, Fundamentale fund) GetPhaseMagnitude(double[] data, double[] angle, double sampleRate, double rpm,double f_rot)
@@ -1797,7 +1828,7 @@ namespace equilibreuse
                 dataFiltered = LowPassFilter.RemoveDCOffset(dataFiltered);
             //apply gain on signal
             var gain = Convert.ToDouble(txtGain.Text);
-            dataFiltered  = dataFiltered.Select(r => Math.Sign(r) * Math.Pow(Math.Abs(r), gain)).ToArray();
+            dataFiltered  = dataFiltered.Select(r => r * gain).ToArray();
             var peaks = MathHelper.GetPeakPerTurn(dataFiltered);
             List<double> lstAnglePeaks = new List<double>();
             foreach(var p in peaks)
@@ -1806,9 +1837,9 @@ namespace equilibreuse
             angleTemporal = MathHelper.CalculateMeanAngle(lstAnglePeaks.ToArray());
             
             //fake data
-            double[] y = new double[0];
-            double[] z = new double[0];
-            double[] resultante = new double[0];
+            double[] y = new double[1];
+            double[] z = new double[1];
+            double[] resultante = new double[1];
             ApplyFilters(sampleRate, f_rot, ref data, ref y, ref z, ref resultante);
             FFTData dataFFT = EquilibrageHelper.CalculateFFT(data, sampleRate, cbxFFTSingle, chkDb.Checked, rpm, f_rot);
             var fund = EquilibrageHelper.GetFundamentalPhase(dataFFT.Frequence, dataFFT.Magnitude, dataFFT.AngleDeg, f_rot);
@@ -1821,51 +1852,40 @@ namespace equilibreuse
             lstAngleYAnalysis.Clear();
             lstAnglesX.Items.Clear();
             lstAnglesY.Items.Clear();
-            //get each turn and perform analysis
-            for (int i = 0; i < selectedSections.Count; i++)
-            {
-                var data = GetSingleTourSignal(selectedSections[i]);
-            }
-            //get compiled and perform analysis
-            var compiled = GetCompiledTourSignal();
-            //get global and perform analysis
-            var global = GetGlobalTourSignal();
-            //get gyro and perform analysis
-
+           
             lstAnglesX.Items.Add("200-210");
             lstAnglesY.Items.Add("200-210");
             btnUnselectAll_Click(null, EventArgs.Empty);
             btn200210_Click(null, EventArgs.Empty);
-
-            Analyze(sLastCSV);
+            Analyze(sLastCSV,false);
             lstAnglesX.Items.Add("210-220");
             lstAnglesY.Items.Add("210-220");
             btnUnselectAll_Click(null, EventArgs.Empty);
             btn210220_Click(null, EventArgs.Empty);
-            Analyze(sLastCSV);
+            Analyze(sLastCSV, false);
 
             lstAnglesX.Items.Add("220-230");
             lstAnglesY.Items.Add("220-230");
             btnUnselectAll_Click(null, EventArgs.Empty);
             btn220230_Click(null, EventArgs.Empty);
-            Analyze(sLastCSV);
+            Analyze(sLastCSV, false);
 
             lstAnglesX.Items.Add("230-240");
             lstAnglesY.Items.Add("230-240");
             btnUnselectAll_Click(null, EventArgs.Empty);
             btn230240_Click(null, EventArgs.Empty);
-            Analyze(sLastCSV);
+            Analyze(sLastCSV, false);
 
             lstAnglesX.Items.Add("240-250");
             lstAnglesY.Items.Add("240-250");
             btnUnselectAll_Click(null, EventArgs.Empty);
             btn240250_Click(null, EventArgs.Empty);
-            Analyze(sLastCSV);
+            Analyze(sLastCSV, false);
 
             lstAnglesX.Items.Add("230-250");
             lstAnglesY.Items.Add("230-250");
             btn230240_Click(null, EventArgs.Empty);
-            Analyze(sLastCSV);
+            Analyze(sLastCSV, false);
 
             lstAnglesX.Items.Add("200-230");
             lstAnglesY.Items.Add("200-230");
@@ -1873,7 +1893,7 @@ namespace equilibreuse
             btn200210_Click(null, EventArgs.Empty);
             btn210220_Click(null, EventArgs.Empty);
             btn220230_Click(null, EventArgs.Empty);
-            Analyze(sLastCSV);
+            Analyze(sLastCSV, false);
             
 
         }
@@ -2271,6 +2291,9 @@ namespace equilibreuse
             {
                 new DataGridViewColumn(){ HeaderText = "CSV File", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells} ,
                 new DataGridViewColumn(){ HeaderText = "Selected Nb of turn", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Global Correction", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Compiled Correction", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Turn-Turn Correction", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Global Mag", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Global Mag PSD", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Global Mag Ratio" , CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
@@ -2294,6 +2317,9 @@ namespace equilibreuse
             {
                 new DataGridViewColumn(){ HeaderText = "CSV File", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells} ,
                 new DataGridViewColumn(){ HeaderText = "Selected Nb of turn", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Global Correction", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Compiled Correction", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Turn-Turn Correction", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Global Mag", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Global Mag PSD", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Global Mag Ratio" , CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
@@ -2428,6 +2454,9 @@ namespace equilibreuse
     {
         public string csvFile;
         public int numberOfTurn;
+        public double gCorrection;
+        public double coCorrection;
+        public double ttCorrection;
         public double gPkPk;
         public double gMagAvg;
         public double gMagPSD;
@@ -2499,6 +2528,9 @@ namespace equilibreuse
             {
                 Path.GetFileName(csvFile),
                 numberOfTurn.ToString(),
+                gCorrection.ToString("F4"),
+                coCorrection.ToString("F4"),
+                ttCorrection.ToString("F4"),
                 gMagAvg.ToString("F4"),
                 gMagPSD.ToString("F4"),
                 gMagRatio.ToString("F4"),
