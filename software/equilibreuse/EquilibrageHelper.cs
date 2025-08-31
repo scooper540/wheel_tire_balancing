@@ -100,12 +100,12 @@ namespace equilibreuse
 
             // 2. Calcul du couple dynamique (vecteur rotationnel entre X et Y)
             //    On prend la différence des deux vecteurs (sens dynamique)
-            double dx = vx - wx;
-            double dy = vy - wy;
+            double dx = vx + wx;
+            double dy = vy + wy;
 
             // 3. Angle moyen pour placer les 2 masses (± 90° de différence)
             double angleRad = Math.Atan2(dy, dx); // angle en radians
-            double angleDeg = (angleRad * 180.0 / Math.PI + 360) % 360;
+            double angleDeg = (angleRad * 180.0 / Math.PI + 360 + 180) % 360;
 
             // 4. Définir les deux angles de correction (opposés de l'effort dynamique)
             double angleInner = (angleDeg + 45) % 360; // +45° → masse intérieure
@@ -667,6 +667,213 @@ namespace equilibreuse
             double min = Math.Min(initialMagnitude, finalMagnitude);
             return (1.0 / mass) * Math.Log(max / min);
         }
+        public static double CalculateAttenuationConstantFrom3Points(
+    double amplitude0, // sans masse
+    double amplitude1, double mass1,
+    double amplitude2, double mass2)
+        {
+            if (amplitude0 <= 0 || amplitude1 <= 0 || amplitude2 <= 0 ||
+                mass1 <= 0 || mass2 <= 0 || mass1 == mass2)
+                return 0;
+
+            // Convert to ln(amplitude)
+            double[] x = { 0, mass1, mass2 };
+            double[] y = { Math.Log(amplitude0), Math.Log(amplitude1), Math.Log(amplitude2) };
+
+            double xAvg = x.Average();
+            double yAvg = y.Average();
+
+            double numerator = 0;
+            double denominator = 0;
+
+            for (int i = 0; i < 3; i++)
+            {
+                numerator += (x[i] - xAvg) * (y[i] - yAvg);
+                denominator += (x[i] - xAvg) * (x[i] - xAvg);
+            }
+
+            double slope = numerator / denominator;
+            double k = -slope;
+
+            return k;
+        }
+        public static (double kX, double kY) EstimateSensitivityVector2D(
+    double magX1, double phaseX1Deg, double magY1, double phaseY1Deg, double mass1, double angleMass1Deg,
+    double magX2, double phaseX2Deg, double magY2, double phaseY2Deg, double mass2, double angleMass2Deg)
+        {
+            // Vérifications basiques
+            if (mass1 <= 0 || mass2 <= 0 || mass1 == mass2)
+                throw new ArgumentException("Masses invalides");
+
+            // Convertir phases en radians
+            double phaseX1 = phaseX1Deg * Math.PI / 180.0;
+            double phaseY1 = phaseY1Deg * Math.PI / 180.0;
+            double phaseX2 = phaseX2Deg * Math.PI / 180.0;
+            double phaseY2 = phaseY2Deg * Math.PI / 180.0;
+
+            // Convertir angles masses en radians
+            double angleMass1 = angleMass1Deg * Math.PI / 180.0;
+            double angleMass2 = angleMass2Deg * Math.PI / 180.0;
+
+            // Vecteurs de vibration mesurés pour chaque masse (complexes, avec amplitude et phase)
+            // Axe X
+            var v1x = new Complex(magX1 * Math.Cos(phaseX1), magX1 * Math.Sin(phaseX1));
+            var v2x = new Complex(magX2 * Math.Cos(phaseX2), magX2 * Math.Sin(phaseX2));
+            // Axe Y
+            var v1y = new Complex(magY1 * Math.Cos(phaseY1), magY1 * Math.Sin(phaseY1));
+            var v2y = new Complex(magY2 * Math.Cos(phaseY2), magY2 * Math.Sin(phaseY2));
+
+            // Forme les vecteurs 2D (complexes) pour les deux masses
+            Complex v1 = v1x + Complex.ImaginaryOne * v1y;
+            Complex v2 = v2x + Complex.ImaginaryOne * v2y;
+
+            // Vecteurs unitaires dans la direction des masses
+            var u1 = new Complex(Math.Cos(angleMass1), Math.Sin(angleMass1));
+            var u2 = new Complex(Math.Cos(angleMass2), Math.Sin(angleMass2));
+
+            // On veut résoudre le système :
+            // v1 = k * mass1 * u1
+            // v2 = k * mass2 * u2
+            //
+            // En réalité, c’est un système 2 équations vectorielles complexes (4 réels):
+            //
+            // v1 = mass1 * k * u1
+            // v2 = mass2 * k * u2
+            //
+            // k est un vecteur complexe (kX + i kY) que l’on cherche.
+
+            // On écrit le système matriciel 4x2 réel (pour les composantes réelles et imaginaires)
+            // v1 = mass1 * k * u1
+            // v2 = mass2 * k * u2
+            //
+            // Soit k = kX + i kY
+            // v1 = mass1 * (kX + i kY)(u1x + i u1y) = mass1 * [(kX u1x - kY u1y) + i (kX u1y + kY u1x)]
+            // même chose pour v2.
+
+            // On définit le système linéaire A * [kX; kY] = b
+
+            // Matrice A 4x2
+            // ligne 1 (reel de v1) = mass1 * (u1x, -u1y)
+            // ligne 2 (imag de v1) = mass1 * (u1y,  u1x)
+            // ligne 3 (reel de v2) = mass2 * (u2x, -u2y)
+            // ligne 4 (imag de v2) = mass2 * (u2y,  u2x)
+
+            double[,] A = new double[4, 2]
+            {
+        { mass1 * u1.Real, -mass1 * u1.Imaginary },
+        { mass1 * u1.Imaginary, mass1 * u1.Real },
+        { mass2 * u2.Real, -mass2 * u2.Imaginary },
+        { mass2 * u2.Imaginary, mass2 * u2.Real }
+            };
+
+            // Vecteur b 4x1 (réels) : composantes de v1 et v2
+            double[] b = new double[4]
+            {
+        v1.Real,
+        v1.Imaginary,
+        v2.Real,
+        v2.Imaginary
+            };
+
+            // Résoudre le système surdéterminé A x = b par moindres carrés
+            // x = [kX; kY]
+
+            // Calcul de A^T A et A^T b
+            double[,] AtA = new double[2, 2];
+            double[] Atb = new double[2];
+
+            for (int i = 0; i < 4; i++)
+            {
+                for (int j = 0; j < 2; j++)
+                {
+                    for (int k = 0; k < 4; k++)
+                    {
+                        // Non, faut faire avec i,j,k bien gérés (réécriture propre)
+                    }
+                }
+            }
+
+            // Faisons ça proprement en code complet plus bas.
+
+            // Utilisation simple avec Math.NET Numerics ou inversion manuelle :
+
+            // Calcul A^T A
+            for (int row = 0; row < 2; row++)
+            {
+                for (int col = 0; col < 2; col++)
+                {
+                    double sum = 0;
+                    for (int r = 0; r < 4; r++)
+                    {
+                        sum += A[r, row] * A[r, col];
+                    }
+                    AtA[row, col] = sum;
+                }
+            }
+
+            // Calcul A^T b
+            for (int row = 0; row < 2; row++)
+            {
+                double sum = 0;
+                for (int r = 0; r < 4; r++)
+                {
+                    sum += A[r, row] * b[r];
+                }
+                Atb[row] = sum;
+            }
+
+            // Résolution manuelle 2x2 (AtA) * x = Atb
+
+            double det = AtA[0, 0] * AtA[1, 1] - AtA[0, 1] * AtA[1, 0];
+            if (Math.Abs(det) < 1e-12)
+                throw new Exception("Système mal conditionné pour inversion");
+
+            double invDet = 1.0 / det;
+
+            double kX = invDet * (AtA[1, 1] * Atb[0] - AtA[0, 1] * Atb[1]);
+            double kY = invDet * (-AtA[1, 0] * Atb[0] + AtA[0, 0] * Atb[1]);
+
+            return (kX, kY);
+        }
+
+        public static (double kX, double kY) EstimateSensitivityVector(
+    double amp1, double phase1Deg, double mass1, double angleMass1Deg,
+    double amp2, double phase2Deg, double mass2, double angleMass2Deg)
+        {
+            // Convertir tout en radians
+            double p1 = phase1Deg * Math.PI / 180.0;
+            double p2 = phase2Deg * Math.PI / 180.0;
+            double a1 = angleMass1Deg * Math.PI / 180.0;
+            double a2 = angleMass2Deg * Math.PI / 180.0;
+
+            // Vecteurs mesurés
+            double vx1 = amp1 * Math.Cos(p1);
+            double vy1 = amp1 * Math.Sin(p1);
+            double vx2 = amp2 * Math.Cos(p2);
+            double vy2 = amp2 * Math.Sin(p2);
+
+            // Vecteurs des directions de masse
+            double mx1 = mass1 * Math.Cos(a1);
+            double my1 = mass1 * Math.Sin(a1);
+            double mx2 = mass2 * Math.Cos(a2);
+            double my2 = mass2 * Math.Sin(a2);
+
+            // Système linéaire : V = K * M
+            // On résout pour Kx et Ky
+
+            double det = mx1 * my2 - mx2 * my1;
+            if (Math.Abs(det) < 1e-6)
+                throw new Exception("Mass vectors are colinear. Choose different angles.");
+
+            double invDet = 1.0 / det;
+
+            double kX = invDet * (vx1 * my2 - vx2 * my1);
+            double kY = invDet * (-vx1 * mx2 + vx2 * mx1);
+
+            // Idem pour y si tu veux plus de robustesse (vx1, vy1 → kX, kY ; ou juste valider kY)
+            // Ici on retourne kX et kY (composantes vectorielles de la sensibilité par gramme)
+            return (kX, kY);
+        }
 
         /// <summary>
         /// Calcule la masse nécessaire pour réduire une magnitude actuelle à une cible, avec un k donné.
@@ -821,8 +1028,68 @@ namespace equilibreuse
 
             return result;
         }
-      
         public static DynamicCorrectionResult2 EstimateDynamicBalancing(
+      double magX, double phaseXDeg,
+      double magY, double phaseYDeg,
+      double kExt, double kInt)
+        {
+            // 1. Convertir les phases en radians
+            double phaseXRad = phaseXDeg * Math.PI / 180.0;
+            double phaseYRad = phaseYDeg * Math.PI / 180.0;
+
+            // 2. Calcul du vecteur total de balourd (somme des deux composantes)
+            double fx = magX * Math.Cos(phaseXRad) + magY * Math.Cos(phaseYRad);
+            double fy = magX * Math.Sin(phaseXRad) + magY * Math.Sin(phaseYRad);
+
+            // 3. Angle du balourd en degrés [0..360[
+            double balourdAngle = (Math.Atan2(fy, fx) * 180.0 / Math.PI + 360.0) % 360.0;
+
+            // 4. Définir les angles de correction (opposés au balourd ±45°)
+            double correctionBaseAngle = (balourdAngle + 180) % 360;
+            double angleOuter = (correctionBaseAngle - 45 + 360) % 360;
+            double angleInner = (correctionBaseAngle + 45) % 360;
+
+            // 5. Calcul des vecteurs de sensibilité (orientés correctement)
+            double kExtX = kExt * Math.Cos(angleOuter * Math.PI / 180.0);
+            double kExtY = kExt * Math.Sin(angleOuter * Math.PI / 180.0);
+
+            double kIntX = kInt * Math.Cos(angleInner * Math.PI / 180.0);
+            double kIntY = kInt * Math.Sin(angleInner * Math.PI / 180.0);
+
+            // 6. Résolution du système linéaire 2x2 : [K_ext | K_int] * [mExt, mInt] = F
+            double det = kExtX * kIntY - kIntX * kExtY;
+            if (Math.Abs(det) < 1e-6)
+                throw new Exception("Système non inversible : les vecteurs de correction sont colinéaires.");
+
+            double invDet = 1.0 / det;
+
+            double mExt = invDet * (kIntY * fx - kIntX * fy);
+            double mInt = invDet * (-kExtY * fx + kExtX * fy);
+
+            // 7. Corriger les masses négatives : les inverser + décaler l'angle de 180°
+            if (mExt < 0)
+            {
+                mExt = -mExt;
+                angleOuter = (angleOuter + 180) % 360;
+            }
+
+            if (mInt < 0)
+            {
+                mInt = -mInt;
+                angleInner = (angleInner + 180) % 360;
+            }
+
+            // 8. Résultat final
+            return new DynamicCorrectionResult2
+            {
+                AngleOuterDeg = angleOuter,
+                AngleInnerDeg = angleInner,
+                MassOuter = mExt,
+                MassInner = mInt
+            };
+        }
+
+        public static DynamicCorrectionResult2 EstimateDynamicBalancing2(
             double magX, double phaseXDeg,
             double magY, double phaseYDeg,
             double kExt, double kInt)
@@ -836,12 +1103,15 @@ namespace equilibreuse
             double fy = magX * Math.Sin(phaseXRad) + magY * Math.Sin(phaseYRad);
 
             // 3. Angle du balourd (en degrés, dans [0-360[)
-            double balourdAngle = Math.Atan2(fy, fx) * 180.0 / Math.PI;
-            balourdAngle = (balourdAngle + 360.0) % 360.0;
+            // Angle balourd en degrés [0..360[
+            double balourdAngle = (Math.Atan2(fy, fx) * 180.0 / Math.PI + 360.0) % 360.0;
 
-            // 4. Placer les masses à ±90° du balourd
-            double angleOuter = (balourdAngle - 45 + 360) % 360.0;
-            double angleInner = (balourdAngle + 45 + 360) % 360.0;
+            // Décalage de 180° pour placer les masses opposées au balourd
+            double correctionBaseAngle = (balourdAngle + 180) % 360.0;
+
+            // Placement des masses à ±45° autour de ce point
+            double angleOuter = (correctionBaseAngle - 45 + 360) % 360.0;
+            double angleInner = (correctionBaseAngle + 45) % 360.0;
 
             // 5. Résolution du système : F = K_ext * m_ext + K_int * m_int
             // Les vecteurs de placement :
@@ -939,6 +1209,51 @@ namespace equilibreuse
                 AngleIntDeg = angleIntDeg
             };
         }
+        /// <summary>
+        /// Estime la masse nécessaire pour corriger un balourd à partir de la magnitude mesurée,
+        /// de la magnitude de référence (roue équilibrée) et de la constante de croissance k.
+        /// </summary>
+        public static double EstimateCorrectiveMass(double measuredMagnitude, double referenceMagnitude, double k)
+        {
+            if (measuredMagnitude <= 0 || referenceMagnitude <= 0 || k <= 0)
+                return 0;
+
+            // Si la roue est déjà mieux équilibrée que la référence, on ne fait rien
+            if (measuredMagnitude <= referenceMagnitude)
+                return 0;
+
+            // Masse à ajouter pour que la magnitude retombe au niveau de référence
+            return (1.0 / k) * Math.Log(measuredMagnitude / referenceMagnitude);
+        }
+        public static double CalculateGrowthConstantFrom2Points(
+    double mag0,      // magnitude de base (sans masse)
+    double mag1, double mass1,  // première mesure
+    double mag2, double mass2   // deuxième mesure
+)
+        {
+            if (mag0 <= 0 || mag1 <= 0 || mag2 <= 0 || mass1 <= 0 || mass2 <= 0 || mass1 == mass2)
+                return 0;
+
+            // ln(M / M0) = k * m → droite dans l’espace (m, ln(M/M0))
+            double ln1 = Math.Log(mag1 / mag0);
+            double ln2 = Math.Log(mag2 / mag0);
+
+            double slope = (ln2 - ln1) / (mass2 - mass1);
+
+            return slope;
+        }
+
+        /// <summary>
+        /// Calcule la constante de croissance k à partir d'une roue équilibrée et d'un poids ajouté.
+        /// </summary>
+        public static double CalculateGrowthConstant(double referenceMagnitude, double newMagnitude, double massAdded)
+        {
+            if (referenceMagnitude <= 0 || newMagnitude <= 0 || massAdded <= 0)
+                return 0;
+
+            return (1.0 / massAdded) * Math.Log(newMagnitude / referenceMagnitude);
+        }
+
 
 
     }

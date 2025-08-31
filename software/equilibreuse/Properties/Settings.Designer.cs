@@ -26,96 +26,96 @@ namespace equilibreuse.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("0")]
-        public double XGrams {
+        public double CalibGrams1 {
             get {
-                return ((double)(this["XGrams"]));
+                return ((double)(this["CalibGrams1"]));
             }
             set {
-                this["XGrams"] = value;
+                this["CalibGrams1"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("0")]
-        public double YGrams {
+        public double CalibGrams2 {
             get {
-                return ((double)(this["YGrams"]));
+                return ((double)(this["CalibGrams2"]));
             }
             set {
-                this["YGrams"] = value;
+                this["CalibGrams2"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("0")]
-        public double XMagInitial {
+        public double XMagBalanced {
             get {
-                return ((double)(this["XMagInitial"]));
+                return ((double)(this["XMagBalanced"]));
             }
             set {
-                this["XMagInitial"] = value;
+                this["XMagBalanced"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("0")]
-        public double YMagInitial {
+        public double YMagBalance {
             get {
-                return ((double)(this["YMagInitial"]));
+                return ((double)(this["YMagBalance"]));
             }
             set {
-                this["YMagInitial"] = value;
+                this["YMagBalance"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("0")]
-        public double XMagFinal {
+        public double XMag1 {
             get {
-                return ((double)(this["XMagFinal"]));
+                return ((double)(this["XMag1"]));
             }
             set {
-                this["XMagFinal"] = value;
+                this["XMag1"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("0")]
-        public double YMagFinal {
+        public double YMag1 {
             get {
-                return ((double)(this["YMagFinal"]));
+                return ((double)(this["YMag1"]));
             }
             set {
-                this["YMagFinal"] = value;
+                this["YMag1"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("0")]
-        public double XMagTarget {
+        public double XMag2 {
             get {
-                return ((double)(this["XMagTarget"]));
+                return ((double)(this["XMag2"]));
             }
             set {
-                this["XMagTarget"] = value;
+                this["XMag2"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("0")]
-        public double YMagTarget {
+        public double YMag2 {
             get {
-                return ((double)(this["YMagTarget"]));
+                return ((double)(this["YMag2"]));
             }
             set {
-                this["YMagTarget"] = value;
+                this["YMag2"] = value;
             }
         }
         
@@ -188,6 +188,186 @@ namespace equilibreuse.Properties {
             }
             set {
                 this["YAngleCorrectTemporal"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool LowPassChecked {
+            get {
+                return ((bool)(this["LowPassChecked"]));
+            }
+            set {
+                this["LowPassChecked"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool PassBandChecked {
+            get {
+                return ((bool)(this["PassBandChecked"]));
+            }
+            set {
+                this["PassBandChecked"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        public int FilterOrder {
+            get {
+                return ((int)(this["FilterOrder"]));
+            }
+            set {
+                this["FilterOrder"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string FilterSelect {
+            get {
+                return ((string)(this["FilterSelect"]));
+            }
+            set {
+                this["FilterSelect"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string FilterSmooth {
+            get {
+                return ((string)(this["FilterSmooth"]));
+            }
+            set {
+                this["FilterSmooth"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool AbsChecked {
+            get {
+                return ((bool)(this["AbsChecked"]));
+            }
+            set {
+                this["AbsChecked"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool SumChecked {
+            get {
+                return ((bool)(this["SumChecked"]));
+            }
+            set {
+                this["SumChecked"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool RemoveDCChecked {
+            get {
+                return ((bool)(this["RemoveDCChecked"]));
+            }
+            set {
+                this["RemoveDCChecked"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool dbChecked {
+            get {
+                return ((bool)(this["dbChecked"]));
+            }
+            set {
+                this["dbChecked"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("10000")]
+        public int Gain {
+            get {
+                return ((int)(this["Gain"]));
+            }
+            set {
+                this["Gain"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool OrderTrackingChecked {
+            get {
+                return ((bool)(this["OrderTrackingChecked"]));
+            }
+            set {
+                this["OrderTrackingChecked"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("BlackmanNuttal")]
+        public string FFTSingle {
+            get {
+                return ((string)(this["FFTSingle"]));
+            }
+            set {
+                this["FFTSingle"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("BlackmanNuttal")]
+        public string FFTGlobal {
+            get {
+                return ((string)(this["FFTGlobal"]));
+            }
+            set {
+                this["FFTGlobal"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Global FFT")]
+        public string AngleData {
+            get {
+                return ((string)(this["AngleData"]));
+            }
+            set {
+                this["AngleData"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Global PkPk Filter")]
+        public string MagData {
+            get {
+                return ((string)(this["MagData"]));
+            }
+            set {
+                this["MagData"] = value;
             }
         }
     }

@@ -2,28 +2,28 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="equilibreuse.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="XGrams" Type="System.Double" Scope="User">
+    <Setting Name="CalibGrams1" Type="System.Double" Scope="User">
       <Value Profile="(Default)">0</Value>
     </Setting>
-    <Setting Name="YGrams" Type="System.Double" Scope="User">
+    <Setting Name="CalibGrams2" Type="System.Double" Scope="User">
       <Value Profile="(Default)">0</Value>
     </Setting>
-    <Setting Name="XMagInitial" Type="System.Double" Scope="User">
+    <Setting Name="XMagBalanced" Type="System.Double" Scope="User">
       <Value Profile="(Default)">0</Value>
     </Setting>
-    <Setting Name="YMagInitial" Type="System.Double" Scope="User">
+    <Setting Name="YMagBalance" Type="System.Double" Scope="User">
       <Value Profile="(Default)">0</Value>
     </Setting>
-    <Setting Name="XMagFinal" Type="System.Double" Scope="User">
+    <Setting Name="XMag1" Type="System.Double" Scope="User">
       <Value Profile="(Default)">0</Value>
     </Setting>
-    <Setting Name="YMagFinal" Type="System.Double" Scope="User">
+    <Setting Name="YMag1" Type="System.Double" Scope="User">
       <Value Profile="(Default)">0</Value>
     </Setting>
-    <Setting Name="XMagTarget" Type="System.Double" Scope="User">
+    <Setting Name="XMag2" Type="System.Double" Scope="User">
       <Value Profile="(Default)">0</Value>
     </Setting>
-    <Setting Name="YMagTarget" Type="System.Double" Scope="User">
+    <Setting Name="YMag2" Type="System.Double" Scope="User">
       <Value Profile="(Default)">0</Value>
     </Setting>
     <Setting Name="XAngleCorrect" Type="System.Double" Scope="User">
@@ -43,6 +43,51 @@
     </Setting>
     <Setting Name="YAngleCorrectTemporal" Type="System.Double" Scope="User">
       <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="LowPassChecked" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="PassBandChecked" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="FilterOrder" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">1</Value>
+    </Setting>
+    <Setting Name="FilterSelect" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="FilterSmooth" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="AbsChecked" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="SumChecked" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="RemoveDCChecked" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="dbChecked" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="Gain" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">10000</Value>
+    </Setting>
+    <Setting Name="OrderTrackingChecked" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="FFTSingle" Type="System.String" Scope="User">
+      <Value Profile="(Default)">BlackmanNuttal</Value>
+    </Setting>
+    <Setting Name="FFTGlobal" Type="System.String" Scope="User">
+      <Value Profile="(Default)">BlackmanNuttal</Value>
+    </Setting>
+    <Setting Name="AngleData" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Global FFT</Value>
+    </Setting>
+    <Setting Name="MagData" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Global PkPk Filter</Value>
     </Setting>
   </Settings>
 </SettingsFile>
