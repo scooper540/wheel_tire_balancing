@@ -128,6 +128,7 @@ namespace equilibreuse
             this.dataGridY = new System.Windows.Forms.DataGridView();
             this.dataGridX = new System.Windows.Forms.DataGridView();
             this.tabPage7 = new System.Windows.Forms.TabPage();
+            this.lstSelectToursAnalysis = new System.Windows.Forms.CheckedListBox();
             this.label32 = new System.Windows.Forms.Label();
             this.label31 = new System.Windows.Forms.Label();
             this.txtMagGrams2 = new System.Windows.Forms.TextBox();
@@ -1200,6 +1201,7 @@ namespace equilibreuse
             // 
             // tabPage7
             // 
+            this.tabPage7.Controls.Add(this.lstSelectToursAnalysis);
             this.tabPage7.Controls.Add(this.label32);
             this.tabPage7.Controls.Add(this.label31);
             this.tabPage7.Controls.Add(this.txtMagGrams2);
@@ -1251,6 +1253,15 @@ namespace equilibreuse
             this.tabPage7.Text = "Section selector";
             this.tabPage7.UseVisualStyleBackColor = true;
             // 
+            // lstSelectToursAnalysis
+            // 
+            this.lstSelectToursAnalysis.CheckOnClick = true;
+            this.lstSelectToursAnalysis.FormattingEnabled = true;
+            this.lstSelectToursAnalysis.Location = new System.Drawing.Point(1017, 8);
+            this.lstSelectToursAnalysis.Name = "lstSelectToursAnalysis";
+            this.lstSelectToursAnalysis.Size = new System.Drawing.Size(218, 109);
+            this.lstSelectToursAnalysis.TabIndex = 104;
+            // 
             // label32
             // 
             this.label32.AutoSize = true;
@@ -1263,7 +1274,7 @@ namespace equilibreuse
             // label31
             // 
             this.label31.AutoSize = true;
-            this.label31.Location = new System.Drawing.Point(967, 130);
+            this.label31.Location = new System.Drawing.Point(967, 159);
             this.label31.Name = "label31";
             this.label31.Size = new System.Drawing.Size(72, 13);
             this.label31.TabIndex = 103;
@@ -1279,7 +1290,7 @@ namespace equilibreuse
             // label30
             // 
             this.label30.AutoSize = true;
-            this.label30.Location = new System.Drawing.Point(968, 103);
+            this.label30.Location = new System.Drawing.Point(968, 132);
             this.label30.Name = "label30";
             this.label30.Size = new System.Drawing.Size(43, 13);
             this.label30.TabIndex = 102;
@@ -1296,7 +1307,7 @@ namespace equilibreuse
             "Global PkPk LP 5hz",
             "Compiled Mag",
             "Turn by Turn Mag"});
-            this.cbxMagData.Location = new System.Drawing.Point(1045, 127);
+            this.cbxMagData.Location = new System.Drawing.Point(1045, 156);
             this.cbxMagData.Name = "cbxMagData";
             this.cbxMagData.Size = new System.Drawing.Size(121, 21);
             this.cbxMagData.TabIndex = 101;
@@ -1311,7 +1322,7 @@ namespace equilibreuse
             "Compiled Temporal",
             "Turn by Turn FFT",
             "Turn by Turn Temporal"});
-            this.cbxAngleData.Location = new System.Drawing.Point(1045, 100);
+            this.cbxAngleData.Location = new System.Drawing.Point(1045, 129);
             this.cbxAngleData.Name = "cbxAngleData";
             this.cbxAngleData.Size = new System.Drawing.Size(121, 21);
             this.cbxAngleData.TabIndex = 100;
@@ -1460,9 +1471,9 @@ namespace equilibreuse
             // 
             // btnFindAngles
             // 
-            this.btnFindAngles.Location = new System.Drawing.Point(725, 6);
+            this.btnFindAngles.Location = new System.Drawing.Point(951, 6);
             this.btnFindAngles.Name = "btnFindAngles";
-            this.btnFindAngles.Size = new System.Drawing.Size(165, 23);
+            this.btnFindAngles.Size = new System.Drawing.Size(60, 111);
             this.btnFindAngles.TabIndex = 82;
             this.btnFindAngles.Text = "Complete Analysis";
             this.btnFindAngles.UseVisualStyleBackColor = true;
@@ -1654,7 +1665,7 @@ namespace equilibreuse
             // 
             // btnExportWAV
             // 
-            this.btnExportWAV.Location = new System.Drawing.Point(629, 7);
+            this.btnExportWAV.Location = new System.Drawing.Point(514, 93);
             this.btnExportWAV.Name = "btnExportWAV";
             this.btnExportWAV.Size = new System.Drawing.Size(75, 23);
             this.btnExportWAV.TabIndex = 10;
@@ -1664,7 +1675,7 @@ namespace equilibreuse
             // 
             // btn240250
             // 
-            this.btn240250.Location = new System.Drawing.Point(725, 66);
+            this.btn240250.Location = new System.Drawing.Point(714, 37);
             this.btn240250.Name = "btn240250";
             this.btn240250.Size = new System.Drawing.Size(75, 23);
             this.btn240250.TabIndex = 9;
@@ -1674,7 +1685,7 @@ namespace equilibreuse
             // 
             // btn250300
             // 
-            this.btn250300.Location = new System.Drawing.Point(817, 66);
+            this.btn250300.Location = new System.Drawing.Point(806, 37);
             this.btn250300.Name = "btn250300";
             this.btn250300.Size = new System.Drawing.Size(75, 23);
             this.btn250300.TabIndex = 8;
@@ -1684,7 +1695,7 @@ namespace equilibreuse
             // 
             // btn230240
             // 
-            this.btn230240.Location = new System.Drawing.Point(629, 66);
+            this.btn230240.Location = new System.Drawing.Point(618, 37);
             this.btn230240.Name = "btn230240";
             this.btn230240.Size = new System.Drawing.Size(75, 23);
             this.btn230240.TabIndex = 7;
@@ -1694,7 +1705,7 @@ namespace equilibreuse
             // 
             // btn210220
             // 
-            this.btn210220.Location = new System.Drawing.Point(725, 37);
+            this.btn210220.Location = new System.Drawing.Point(714, 8);
             this.btn210220.Name = "btn210220";
             this.btn210220.Size = new System.Drawing.Size(75, 23);
             this.btn210220.TabIndex = 6;
@@ -1704,7 +1715,7 @@ namespace equilibreuse
             // 
             // btn220230
             // 
-            this.btn220230.Location = new System.Drawing.Point(817, 37);
+            this.btn220230.Location = new System.Drawing.Point(806, 8);
             this.btn220230.Name = "btn220230";
             this.btn220230.Size = new System.Drawing.Size(75, 23);
             this.btn220230.TabIndex = 5;
@@ -1714,7 +1725,7 @@ namespace equilibreuse
             // 
             // btn200210
             // 
-            this.btn200210.Location = new System.Drawing.Point(629, 37);
+            this.btn200210.Location = new System.Drawing.Point(618, 6);
             this.btn200210.Name = "btn200210";
             this.btn200210.Size = new System.Drawing.Size(75, 23);
             this.btn200210.TabIndex = 4;
@@ -2252,6 +2263,7 @@ namespace equilibreuse
         private System.Windows.Forms.Label label30;
         private System.Windows.Forms.Label label32;
         private System.Windows.Forms.TextBox txtMagGrams2;
+        private System.Windows.Forms.CheckedListBox lstSelectToursAnalysis;
     }
 }
 

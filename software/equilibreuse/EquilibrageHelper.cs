@@ -100,8 +100,8 @@ namespace equilibreuse
 
             // 2. Calcul du couple dynamique (vecteur rotationnel entre X et Y)
             //    On prend la différence des deux vecteurs (sens dynamique)
-            double dx = vx + wx;
-            double dy = vy + wy;
+            double dx = vx - wx;
+            double dy = vy - wy;
 
             // 3. Angle moyen pour placer les 2 masses (± 90° de différence)
             double angleRad = Math.Atan2(dy, dx); // angle en radians

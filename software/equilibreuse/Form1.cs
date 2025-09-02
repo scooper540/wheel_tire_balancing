@@ -1906,55 +1906,45 @@ namespace equilibreuse
             List<double> angleY = new List<double>();
             List<double> magnitudeX = new List<double>();
             List<double> magnitudeY = new List<double>();
-
             lstAngleXAnalysis.Clear();
             lstAngleYAnalysis.Clear();
             btnUnselectAll_Click(null, EventArgs.Empty);
-            btn200210_Click(null, EventArgs.Empty);
-            Analyze(sLastCSV, false);
-            var data = GetDataForCalculation();
-            angleX.Add(data.angleX);
-            magnitudeX.Add(data.magX);
-            angleY.Add(data.angleY);
-            magnitudeY.Add(data.magY);
+            for(int i = 0; i < lstSelectToursAnalysis.CheckedItems.Count;i++)
+            {
+                btnUnselectAll_Click(null, EventArgs.Empty);
+                if (lstSelectToursAnalysis.CheckedItems[i].ToString().StartsWith("200-210"))
+                {
+                    btn200210_Click(null, EventArgs.Empty);
+                }
+                else if (lstSelectToursAnalysis.CheckedItems[i].ToString().StartsWith("210-220"))
+                {
+                    btn210220_Click(null, EventArgs.Empty);
+                }
+                else if (lstSelectToursAnalysis.CheckedItems[i].ToString().StartsWith("220-230"))
+                {
+                    btn220230_Click(null, EventArgs.Empty);
+                }
+                else if (lstSelectToursAnalysis.CheckedItems[i].ToString().StartsWith("230-240"))
+                {
+                    btn230240_Click(null, EventArgs.Empty);
+                }
+                else if (lstSelectToursAnalysis.CheckedItems[i].ToString().StartsWith("240-250"))
+                {
+                    btn240250_Click(null, EventArgs.Empty);
+                }
 
-            btnUnselectAll_Click(null, EventArgs.Empty);
-
-            btn210220_Click(null, EventArgs.Empty);
-            Analyze(sLastCSV, false);
-            data = GetDataForCalculation();
-            angleX.Add(data.angleX);
-            magnitudeX.Add(data.magX);
-            angleY.Add(data.angleY);
-            magnitudeY.Add(data.magY);
-
-            btnUnselectAll_Click(null, EventArgs.Empty);
-            btn220230_Click(null, EventArgs.Empty);
-            Analyze(sLastCSV, false);
-            data = GetDataForCalculation();
-            angleX.Add(data.angleX);
-            magnitudeX.Add(data.magX);
-            angleY.Add(data.angleY);
-            magnitudeY.Add(data.magY);
-
-            btnUnselectAll_Click(null, EventArgs.Empty);
-            btn230240_Click(null, EventArgs.Empty);
-            Analyze(sLastCSV, false);
-            data = GetDataForCalculation();
-            angleX.Add(data.angleX);
-            magnitudeX.Add(data.magX);
-            angleY.Add(data.angleY);
-            magnitudeY.Add(data.magY);
-
-            btnUnselectAll_Click(null, EventArgs.Empty);
-            btn240250_Click(null, EventArgs.Empty);
-            Analyze(sLastCSV, false);
-            data = GetDataForCalculation();
-            angleX.Add(data.angleX);
-            magnitudeX.Add(data.magX);
-            angleY.Add(data.angleY);
-            magnitudeY.Add(data.magY);
-
+                Analyze(sLastCSV, false);
+                var data = GetDataForCalculation();
+                angleX.Add(data.angleX);
+                magnitudeX.Add(data.magX);
+                angleY.Add(data.angleY);
+                magnitudeY.Add(data.magY);
+                angleX.Add(data.angleX);
+                magnitudeX.Add(data.magX);
+                angleY.Add(data.angleY);
+                magnitudeY.Add(data.magY);
+            }
+           
             lblAngleXStat.Text = $"X - Angle:{angleX.Min().ToString("F0")}-{angleX.Max().ToString("F0")} Mag:{magnitudeX.Min().ToString("F2")}-{magnitudeX.Max().ToString("F2")}";
             lblAngleYStat.Text = $"Y - Angle:{angleY.Min().ToString("F0")}-{angleY.Max().ToString("F0")} Mag:{magnitudeY.Min().ToString("F2")}-{magnitudeY.Max().ToString("F2")}";
             txtAngleXCalc.Text = MathHelper.CalculateMeanAngle(angleX.ToArray()).ToString("F0");
@@ -1987,14 +1977,14 @@ namespace equilibreuse
                 var ky1 = EquilibrageHelper.CalculateGrowthConstant(magYBalanced, magY1, mass1);
                 var massX = EquilibrageHelper.EstimateCorrectiveMass(magX, magXBalanced, kx);
                 var massY = EquilibrageHelper.EstimateCorrectiveMass(magY, magYBalanced, ky);
-                //var k = EquilibrageHelper.EstimateSensitivityVector2D(magX1, 0, magY1, 0, mass1, 0, magX2, 180, magY2, 180, mass2,180);
+                var k = EquilibrageHelper.EstimateSensitivityVector2D(magX1, 0, magY1, 0, mass1, 0, magX2, 180, magY2, 180, mass2,180);
 
-                //var res = EquilibrageHelper.EstimateDynamicBalancing(Convert.ToDouble(txtMagnitudeX.Text), Convert.ToDouble(txtAngleXCalc.Text), Convert.ToDouble(txtMagnitudeY.Text), Convert.ToDouble(txtAngleYCalc.Text), k.kY, k.kX);
+                var res = EquilibrageHelper.EstimateDynamicBalancing(Convert.ToDouble(txtMagnitudeX.Text), Convert.ToDouble(txtAngleXCalc.Text), Convert.ToDouble(txtMagnitudeY.Text), Convert.ToDouble(txtAngleYCalc.Text), k.kY, k.kX);
                 //   var kx = EquilibrageHelper.CalculateAttenuationConstantFrom3Points(Convert.ToDouble(txtXMagBalanced.Text), Convert.ToDouble(txtXMagG1.Text), Convert.ToDouble(txtMagGrams1.Text), Convert.ToDouble(txtXMagG2.Text), Convert.ToDouble(txtMagGrams2.Text));
                 //   var ky = EquilibrageHelper.CalculateAttenuationConstantFrom3Points(Convert.ToDouble(txtYMagBalanced.Text), Convert.ToDouble(txtYMag1.Text), Convert.ToDouble(txtMagGrams1.Text), Convert.ToDouble(txtYMag2.Text), Convert.ToDouble(txtMagGrams2.Text));
                 //   var res = EquilibrageHelper.EstimateDynamicBalancing(Convert.ToDouble(txtMagnitudeX.Text), Convert.ToDouble(txtAngleXCalc.Text), Convert.ToDouble(txtMagnitudeY.Text), Convert.ToDouble(txtAngleYCalc.Text), kx1, ky);
-                lblAngleXCorrect.Text += " Mass:" + massX.ToString("F0");
-                lblAngleYCorrect.Text += " Mass:" + massY.ToString("F0");
+                lblAngleXCorrect.Text += " Angle: " + res.AngleInnerDeg + " Mass:" + res.MassInner.ToString("F0");
+                lblAngleYCorrect.Text += " Angle: " + res.AngleOuterDeg + " Mass:" + res.MassOuter.ToString("F0");
             }
             catch
             { }
@@ -2020,6 +2010,12 @@ namespace equilibreuse
         {
             try
             {
+                lstSelectToursAnalysis.Items.Clear();
+                lstSelectToursAnalysis.Items.Add("200-210", true);
+                lstSelectToursAnalysis.Items.Add("210-220", true);
+                lstSelectToursAnalysis.Items.Add("220-230", true);
+                lstSelectToursAnalysis.Items.Add("230-240", true);
+                lstSelectToursAnalysis.Items.Add("240-250", true);
                 OpenFileDialog dlg = new OpenFileDialog();
                 dlg.Title = "Select CSV file";
                 dlg.CheckFileExists = true;
