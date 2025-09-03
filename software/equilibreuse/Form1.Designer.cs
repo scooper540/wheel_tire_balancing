@@ -1321,7 +1321,9 @@ namespace equilibreuse
             "Compiled FFT",
             "Compiled Temporal",
             "Turn by Turn FFT",
-            "Turn by Turn Temporal"});
+            "Turn by Turn Temporal",
+            "Global lock-in",
+            "AVG FFT-Lockin"});
             this.cbxAngleData.Location = new System.Drawing.Point(1045, 129);
             this.cbxAngleData.Name = "cbxAngleData";
             this.cbxAngleData.Size = new System.Drawing.Size(121, 21);

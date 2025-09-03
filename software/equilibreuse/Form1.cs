@@ -1637,6 +1637,23 @@ namespace equilibreuse
             MathHelper.AnalyzeAxisTemporal(axis, data, angle, sampleRate, lstPeak, c, pltTemporal, f_rot);
             FFTData dataFFT = EquilibrageHelper.CalculateFFT(data, sampleRate, cbxFFTSingle, chkDb.Checked, rpm, f_rot);
             double fftLimit = Convert.ToDouble(txtFFTLimit.Text);
+            double[] temporal = Enumerable.Range(0, data.Length)
+                                .Select(i => (double)i)
+                                .ToArray();
+            double maxOriginal = data.Max(s => Math.Abs(s));
+            double maxInverse = dataFFT.SignalFFTInverse.Max(s => Math.Abs(s));
+
+            if (maxInverse > 0)
+            {
+                double scaleFactor = maxOriginal / maxInverse;
+                dataFFT.SignalFFTInverse = dataFFT.SignalFFTInverse
+                    .Select(x => x * scaleFactor)
+                    .ToArray();
+            }
+
+            var sp = pltTemporal.Add.Scatter(temporal, dataFFT.SignalFFTInverse, ScottPlot.Colors.Orange);
+            sp.LegendText = "FFT Inverse";
+            sp.MarkerShape = MarkerShape.None;
             MathHelper.AnalyzeAxis(axis, dataFFT, sampleRate, lstPeak, c, pltFFT, f_rot, fftLimit);
         }
 
@@ -1772,6 +1789,7 @@ namespace equilibreuse
             //psd = (magnitude * magnitude) / analyzedY.Length;
             currentAnalysisX.gMagPSD = (dataGlobalX.fund.Magnitude * dataGlobalX.fund.Magnitude) / dataGlobal.x.Length;
             currentAnalysisX.gMagRatio = dataGlobalX.fund.Magnitude / currentAnalysisX.numberOfTurn;
+            currentAnalysisX.gAlternateFFT = dataGlobalX.angleLockin;
 
             currentAnalysisY.gAngleTemporal = dataGlobalY.angleTemporal;
             currentAnalysisY.gAngleFFT = dataGlobalY.fund.Angle;
@@ -1782,6 +1800,7 @@ namespace equilibreuse
             //psd = (magnitude * magnitude) / analyzedY.Length;
             currentAnalysisY.gMagPSD = (dataGlobalY.fund.Magnitude * dataGlobalY.fund.Magnitude) / dataGlobal.y.Length;
             currentAnalysisY.gMagRatio = dataGlobalY.fund.Magnitude / currentAnalysisY.numberOfTurn;
+            currentAnalysisY.gAlternateFFT = dataGlobalY.angleLockin;
 
             List<double> lstAngleFFTX = new List<double>();
             List<double> lstAngleTemporalX = new List<double>();
@@ -1828,8 +1847,10 @@ namespace equilibreuse
             currentAnalysisX.ttAngleTemporal = (currentAnalysisX.ttAngleTemporal + xCorrectTemp) % 360;
             currentAnalysisX.coAngleFFT = (currentAnalysisX.coAngleFFT + xCorrect) % 360;
             currentAnalysisX.coAngleTemporal = (currentAnalysisX.coAngleTemporal + xCorrectTemp) % 360;
+            
             currentAnalysisX.gAngleFFT = (currentAnalysisX.gAngleFFT + xCorrect) % 360;
             currentAnalysisX.gAngleTemporal = (currentAnalysisX.gAngleTemporal + xCorrectTemp) % 360;
+            currentAnalysisX.gAlternateFFT = (currentAnalysisX.gAlternateFFT + xCorrectTemp) % 360;
 
             currentAnalysisY.ttAngleFFT = (currentAnalysisY.ttAngleFFT + yCorrect) % 360;
             currentAnalysisY.ttAngleTemporal = (currentAnalysisY.ttAngleTemporal + yCorrectTemp) % 360;
@@ -1837,6 +1858,7 @@ namespace equilibreuse
             currentAnalysisY.coAngleTemporal = (currentAnalysisY.coAngleTemporal + yCorrectTemp) % 360;
             currentAnalysisY.gAngleFFT = (currentAnalysisY.gAngleFFT + yCorrect) % 360;
             currentAnalysisY.gAngleTemporal = (currentAnalysisY.gAngleTemporal + yCorrectTemp) % 360;
+            currentAnalysisY.gAlternateFFT = (currentAnalysisY.gAlternateFFT + yCorrectTemp) % 360;
 
             formsPlotT1X.Plot.Add.VerticalLine(currentAnalysisX.gAngleFFT, color: Colors.Green, width: 3);
             formsPlotT1Y.Plot.Add.VerticalLine(currentAnalysisY.gAngleFFT, color: Colors.Green, width: 3);
@@ -1873,7 +1895,7 @@ namespace equilibreuse
 
         }
 
-        private (double angleTemporal, double pkpkTT, double pkpkFilter, double rms, Fundamentale fund) GetPhaseMagnitude(double[] data, double[] angle, double sampleRate, double rpm, double f_rot)
+        private (double angleTemporal, double angleLockin, double pkpkTT, double pkpkFilter, double rms, Fundamentale fund) GetPhaseMagnitude(double[] data, double[] angle, double sampleRate, double rpm, double f_rot)
         {
             double angleTemporal = 0;
             var l = new LowPassFilter(5, sampleRate);
@@ -1895,9 +1917,10 @@ namespace equilibreuse
             double[] z = new double[1];
             double[] resultante = new double[1];
             ApplyFilters(sampleRate, f_rot, ref data, ref y, ref z, ref resultante);
+            var res = EquilibrageHelper.AnalyzeSignal(data, sampleRate, f_rot, cbxFFT, chkDb, rpm);
             FFTData dataFFT = EquilibrageHelper.CalculateFFT(data, sampleRate, cbxFFTSingle, chkDb.Checked, rpm, f_rot);
             var fund = EquilibrageHelper.GetFundamentalPhase(dataFFT.Frequence, dataFFT.Magnitude, dataFFT.AngleDeg, f_rot);
-            return (angleTemporal, dataFiltered.Max() - dataFiltered.Min(), data.Max() - data.Min(), Statistics.RootMeanSquare(data), fund);
+            return (angleTemporal, res.rPhaseLockIn, dataFiltered.Max() - dataFiltered.Min(), data.Max() - data.Min(), Statistics.RootMeanSquare(data), fund);
         }
 
         private void btnExecuteAnalysis_Click(object sender, EventArgs e)
@@ -2416,6 +2439,7 @@ namespace equilibreuse
                 new DataGridViewColumn(){ HeaderText = "Turn-Turn Mag AVG", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
 
                 new DataGridViewColumn(){ HeaderText = "Global Angle FFT", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Global Angle Lock-in", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Compiled Angle FFT", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Turn-Turn Angle FFT", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Global Angle Temporal", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
@@ -2445,6 +2469,7 @@ namespace equilibreuse
                 new DataGridViewColumn(){ HeaderText = "Turn-Turn Mag AVG", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
 
                 new DataGridViewColumn(){ HeaderText = "Global Angle FFT", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Global Angle Lock-in", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Compiled Angle FFT", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Turn-Turn Angle FFT", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Global Angle Temporal", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
@@ -2510,6 +2535,14 @@ namespace equilibreuse
                 case "Turn by Turn Temporal":
                     angleX = currentAnalysisX.ttAngleTemporal;
                     angleY = currentAnalysisY.ttAngleTemporal;
+                    break;
+                case "Global lock-in":
+                    angleX = currentAnalysisX.gAlternateFFT;
+                    angleY = currentAnalysisY.gAlternateFFT;
+                    break;
+                case "AVG FFT-Lockin":
+                    angleX = MathHelper.CalculateMeanAngle(new double[] { currentAnalysisX.gAlternateFFT, currentAnalysisX.gAngleFFT });
+                    angleY = MathHelper.CalculateMeanAngle(new double[] { currentAnalysisY.gAlternateFFT, currentAnalysisY.gAngleFFT });
                     break;
                 default:
                     angleX = angleY = 0;
@@ -2653,7 +2686,7 @@ namespace equilibreuse
         public double gMagRatio;
         public double gAngleFFT;
         public double gAngleTemporal;
-        
+        public double gAlternateFFT;
         public double ttPkPkTT;
         public double ttPkPkFilter;
         public double ttMagAvg;
@@ -2729,6 +2762,7 @@ namespace equilibreuse
                 coMagAvg.ToString("F4"),
                 ttMagAvg.ToString("F4"),
                 gAngleFFT.ToString("F4"),
+                gAlternateFFT.ToString("F4"),
                 coAngleFFT.ToString("F4"),
                 ttAngleFFT.ToString("F4"),
                 gAngleTemporal.ToString("F4"),

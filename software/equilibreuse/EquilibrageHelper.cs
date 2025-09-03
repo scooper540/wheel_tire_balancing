@@ -368,7 +368,7 @@ namespace equilibreuse
                 data.Magnitude[i] = data.Magnitude[i] / (omega * omega); // ou mag / (rpm * rpm) si tu restes en RPM
                 if (bdB)
                     data.Magnitude[i] = 10 * Math.Log10(data.Magnitude[i]) - 10 * Math.Log10(fftSize);
-                data.AngleDeg[i]  = (double)(Math.Atan2(im[i], re[i]) * (180.0 / Math.PI) + 360) % 360;
+                data.AngleDeg[i]  = 360 - (double)(Math.Atan2(im[i], re[i]) * (180.0 / Math.PI) + 360) % 360; //360 to have correct angle correction
             }
             data.Magnitude[0] = Math.Abs(re[0]) / (omega * omega);
 
@@ -488,7 +488,7 @@ namespace equilibreuse
             I /= signal.Length;
             Q /= signal.Length;
 
-            return ((Math.Atan2(Q, I) * 180 / Math.PI)+360)%360; // Phase en degrés
+            return ((Math.Atan2(I, Q) * 180 / Math.PI)+360)%360; // Phase en degrés
         }
 
         private static double[] GenerateSineWave(double freq, double samplingRate, int length, double phaseDeg)

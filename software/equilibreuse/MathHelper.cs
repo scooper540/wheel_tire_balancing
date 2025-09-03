@@ -212,6 +212,7 @@ namespace equilibreuse
                 var scatter2 = plt.Add.Scatter(filteredFreqs, filteredAngle, color: plotColor);
                 scatter2.LegendText = "ANGLE" + name;
                 scatter2.IsVisible = false;
+                
                 //find and draw first 5 harmonics
                 for (int i = 0; i < 5; i++)
                 {
