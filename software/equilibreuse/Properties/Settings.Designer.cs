@@ -370,5 +370,17 @@ namespace equilibreuse.Properties {
                 this["MagData"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ClockwiseRotating {
+            get {
+                return ((bool)(this["ClockwiseRotating"]));
+            }
+            set {
+                this["ClockwiseRotating"] = value;
+            }
+        }
     }
 }

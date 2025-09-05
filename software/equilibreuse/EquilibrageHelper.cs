@@ -72,13 +72,13 @@ namespace equilibreuse
     }
     public static class EquilibrageHelper
     {
-        public static PhaseAnalysis AnalyzeSignal(double[] signal, double sampleRate, double f_rot, ComboBox cbxFFT, CheckBox chkDb, double rpm)
+        public static PhaseAnalysis AnalyzeSignal(double[] signal, double sampleRate, double f_rot, ComboBox cbxFFT, CheckBox chkDb, double rpm,bool clockWize)
         {
             var res = new PhaseAnalysis();
             res.rPhaseLockIn = EquilibrageHelper.ComputeLockInPhase(signal, f_rot, sampleRate);
             res.rFitSinusoid = EquilibrageHelper.FitSinusoidPhase(signal, f_rot, sampleRate);
             res.rDetectPhase = EquilibrageHelper.DetectPhase(signal, sampleRate, f_rot).phaseDegrees;
-            var fft = EquilibrageHelper.CalculateFFT(signal, sampleRate, cbxFFT, chkDb.Checked, rpm, f_rot);
+            var fft = EquilibrageHelper.CalculateFFT(signal, sampleRate, cbxFFT, chkDb.Checked, rpm, f_rot, clockWize);
             var fund = EquilibrageHelper.GetFundamentalPhase(fft.Frequence, fft.Magnitude, fft.AngleDeg, f_rot);
             res.rFFT = fund.Angle;
             return res;
@@ -100,8 +100,8 @@ namespace equilibreuse
 
             // 2. Calcul du couple dynamique (vecteur rotationnel entre X et Y)
             //    On prend la différence des deux vecteurs (sens dynamique)
-            double dx = vx - wx;
-            double dy = vy - wy;
+            double dx = vx + wx;
+            double dy = vy + wy;
 
             // 3. Angle moyen pour placer les 2 masses (± 90° de différence)
             double angleRad = Math.Atan2(dy, dx); // angle en radians
@@ -310,7 +310,7 @@ namespace equilibreuse
         }
 
      
-        internal static FFTData CalculateFFT(double[] signal, double sampleRate, ComboBox cbxFFT,bool bdB,double rpm, double f_rot)
+        internal static FFTData CalculateFFT(double[] signal, double sampleRate, ComboBox cbxFFT,bool bdB,double rpm, double f_rot, bool bClockwizeRotating)
         {        
             // Paramètres du zero-padding
             int count = signal.Count();
@@ -368,7 +368,10 @@ namespace equilibreuse
                 data.Magnitude[i] = data.Magnitude[i] / (omega * omega); // ou mag / (rpm * rpm) si tu restes en RPM
                 if (bdB)
                     data.Magnitude[i] = 10 * Math.Log10(data.Magnitude[i]) - 10 * Math.Log10(fftSize);
-                data.AngleDeg[i]  = 360 - (double)(Math.Atan2(im[i], re[i]) * (180.0 / Math.PI) + 360) % 360; //360 to have correct angle correction
+                data.AngleDeg[i]  = (double)(Math.Atan2(im[i], re[i]) * (180.0 / Math.PI) + 360) % 360; //360 to have correct angle correction
+                if (bClockwizeRotating)
+                    data.AngleDeg[i] = 360 - data.AngleDeg[i]; //if clockwize rotating, the angle has to be inverted
+
             }
             data.Magnitude[0] = Math.Abs(re[0]) / (omega * omega);
 
@@ -1122,8 +1125,8 @@ namespace equilibreuse
             double kIntY = kInt * Math.Sin(angleInner * Math.PI / 180.0);
 
             // Résultat mesuré (Fx, Fy)
-            double Fx = fx;
-            double Fy = fy;
+            double Fx = -fx;
+            double Fy = -fy;
 
             // Résolution du système linéaire 2x2
             double det = kExtX * kIntY - kIntX * kExtY;
@@ -1132,15 +1135,15 @@ namespace equilibreuse
 
             double invDet = 1.0 / det;
 
-            double mExt = invDet * (kIntY * Fx - kIntX * Fy);
-            double mInt = invDet * (-kExtY * Fx + kExtX * Fy);
+            double mInt = invDet * (kIntY * Fx - kIntX * Fy);
+            double mExt = invDet * (-kExtY * Fx + kExtX * Fy);
 
             return new DynamicCorrectionResult2
             {
                 AngleInnerDeg = angleInner,
                 AngleOuterDeg = angleOuter,
-                MassInner = mInt,
-                MassOuter = mExt
+                MassInner = mInt / 1000.0,
+                MassOuter = mExt /1000.0
             };
         }
   

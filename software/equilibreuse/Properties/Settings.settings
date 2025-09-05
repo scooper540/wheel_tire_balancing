@@ -89,5 +89,8 @@
     <Setting Name="MagData" Type="System.String" Scope="User">
       <Value Profile="(Default)">Global PkPk Filter</Value>
     </Setting>
+    <Setting Name="ClockwiseRotating" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

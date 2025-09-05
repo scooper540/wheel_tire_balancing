@@ -65,11 +65,10 @@ namespace equilibreuse
             btnClearAnalysisHistory_Click(null, EventArgs.Empty);
 
             txtMagGrams1.Text = Properties.Settings.Default.CalibGrams1.ToString();
-            txtMagGrams2.Text = Properties.Settings.Default.CalibGrams2.ToString();
+          
             txtXMagBalanced.Text = Properties.Settings.Default.XMagBalanced.ToString();
             txtYMagBalanced.Text = Properties.Settings.Default.YMagBalance.ToString();
-            txtXMagG2.Text = Properties.Settings.Default.XMag2.ToString();
-            txtYMag2.Text = Properties.Settings.Default.YMag2.ToString();
+          
             txtXMagG1.Text = Properties.Settings.Default.XMag1.ToString();
             txtYMag1.Text = Properties.Settings.Default.YMag1.ToString();
             txtCorrectAngleX.Text = Properties.Settings.Default.XAngleCorrect.ToString();
@@ -93,7 +92,7 @@ namespace equilibreuse
             cbxFFT.SelectedItem = Properties.Settings.Default.FFTGlobal;
             cbxAngleData.SelectedItem = Properties.Settings.Default.AngleData;
             cbxMagData.SelectedItem = Properties.Settings.Default.MagData;
-
+            chkClockwise.Checked = Properties.Settings.Default.ClockwiseRotating;
         }
 
         private void T1_Tick(object sender, EventArgs e)
@@ -325,9 +324,11 @@ namespace equilibreuse
                 // Sensitivity Scale Factor (MPU datasheet page 9)
                 //16384 for 2G
                 //8192 for 4G
-                data.x = (double)((x) * G / 16384.0);
-                data.y = (double)((y) * G / 16384.0);
-                data.z = (double)((z) * G / 16384.0);
+                //4096 for 8G
+                //2048 for 16G
+                data.x = (double)((x) * G / 4096.0);
+                data.y = (double)((y) * G / 4096.0);
+                data.z = (double)((z) * G / 4096.0);
                 data.gx = (double)((gx) / 131.0);
                 data.gy = (double)((gy) / 131.0);
                 data.gz = (double)((gz) / 131.0);
@@ -1462,10 +1463,10 @@ namespace equilibreuse
             }
             else
             {
-                FFTData cmpX = EquilibrageHelper.CalculateFFT(analyzedX, sampleRate, cbxFFT, chkDb.Checked, rpm, f_rot);
-                FFTData cmpY = EquilibrageHelper.CalculateFFT(analyzedY, sampleRate, cbxFFT, chkDb.Checked, rpm, f_rot);
-                FFTData cmpZ = EquilibrageHelper.CalculateFFT(analyzedZ, sampleRate, cbxFFT, chkDb.Checked, rpm, f_rot);
-                FFTData cmpResultante = EquilibrageHelper.CalculateFFT(resultante, sampleRate, cbxFFT, chkDb.Checked, rpm, f_rot);
+                FFTData cmpX = EquilibrageHelper.CalculateFFT(analyzedX, sampleRate, cbxFFT, chkDb.Checked, rpm, f_rot, chkClockwise.Checked);
+                FFTData cmpY = EquilibrageHelper.CalculateFFT(analyzedY, sampleRate, cbxFFT, chkDb.Checked, rpm, f_rot, chkClockwise.Checked);
+                FFTData cmpZ = EquilibrageHelper.CalculateFFT(analyzedZ, sampleRate, cbxFFT, chkDb.Checked, rpm, f_rot, chkClockwise.Checked);
+                FFTData cmpResultante = EquilibrageHelper.CalculateFFT(resultante, sampleRate, cbxFFT, chkDb.Checked, rpm, f_rot, chkClockwise.Checked);
 
                 formsPlotGyro.Plot.Clear();
                 lstPeakGyroX.Items.Clear();
@@ -1635,7 +1636,7 @@ namespace equilibreuse
         {
             lstPeak.Items.Clear();
             MathHelper.AnalyzeAxisTemporal(axis, data, angle, sampleRate, lstPeak, c, pltTemporal, f_rot);
-            FFTData dataFFT = EquilibrageHelper.CalculateFFT(data, sampleRate, cbxFFTSingle, chkDb.Checked, rpm, f_rot);
+            FFTData dataFFT = EquilibrageHelper.CalculateFFT(data, sampleRate, cbxFFTSingle, chkDb.Checked, rpm, f_rot, chkClockwise.Checked);
             double fftLimit = Convert.ToDouble(txtFFTLimit.Text);
             double[] temporal = Enumerable.Range(0, data.Length)
                                 .Select(i => (double)i)
@@ -1898,8 +1899,8 @@ namespace equilibreuse
         private (double angleTemporal, double angleLockin, double pkpkTT, double pkpkFilter, double rms, Fundamentale fund) GetPhaseMagnitude(double[] data, double[] angle, double sampleRate, double rpm, double f_rot)
         {
             double angleTemporal = 0;
-            var l = new LowPassFilter(5, sampleRate);
-            var dataFiltered = LowPassFilter.ApplyZeroPhase(data, l);
+            //var l = new LowPassFilter(5, sampleRate);
+            var dataFiltered = data;
             if (chkRemoveDC.Checked)
                 dataFiltered = LowPassFilter.RemoveDCOffset(dataFiltered);
             //apply gain on signal
@@ -1917,8 +1918,8 @@ namespace equilibreuse
             double[] z = new double[1];
             double[] resultante = new double[1];
             ApplyFilters(sampleRate, f_rot, ref data, ref y, ref z, ref resultante);
-            var res = EquilibrageHelper.AnalyzeSignal(data, sampleRate, f_rot, cbxFFT, chkDb, rpm);
-            FFTData dataFFT = EquilibrageHelper.CalculateFFT(data, sampleRate, cbxFFTSingle, chkDb.Checked, rpm, f_rot);
+            var res = EquilibrageHelper.AnalyzeSignal(data, sampleRate, f_rot, cbxFFT, chkDb, rpm, chkClockwise.Checked);
+            FFTData dataFFT = EquilibrageHelper.CalculateFFT(data, sampleRate, cbxFFTSingle, chkDb.Checked, rpm, f_rot, chkClockwise.Checked);
             var fund = EquilibrageHelper.GetFundamentalPhase(dataFFT.Frequence, dataFFT.Magnitude, dataFFT.AngleDeg, f_rot);
             return (angleTemporal, res.rPhaseLockIn, dataFiltered.Max() - dataFiltered.Min(), data.Max() - data.Min(), Statistics.RootMeanSquare(data), fund);
         }
@@ -1934,7 +1935,9 @@ namespace equilibreuse
             btnUnselectAll_Click(null, EventArgs.Empty);
             for(int i = 0; i < lstSelectToursAnalysis.CheckedItems.Count;i++)
             {
+                
                 btnUnselectAll_Click(null, EventArgs.Empty);
+                
                 if (lstSelectToursAnalysis.CheckedItems[i].ToString().StartsWith("200-210"))
                 {
                     btn200210_Click(null, EventArgs.Empty);
@@ -1955,26 +1958,36 @@ namespace equilibreuse
                 {
                     btn240250_Click(null, EventArgs.Empty);
                 }
-
+                
+                currentAnalysisX = currentAnalysisY = null;
                 Analyze(sLastCSV, false);
+                if (currentAnalysisX == null)
+                    continue;
                 var data = GetDataForCalculation();
                 angleX.Add(data.angleX);
                 magnitudeX.Add(data.magX);
                 angleY.Add(data.angleY);
                 magnitudeY.Add(data.magY);
-                angleX.Add(data.angleX);
-                magnitudeX.Add(data.magX);
-                angleY.Add(data.angleY);
-                magnitudeY.Add(data.magY);
             }
-           
-            lblAngleXStat.Text = $"X - Angle:{angleX.Min().ToString("F0")}-{angleX.Max().ToString("F0")} Mag:{magnitudeX.Min().ToString("F2")}-{magnitudeX.Max().ToString("F2")}";
-            lblAngleYStat.Text = $"Y - Angle:{angleY.Min().ToString("F0")}-{angleY.Max().ToString("F0")} Mag:{magnitudeY.Min().ToString("F2")}-{magnitudeY.Max().ToString("F2")}";
-            txtAngleXCalc.Text = MathHelper.CalculateMeanAngle(angleX.ToArray()).ToString("F0");
-            txtAngleYCalc.Text = MathHelper.CalculateMeanAngle(angleY.ToArray()).ToString("F0");
-            txtMagnitudeX.Text = magnitudeX.Average().ToString("F2");
-            txtMagnitudeY.Text = magnitudeY.Average().ToString("F2");
-            btnCalculateCorrection_Click(null, EventArgs.Empty);
+            if (angleX.Count > 0)
+            {
+                //remove max and min magnitude
+                magnitudeX.Remove(magnitudeX.Max());
+                magnitudeX.Remove(magnitudeX.Min());
+                magnitudeY.Remove(magnitudeY.Max());
+                magnitudeY.Remove(magnitudeY.Min());
+
+                lblAngleXStat.Text = $"X - Angle:{angleX.Min().ToString("F0")}-{angleX.Max().ToString("F0")} Mag:{magnitudeX.Min().ToString("F2")}-{magnitudeX.Max().ToString("F2")}";
+                lblAngleYStat.Text = $"Y - Angle:{angleY.Min().ToString("F0")}-{angleY.Max().ToString("F0")} Mag:{magnitudeY.Min().ToString("F2")}-{magnitudeY.Max().ToString("F2")}";
+                txtAngleXCalc.Text = MathHelper.CalculateMeanAngle(angleX.ToArray()).ToString("F0");
+                txtAngleYCalc.Text = MathHelper.CalculateMeanAngle(angleY.ToArray()).ToString("F0");
+                txtMagnitudeX.Text = magnitudeX.Average().ToString("F2");
+                txtMagnitudeY.Text = magnitudeY.Average().ToString("F2");
+                
+                btnCalculateCorrection_Click(null, EventArgs.Empty);
+                
+            }
+            
         }
 
         private void btnCalculateCorrection_Click(object sender, EventArgs e)
@@ -1982,32 +1995,38 @@ namespace equilibreuse
             var magX = Convert.ToDouble(txtMagnitudeX.Text);
             var magY = Convert.ToDouble(txtMagnitudeY.Text);
             var dynamicGlobal = EquilibrageHelper.EstimateDynamicImbalanceCorrection(Convert.ToDouble(txtAngleXCalc.Text), Convert.ToDouble(txtMagnitudeX.Text), Convert.ToDouble(txtAngleYCalc.Text), Convert.ToDouble(txtMagnitudeY.Text));
-            lblAngleXCorrect.Text = "Inner Angle to correct X Simple: " + dynamicGlobal.AngleInnerDeg.ToString("F0");
-            lblAngleYCorrect.Text = "Outer Angle to correct Y Simple: " + dynamicGlobal.AngleOuterDeg.ToString("F0");
+            lblAngleXCorrect.Text = "Outer Angle to correct X: " + dynamicGlobal.AngleOuterDeg.ToString("F0");
+            lblAngleYCorrect.Text = "Inner Angle to correct Y: " + dynamicGlobal.AngleInnerDeg.ToString("F0");
             try
             {
-                double mass1 = Convert.ToDouble(txtMagGrams1.Text);
-                double mass2 = Convert.ToDouble(txtMagGrams2.Text);
+                double mass1 = Convert.ToDouble(txtMagGrams1.Text);   
                 double magX1 = Convert.ToDouble(txtXMagG1.Text);
-                double magX2 = Convert.ToDouble(txtXMagG2.Text);
                 double magY1 = Convert.ToDouble(txtYMag1.Text);
-                double magY2 = Convert.ToDouble(txtYMag2.Text);
+                
                 double magXBalanced = Convert.ToDouble(txtXMagBalanced.Text);
                 double magYBalanced = Convert.ToDouble(txtYMagBalanced.Text);
-                var kx = EquilibrageHelper.CalculateGrowthConstantFrom2Points(magXBalanced, magX1, mass1, magX2, mass2);
-                var ky = EquilibrageHelper.CalculateGrowthConstantFrom2Points(magYBalanced, magY1, mass1, magY2, mass2);
+
+                double actualMagX = Convert.ToDouble(txtMagnitudeX.Text);
+                double angleX = Convert.ToDouble(txtAngleXCalc.Text);
+                double actualMagY = Convert.ToDouble(txtMagnitudeY.Text);
+                double angleY = Convert.ToDouble(txtAngleYCalc.Text);
+
                 var kx1 = EquilibrageHelper.CalculateGrowthConstant(magXBalanced, magX1, mass1);
                 var ky1 = EquilibrageHelper.CalculateGrowthConstant(magYBalanced, magY1, mass1);
-                var massX = EquilibrageHelper.EstimateCorrectiveMass(magX, magXBalanced, kx);
-                var massY = EquilibrageHelper.EstimateCorrectiveMass(magY, magYBalanced, ky);
-                var k = EquilibrageHelper.EstimateSensitivityVector2D(magX1, 0, magY1, 0, mass1, 0, magX2, 180, magY2, 180, mass2,180);
+                var massX = EquilibrageHelper.EstimateCorrectiveMass(magX, magXBalanced, kx1);
+                var massY = EquilibrageHelper.EstimateCorrectiveMass(magY, magYBalanced, ky1);
 
-                var res = EquilibrageHelper.EstimateDynamicBalancing(Convert.ToDouble(txtMagnitudeX.Text), Convert.ToDouble(txtAngleXCalc.Text), Convert.ToDouble(txtMagnitudeY.Text), Convert.ToDouble(txtAngleYCalc.Text), k.kY, k.kX);
+                var res = EquilibrageHelper.EstimateDynamicBalancing(actualMagX, angleX, actualMagY, angleY, kx1, ky1);
                 //   var kx = EquilibrageHelper.CalculateAttenuationConstantFrom3Points(Convert.ToDouble(txtXMagBalanced.Text), Convert.ToDouble(txtXMagG1.Text), Convert.ToDouble(txtMagGrams1.Text), Convert.ToDouble(txtXMagG2.Text), Convert.ToDouble(txtMagGrams2.Text));
                 //   var ky = EquilibrageHelper.CalculateAttenuationConstantFrom3Points(Convert.ToDouble(txtYMagBalanced.Text), Convert.ToDouble(txtYMag1.Text), Convert.ToDouble(txtMagGrams1.Text), Convert.ToDouble(txtYMag2.Text), Convert.ToDouble(txtMagGrams2.Text));
                 //   var res = EquilibrageHelper.EstimateDynamicBalancing(Convert.ToDouble(txtMagnitudeX.Text), Convert.ToDouble(txtAngleXCalc.Text), Convert.ToDouble(txtMagnitudeY.Text), Convert.ToDouble(txtAngleYCalc.Text), kx1, ky);
-                lblAngleXCorrect.Text += " Angle: " + res.AngleInnerDeg + " Mass:" + res.MassInner.ToString("F0");
-                lblAngleYCorrect.Text += " Angle: " + res.AngleOuterDeg + " Mass:" + res.MassOuter.ToString("F0");
+                
+
+                var kx2 = EquilibrageHelper.CalculateAttenuationConstant(magXBalanced, magX1, mass1);
+                var ky2 = EquilibrageHelper.CalculateAttenuationConstant(magYBalanced, magY1, mass1);
+                var res2 = EquilibrageHelper.EstimateDynamicBalancing2(magX, angleX, magY, angleY, kx2, ky2);
+                lblAngleXCorrect.Text += " A:" + res2.AngleOuterDeg.ToString("F0") + " M:" + res2.MassOuter.ToString("F0") + ";" + massX.ToString("F0"); ;
+                lblAngleYCorrect.Text += " A:" + res2.AngleInnerDeg.ToString("F0") + " M:" + res2.MassInner.ToString("F0") + ";" + massY.ToString("F0");
             }
             catch
             { }
@@ -2386,9 +2405,8 @@ namespace equilibreuse
         private void btnSaveData_Click(object sender, EventArgs e)
         {
             Properties.Settings.Default.CalibGrams1 = Convert.ToDouble(txtMagGrams1.Text);
-            Properties.Settings.Default.CalibGrams2 = Convert.ToDouble(txtMagGrams2.Text);
-            Properties.Settings.Default.XMag2 = Convert.ToDouble(txtXMagG2.Text);
-            Properties.Settings.Default.YMag2 = Convert.ToDouble(txtYMag2.Text);
+            
+            
             Properties.Settings.Default.XMagBalanced = Convert.ToDouble(txtXMagBalanced.Text);
             Properties.Settings.Default.YMagBalance = Convert.ToDouble(txtYMagBalanced.Text);
             Properties.Settings.Default.XMag1 = Convert.ToDouble(txtXMagG1.Text);
@@ -2414,6 +2432,7 @@ namespace equilibreuse
             Properties.Settings.Default.FFTGlobal = cbxFFT.SelectedItem.ToString();
             Properties.Settings.Default.AngleData = cbxAngleData.SelectedItem.ToString();
             Properties.Settings.Default.MagData = cbxMagData.SelectedItem.ToString();
+            Properties.Settings.Default.ClockwiseRotating = chkClockwise.Checked;
             Properties.Settings.Default.Save();
         }
 

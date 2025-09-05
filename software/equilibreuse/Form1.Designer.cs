@@ -129,9 +129,7 @@ namespace equilibreuse
             this.dataGridX = new System.Windows.Forms.DataGridView();
             this.tabPage7 = new System.Windows.Forms.TabPage();
             this.lstSelectToursAnalysis = new System.Windows.Forms.CheckedListBox();
-            this.label32 = new System.Windows.Forms.Label();
             this.label31 = new System.Windows.Forms.Label();
-            this.txtMagGrams2 = new System.Windows.Forms.TextBox();
             this.label30 = new System.Windows.Forms.Label();
             this.cbxMagData = new System.Windows.Forms.ComboBox();
             this.cbxAngleData = new System.Windows.Forms.ComboBox();
@@ -160,15 +158,11 @@ namespace equilibreuse
             this.chkUseXGyro = new System.Windows.Forms.CheckBox();
             this.btnSaveData = new System.Windows.Forms.Button();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
-            this.label53 = new System.Windows.Forms.Label();
-            this.txtXMagG2 = new System.Windows.Forms.TextBox();
             this.label50 = new System.Windows.Forms.Label();
             this.txtXMagBalanced = new System.Windows.Forms.TextBox();
             this.label52 = new System.Windows.Forms.Label();
             this.txtXMagG1 = new System.Windows.Forms.TextBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.label54 = new System.Windows.Forms.Label();
-            this.txtYMag2 = new System.Windows.Forms.TextBox();
             this.label47 = new System.Windows.Forms.Label();
             this.txtYMagBalanced = new System.Windows.Forms.TextBox();
             this.label48 = new System.Windows.Forms.Label();
@@ -205,6 +199,7 @@ namespace equilibreuse
             this.lblStatY = new System.Windows.Forms.Label();
             this.cbxFilterTypes = new System.Windows.Forms.ComboBox();
             this.cbxSmoothing = new System.Windows.Forms.ComboBox();
+            this.chkClockwise = new System.Windows.Forms.CheckBox();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -1202,9 +1197,7 @@ namespace equilibreuse
             // tabPage7
             // 
             this.tabPage7.Controls.Add(this.lstSelectToursAnalysis);
-            this.tabPage7.Controls.Add(this.label32);
             this.tabPage7.Controls.Add(this.label31);
-            this.tabPage7.Controls.Add(this.txtMagGrams2);
             this.tabPage7.Controls.Add(this.label30);
             this.tabPage7.Controls.Add(this.cbxMagData);
             this.tabPage7.Controls.Add(this.cbxAngleData);
@@ -1262,15 +1255,6 @@ namespace equilibreuse
             this.lstSelectToursAnalysis.Size = new System.Drawing.Size(218, 109);
             this.lstSelectToursAnalysis.TabIndex = 104;
             // 
-            // label32
-            // 
-            this.label32.AutoSize = true;
-            this.label32.Location = new System.Drawing.Point(874, 362);
-            this.label32.Name = "label32";
-            this.label32.Size = new System.Drawing.Size(13, 13);
-            this.label32.TabIndex = 77;
-            this.label32.Text = "g";
-            // 
             // label31
             // 
             this.label31.AutoSize = true;
@@ -1279,13 +1263,6 @@ namespace equilibreuse
             this.label31.Size = new System.Drawing.Size(72, 13);
             this.label31.TabIndex = 103;
             this.label31.Text = "MAGNITUDE";
-            // 
-            // txtMagGrams2
-            // 
-            this.txtMagGrams2.Location = new System.Drawing.Point(836, 359);
-            this.txtMagGrams2.Name = "txtMagGrams2";
-            this.txtMagGrams2.Size = new System.Drawing.Size(32, 20);
-            this.txtMagGrams2.TabIndex = 76;
             // 
             // label30
             // 
@@ -1539,8 +1516,6 @@ namespace equilibreuse
             // 
             // groupBox2
             // 
-            this.groupBox2.Controls.Add(this.label53);
-            this.groupBox2.Controls.Add(this.txtXMagG2);
             this.groupBox2.Controls.Add(this.label50);
             this.groupBox2.Controls.Add(this.txtXMagBalanced);
             this.groupBox2.Controls.Add(this.label52);
@@ -1551,22 +1526,6 @@ namespace equilibreuse
             this.groupBox2.TabIndex = 75;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "X calibration";
-            // 
-            // label53
-            // 
-            this.label53.AutoSize = true;
-            this.label53.Location = new System.Drawing.Point(36, 77);
-            this.label53.Name = "label53";
-            this.label53.Size = new System.Drawing.Size(89, 13);
-            this.label53.TabIndex = 75;
-            this.label53.Text = "Global Mag Ratio";
-            // 
-            // txtXMagG2
-            // 
-            this.txtXMagG2.Location = new System.Drawing.Point(194, 77);
-            this.txtXMagG2.Name = "txtXMagG2";
-            this.txtXMagG2.Size = new System.Drawing.Size(50, 20);
-            this.txtXMagG2.TabIndex = 74;
             // 
             // label50
             // 
@@ -1603,8 +1562,6 @@ namespace equilibreuse
             // 
             // groupBox1
             // 
-            this.groupBox1.Controls.Add(this.label54);
-            this.groupBox1.Controls.Add(this.txtYMag2);
             this.groupBox1.Controls.Add(this.label47);
             this.groupBox1.Controls.Add(this.txtYMagBalanced);
             this.groupBox1.Controls.Add(this.label48);
@@ -1615,22 +1572,6 @@ namespace equilibreuse
             this.groupBox1.TabIndex = 74;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Y calibration";
-            // 
-            // label54
-            // 
-            this.label54.AutoSize = true;
-            this.label54.Location = new System.Drawing.Point(45, 77);
-            this.label54.Name = "label54";
-            this.label54.Size = new System.Drawing.Size(89, 13);
-            this.label54.TabIndex = 74;
-            this.label54.Text = "Global Mag Ratio";
-            // 
-            // txtYMag2
-            // 
-            this.txtYMag2.Location = new System.Drawing.Point(193, 76);
-            this.txtYMag2.Name = "txtYMag2";
-            this.txtYMag2.Size = new System.Drawing.Size(65, 20);
-            this.txtYMag2.TabIndex = 75;
             // 
             // label47
             // 
@@ -2007,11 +1948,22 @@ namespace equilibreuse
             this.cbxSmoothing.TabIndex = 71;
             this.cbxSmoothing.Text = "None";
             // 
+            // chkClockwise
+            // 
+            this.chkClockwise.AutoSize = true;
+            this.chkClockwise.Location = new System.Drawing.Point(995, 23);
+            this.chkClockwise.Name = "chkClockwise";
+            this.chkClockwise.Size = new System.Drawing.Size(117, 17);
+            this.chkClockwise.TabIndex = 72;
+            this.chkClockwise.Text = "Clockwise Rotating";
+            this.chkClockwise.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1287, 639);
+            this.Controls.Add(this.chkClockwise);
             this.Controls.Add(this.cbxSmoothing);
             this.Controls.Add(this.cbxFilterTypes);
             this.Controls.Add(this.lblStatY);
@@ -2230,10 +2182,6 @@ namespace equilibreuse
         private System.Windows.Forms.TextBox txtXMagG1;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.Button btnSaveData;
-        private System.Windows.Forms.Label label53;
-        private System.Windows.Forms.TextBox txtXMagG2;
-        private System.Windows.Forms.Label label54;
-        private System.Windows.Forms.TextBox txtYMag2;
         private System.Windows.Forms.Label lblStatX;
         private System.Windows.Forms.Label lblStatY;
         private System.Windows.Forms.TextBox txtCorrectAngleY;
@@ -2263,9 +2211,8 @@ namespace equilibreuse
         private System.Windows.Forms.ComboBox cbxAngleData;
         private System.Windows.Forms.Label label31;
         private System.Windows.Forms.Label label30;
-        private System.Windows.Forms.Label label32;
-        private System.Windows.Forms.TextBox txtMagGrams2;
         private System.Windows.Forms.CheckedListBox lstSelectToursAnalysis;
+        private System.Windows.Forms.CheckBox chkClockwise;
     }
 }
 
