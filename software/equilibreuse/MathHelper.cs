@@ -11,22 +11,7 @@ namespace equilibreuse
 {
     public static class MathHelper
     {
-        public static PhaseAnalysis CalculateMeanPhaseAnalysis(List<PhaseAnalysis> phaseAnalyses)
-        {
-            var pa = new PhaseAnalysis();
-            double[] rMaxTemporalAngles = phaseAnalyses.Select(p => p.rMaxTemporal).ToArray();
-            double[] rPhaseLockInAngles = phaseAnalyses.Select(p => p.rPhaseLockIn).ToArray();
-            double[] rFitSinusoidAngles = phaseAnalyses.Select(p => p.rFitSinusoid).ToArray();
-            double[] rDetectPhaseAngles = phaseAnalyses.Select(p => p.rDetectPhase).ToArray();
-            double[] rFFTAngles = phaseAnalyses.Select(p => p.rFFT).ToArray();
-
-            pa.rMaxTemporal = CalculateMeanAngle(rMaxTemporalAngles);
-            pa.rPhaseLockIn = CalculateMeanAngle(rPhaseLockInAngles);
-            pa.rFitSinusoid = CalculateMeanAngle(rFitSinusoidAngles);
-            pa.rDetectPhase = CalculateMeanAngle(rDetectPhaseAngles);
-            pa.rFFT = CalculateMeanAngle(rFFTAngles);
-            return pa;
-        }
+       
         public static double CalculateMeanAngle(double[] angles)
         {
             int totalOccurrences = angles.Length;
@@ -101,37 +86,7 @@ namespace equilibreuse
         {
             return x0 + (x1 - x0) * ((t - t0) / (t1 - t0));
         }
-        public static double[] InterpolateNaNsCircular(double[] values)
-        {
-            int N = values.Length;
-            double[] result = new double[N];
-            Array.Copy(values, result, N);
-
-            for (int i = 0; i < N; i++)
-            {
-                if (double.IsNaN(result[i]))
-                {
-                    Console.WriteLine("found NAN");
-                    // trouver précédent et suivant valides
-                    int prev = (i - 1 + N) % N;
-                    while (prev != i && double.IsNaN(result[prev]))
-                        prev = (prev - 1 + N) % N;
-                    int next = (i + 1) % N;
-                    while (next != i && double.IsNaN(result[next]))
-                        next = (next + 1) % N;
-
-                    if (prev != i && next != i)
-                    {
-                        double v0 = result[prev], v1 = result[next];
-                        int d = (next - prev + N) % N;
-                        int idx = (i - prev + N) % N;
-                        result[i] = v0 + (v1 - v0) * idx / d;
-                    }
-                }
-            }
-            return result;
-        }
-
+      
         // Rééchantillonne une section en N points angulaires pour X,Y,Z
         public static void ResampleSectionAngularXYZ(List<xyz> records, int N, double dt,
             double[] outX, double[] outY, double[] outZ, int offset)
@@ -225,7 +180,7 @@ namespace equilibreuse
                         double m = fundCandidate.Magnitude;
                         double angleOffset = fundCandidate.Angle;
                         plt.Add.Marker(f, m, color: Colors.Magenta);
-                        plt.Add.Text($"{name}: {f:F2}Hz\n{angleOffset:F0}°", f, m).Color = Colors.DarkGreen;
+                        plt.Add.Text($"{name}: {f:F2}Hz\n{angleOffset:F0}°", f, m).LabelFontColor = Colors.DarkGreen;
                         if (targetList != null)
                             targetList.Items.Add($"{name} ordre {i + 1} à {f:F2} Hz → angle ≈ {angleOffset:F0}° (mag {m:F3})");
                     }
@@ -267,25 +222,13 @@ namespace equilibreuse
             {
                 plt.Add.Marker(angle[idx], data[idx], color: Colors.Magenta, size: 8);
 
-                plt.Add.Text($"Force {data[idx]}", angle[idx], data[idx]).Color = Colors.DarkGreen;
+                plt.Add.Text($"Force {data[idx]}", angle[idx], data[idx]).LabelFontColor = Colors.DarkGreen;
                 if (lst != null)
                     lst.Items.Add($"[{axis}] : Force {data[idx]}");
 
             }
         }
-        public static float FirstPeakPosition(float[] spectrum, float[] frequencies)
-        {
-            for (var i = 2; i < spectrum.Length - 2; i++)
-            {
-                if (spectrum[i] > spectrum[i - 2] && spectrum[i] > spectrum[i - 1] &&
-                    spectrum[i] > spectrum[i + 2] && spectrum[i] > spectrum[i + 1])
-                {
-                    return (float)i / spectrum.Length;
-                }
-            }
-            return 0;
-        }
-        
+       
         public static List<int> FindPeaks(IList<double> values, int range, double threshold)
         {
             var peaks = new List<int>();
@@ -387,86 +330,9 @@ namespace equilibreuse
 
             return (dataSegments, whiteLineSegments);
         }
-        public static void ShowPeakHistogram(List<PeakInfo> peaks, FormsPlot formsPlot)
-        {
-            if (peaks == null || peaks.Count == 0)
-                return;
-
-            // Tri par angle croissant
-            var ordered = peaks.OrderBy(p => p.Mean).ToList();
-
-            // Récupération des données
-            double[] positions = ordered.Select(p => p.Mean).ToArray();
-            double[] heights = ordered.Select(p => p.AverageAmplitude).ToArray();
-            string[] labels = ordered.Select(p => p.Freq.ToString()).ToArray();
-
-            // Nettoyer le graphe
-            formsPlot.Plot.Clear();
-
-            // Tracer le bar plot
-            var bars = formsPlot.Plot.Add.Bars(positions, heights);
-            bars.Bars.ForEach(b => b.LineWidth = 8);
-            bars.Color = Colors.SteelBlue;
-
-            // Ajouter les labels de fréquence au-dessus de chaque barre
-            for (int i = 0; i < positions.Length; i++)
-            {
-                double x = positions[i];
-                double y = heights[i];
-                string label = labels[i];
-                formsPlot.Plot.Add.Text(label, x, y + 0.01);
-            }
-
-            // Ajuster les axes
-            formsPlot.Plot.Title("Histogramme des pics groupés par angle");
-            formsPlot.Plot.XLabel("Angle (degrés)");
-            formsPlot.Plot.YLabel("Amplitude moyenne");
-            formsPlot.Plot.Axes.SetLimitsX(0, 360); // pour rester entre 0 et 360°
-            formsPlot.Plot.Axes.AutoScaleY();
-
-            formsPlot.Refresh();
-        }
-
-        public static void DisplayTurnByTurnGraph(Dictionary<int, int> lstBestAngleInner, Dictionary<int, int> lstBestAngleOuter, Dictionary<int, int> lstBestAngleX, Dictionary<int, int> lstBestAngleY, FormsPlot frmInner, FormsPlot frmOuter, FormsPlot frmX, FormsPlot frmY)
-        {
-            try
-            {
-                double[] xs = lstBestAngleInner.Keys.Select(x => (double)x).ToArray();
-                double[] ys = lstBestAngleInner.Values.Select(y => (double)y).ToArray();
-                if (xs.Length > 0)
-                {
-                    var b = frmInner.Plot.Add.Bars(xs, ys);
-                    b.Bars.ForEach(ba => { ba.LineWidth = 0.5f; ba.FillColor = ba.LineColor = Colors.Blue; });
-                }
-                xs = lstBestAngleOuter.Keys.Select(x => (double)x).ToArray();
-                ys = lstBestAngleOuter.Values.Select(y => (double)y).ToArray();
-                if (xs.Length > 0)
-                {
-                    var b = frmOuter.Plot.Add.Bars(xs, ys);
-                    b.Bars.ForEach(ba => { ba.LineWidth = 0.5f; ba.FillColor = ba.LineColor = Colors.Blue; });
-
-                }
-                xs = lstBestAngleX.Keys.Select(x => (double)x).ToArray();
-                ys = lstBestAngleX.Values.Select(y => (double)y).ToArray();
-                if (xs.Length > 0)
-                {
-                    //frmX.Plot.PlotBar(xs, ys, barWidth: 0.5, fillColor: Color.Blue, outlineColor: Color.Blue);
-                    var b = frmX.Plot.Add.Bars(xs, ys);
-                    b.Bars.ForEach(ba => { ba.LineWidth = 0.5f; ba.FillColor = ba.LineColor = Colors.Blue; });
-
-                }
-                xs = lstBestAngleY.Keys.Select(x => (double)x).ToArray();
-                ys = lstBestAngleY.Values.Select(y => (double)y).ToArray();
-                if (xs.Length > 0)
-                {
-                    //   frmY.Plot.PlotBar(xs, ys, barWidth: 0.5, fillColor: Color.Blue, outlineColor: Color.Blue);
-                    var b = frmY.Plot.Add.Bars(xs, ys);
-                    b.Bars.ForEach(ba => { ba.LineWidth = 0.5f; ba.FillColor = ba.LineColor = Colors.Blue; });
-                }
-            }
-            catch
-            { }
-        }
+     
+  
+    
 
         public static void CalculateGyroAngles(ref double[] analyzedX, ref double[] analyzedY, ref double[] analyzedZ, ref double[] resultante, ref double[] angleX, ref double[] angleY, ref double[] angleZ, ref double[] pitch, ref double[] roll)
         {
@@ -483,7 +349,6 @@ namespace equilibreuse
                 roll[i] = (Math.Atan2(angleY[i], angleZ[i]) * 180.0) / Math.PI;
             }
         }
-
         internal static void AnalyzeAxisTemporal(string axisName, double[] data, double[] angle,double sampleRate, ListBox lstPeak, Color c, Plot plotTemporal, double f_rot)
         {
             var peaks = MathHelper.GetPeakPerTurn(data);

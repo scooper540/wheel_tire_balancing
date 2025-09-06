@@ -94,16 +94,6 @@ namespace equilibreuse
             this.lstPeakGyroY = new System.Windows.Forms.ListBox();
             this.lstPeakGyroX = new System.Windows.Forms.ListBox();
             this.formsPlotGyro = new ScottPlot.WinForms.FormsPlot();
-            this.tabPage5 = new System.Windows.Forms.TabPage();
-            this.label42 = new System.Windows.Forms.Label();
-            this.label22 = new System.Windows.Forms.Label();
-            this.lstSimulationTurnByTurn = new System.Windows.Forms.ListBox();
-            this.label21 = new System.Windows.Forms.Label();
-            this.label20 = new System.Windows.Forms.Label();
-            this.label19 = new System.Windows.Forms.Label();
-            this.lstSimulationGyro = new System.Windows.Forms.ListBox();
-            this.lstSimulationGlobal = new System.Windows.Forms.ListBox();
-            this.lstSimulationCompiled = new System.Windows.Forms.ListBox();
             this.tabPage8 = new System.Windows.Forms.TabPage();
             this.label43 = new System.Windows.Forms.Label();
             this.label24 = new System.Windows.Forms.Label();
@@ -114,13 +104,6 @@ namespace equilibreuse
             this.formsPlotT1I = new ScottPlot.WinForms.FormsPlot();
             this.label18 = new System.Windows.Forms.Label();
             this.label23 = new System.Windows.Forms.Label();
-            this.tabPage6 = new System.Windows.Forms.TabPage();
-            this.label17 = new System.Windows.Forms.Label();
-            this.label16 = new System.Windows.Forms.Label();
-            this.label8 = new System.Windows.Forms.Label();
-            this.formsPlotAnalysisTemporalX = new ScottPlot.WinForms.FormsPlot();
-            this.formsPlotAnalysisTemporalY = new ScottPlot.WinForms.FormsPlot();
-            this.formsPlotAnalysisTemporalZ = new ScottPlot.WinForms.FormsPlot();
             this.tabPage15 = new System.Windows.Forms.TabPage();
             this.label46 = new System.Windows.Forms.Label();
             this.label45 = new System.Windows.Forms.Label();
@@ -205,9 +188,7 @@ namespace equilibreuse
             this.tabPage2.SuspendLayout();
             this.tabPage3.SuspendLayout();
             this.tabPage4.SuspendLayout();
-            this.tabPage5.SuspendLayout();
             this.tabPage8.SuspendLayout();
-            this.tabPage6.SuspendLayout();
             this.tabPage15.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridY)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridX)).BeginInit();
@@ -600,9 +581,7 @@ namespace equilibreuse
             this.tabControl1.Controls.Add(this.tabPage2);
             this.tabControl1.Controls.Add(this.tabPage3);
             this.tabControl1.Controls.Add(this.tabPage4);
-            this.tabControl1.Controls.Add(this.tabPage5);
             this.tabControl1.Controls.Add(this.tabPage8);
-            this.tabControl1.Controls.Add(this.tabPage6);
             this.tabControl1.Controls.Add(this.tabPage15);
             this.tabControl1.Controls.Add(this.tabPage7);
             this.tabControl1.Controls.Add(this.tabPage14);
@@ -864,111 +843,6 @@ namespace equilibreuse
             this.formsPlotGyro.TabIndex = 52;
             this.formsPlotGyro.MouseMove += new System.Windows.Forms.MouseEventHandler(this.formsPlotAnalysis_MouseMove);
             // 
-            // tabPage5
-            // 
-            this.tabPage5.Controls.Add(this.label42);
-            this.tabPage5.Controls.Add(this.label22);
-            this.tabPage5.Controls.Add(this.lstSimulationTurnByTurn);
-            this.tabPage5.Controls.Add(this.label21);
-            this.tabPage5.Controls.Add(this.label20);
-            this.tabPage5.Controls.Add(this.label19);
-            this.tabPage5.Controls.Add(this.lstSimulationGyro);
-            this.tabPage5.Controls.Add(this.lstSimulationGlobal);
-            this.tabPage5.Controls.Add(this.lstSimulationCompiled);
-            this.tabPage5.Location = new System.Drawing.Point(4, 22);
-            this.tabPage5.Name = "tabPage5";
-            this.tabPage5.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage5.Size = new System.Drawing.Size(1252, 523);
-            this.tabPage5.TabIndex = 4;
-            this.tabPage5.Text = "Analysis";
-            this.tabPage5.UseVisualStyleBackColor = true;
-            // 
-            // label42
-            // 
-            this.label42.AutoSize = true;
-            this.label42.Location = new System.Drawing.Point(577, 250);
-            this.label42.Name = "label42";
-            this.label42.Size = new System.Drawing.Size(252, 52);
-            this.label42.TabIndex = 71;
-            this.label42.Text = "Coeff variation\r\nCV < 0.1 → données très proches (faible dispersion)\r\n0.1 ≤ CV < " +
-    "0.3 → données modérément dispersées\r\nCV ≥ 0.3 → données très dispersées";
-            // 
-            // label22
-            // 
-            this.label22.AutoSize = true;
-            this.label22.Location = new System.Drawing.Point(50, 257);
-            this.label22.Name = "label22";
-            this.label22.Size = new System.Drawing.Size(185, 13);
-            this.label22.TabIndex = 70;
-            this.label22.Text = "Static balancing with turn by turn data";
-            // 
-            // lstSimulationTurnByTurn
-            // 
-            this.lstSimulationTurnByTurn.FormattingEnabled = true;
-            this.lstSimulationTurnByTurn.HorizontalScrollbar = true;
-            this.lstSimulationTurnByTurn.Location = new System.Drawing.Point(53, 273);
-            this.lstSimulationTurnByTurn.Name = "lstSimulationTurnByTurn";
-            this.lstSimulationTurnByTurn.ScrollAlwaysVisible = true;
-            this.lstSimulationTurnByTurn.Size = new System.Drawing.Size(516, 238);
-            this.lstSimulationTurnByTurn.TabIndex = 69;
-            // 
-            // label21
-            // 
-            this.label21.AutoSize = true;
-            this.label21.Location = new System.Drawing.Point(904, 289);
-            this.label21.Name = "label21";
-            this.label21.Size = new System.Drawing.Size(91, 13);
-            this.label21.TabIndex = 68;
-            this.label21.Text = "gyro data analysis";
-            // 
-            // label20
-            // 
-            this.label20.AutoSize = true;
-            this.label20.Location = new System.Drawing.Point(572, 19);
-            this.label20.Name = "label20";
-            this.label20.Size = new System.Drawing.Size(99, 13);
-            this.label20.TabIndex = 67;
-            this.label20.Text = "global data analysis";
-            // 
-            // label19
-            // 
-            this.label19.AutoSize = true;
-            this.label19.Location = new System.Drawing.Point(50, 19);
-            this.label19.Name = "label19";
-            this.label19.Size = new System.Drawing.Size(114, 13);
-            this.label19.TabIndex = 66;
-            this.label19.Text = "Compiled data analysis";
-            // 
-            // lstSimulationGyro
-            // 
-            this.lstSimulationGyro.FormattingEnabled = true;
-            this.lstSimulationGyro.HorizontalScrollbar = true;
-            this.lstSimulationGyro.Location = new System.Drawing.Point(580, 312);
-            this.lstSimulationGyro.Name = "lstSimulationGyro";
-            this.lstSimulationGyro.ScrollAlwaysVisible = true;
-            this.lstSimulationGyro.Size = new System.Drawing.Size(648, 199);
-            this.lstSimulationGyro.TabIndex = 63;
-            // 
-            // lstSimulationGlobal
-            // 
-            this.lstSimulationGlobal.FormattingEnabled = true;
-            this.lstSimulationGlobal.HorizontalScrollbar = true;
-            this.lstSimulationGlobal.Location = new System.Drawing.Point(575, 35);
-            this.lstSimulationGlobal.Name = "lstSimulationGlobal";
-            this.lstSimulationGlobal.ScrollAlwaysVisible = true;
-            this.lstSimulationGlobal.Size = new System.Drawing.Size(653, 212);
-            this.lstSimulationGlobal.TabIndex = 61;
-            // 
-            // lstSimulationCompiled
-            // 
-            this.lstSimulationCompiled.FormattingEnabled = true;
-            this.lstSimulationCompiled.HorizontalScrollbar = true;
-            this.lstSimulationCompiled.Location = new System.Drawing.Point(53, 35);
-            this.lstSimulationCompiled.Name = "lstSimulationCompiled";
-            this.lstSimulationCompiled.ScrollAlwaysVisible = true;
-            this.lstSimulationCompiled.Size = new System.Drawing.Size(516, 212);
-            this.lstSimulationCompiled.TabIndex = 55;
-            // 
             // tabPage8
             // 
             this.tabPage8.Controls.Add(this.label43);
@@ -1065,73 +939,6 @@ namespace equilibreuse
             this.label23.Size = new System.Drawing.Size(74, 13);
             this.label23.TabIndex = 22;
             this.label23.Text = "Y Angle found";
-            // 
-            // tabPage6
-            // 
-            this.tabPage6.Controls.Add(this.label17);
-            this.tabPage6.Controls.Add(this.label16);
-            this.tabPage6.Controls.Add(this.label8);
-            this.tabPage6.Controls.Add(this.formsPlotAnalysisTemporalX);
-            this.tabPage6.Controls.Add(this.formsPlotAnalysisTemporalY);
-            this.tabPage6.Controls.Add(this.formsPlotAnalysisTemporalZ);
-            this.tabPage6.Location = new System.Drawing.Point(4, 22);
-            this.tabPage6.Name = "tabPage6";
-            this.tabPage6.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage6.Size = new System.Drawing.Size(1252, 523);
-            this.tabPage6.TabIndex = 5;
-            this.tabPage6.Text = "Analysis Temporal";
-            this.tabPage6.UseVisualStyleBackColor = true;
-            // 
-            // label17
-            // 
-            this.label17.AutoSize = true;
-            this.label17.Location = new System.Drawing.Point(595, 14);
-            this.label17.Name = "label17";
-            this.label17.Size = new System.Drawing.Size(14, 13);
-            this.label17.TabIndex = 23;
-            this.label17.Text = "Y";
-            // 
-            // label16
-            // 
-            this.label16.AutoSize = true;
-            this.label16.Location = new System.Drawing.Point(965, 14);
-            this.label16.Name = "label16";
-            this.label16.Size = new System.Drawing.Size(14, 13);
-            this.label16.TabIndex = 22;
-            this.label16.Text = "Z";
-            // 
-            // label8
-            // 
-            this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(178, 14);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(14, 13);
-            this.label8.TabIndex = 21;
-            this.label8.Text = "X";
-            // 
-            // formsPlotAnalysisTemporalX
-            // 
-            this.formsPlotAnalysisTemporalX.DisplayScale = 0F;
-            this.formsPlotAnalysisTemporalX.Location = new System.Drawing.Point(6, 30);
-            this.formsPlotAnalysisTemporalX.Name = "formsPlotAnalysisTemporalX";
-            this.formsPlotAnalysisTemporalX.Size = new System.Drawing.Size(405, 361);
-            this.formsPlotAnalysisTemporalX.TabIndex = 18;
-            // 
-            // formsPlotAnalysisTemporalY
-            // 
-            this.formsPlotAnalysisTemporalY.DisplayScale = 0F;
-            this.formsPlotAnalysisTemporalY.Location = new System.Drawing.Point(425, 30);
-            this.formsPlotAnalysisTemporalY.Name = "formsPlotAnalysisTemporalY";
-            this.formsPlotAnalysisTemporalY.Size = new System.Drawing.Size(405, 361);
-            this.formsPlotAnalysisTemporalY.TabIndex = 19;
-            // 
-            // formsPlotAnalysisTemporalZ
-            // 
-            this.formsPlotAnalysisTemporalZ.DisplayScale = 0F;
-            this.formsPlotAnalysisTemporalZ.Location = new System.Drawing.Point(836, 30);
-            this.formsPlotAnalysisTemporalZ.Name = "formsPlotAnalysisTemporalZ";
-            this.formsPlotAnalysisTemporalZ.Size = new System.Drawing.Size(405, 361);
-            this.formsPlotAnalysisTemporalZ.TabIndex = 20;
             // 
             // tabPage15
             // 
@@ -1754,7 +1561,6 @@ namespace equilibreuse
             this.txtFFTLimit.Size = new System.Drawing.Size(21, 20);
             this.txtFFTLimit.TabIndex = 49;
             this.txtFFTLimit.Text = "20";
-            this.txtFFTLimit.TextChanged += new System.EventHandler(this.txtFFTLimit_TextChanged);
             // 
             // label5
             // 
@@ -1764,7 +1570,6 @@ namespace equilibreuse
             this.label5.Size = new System.Drawing.Size(50, 13);
             this.label5.TabIndex = 50;
             this.label5.Text = "Limit FFT";
-            this.label5.Click += new System.EventHandler(this.label5_Click);
             // 
             // chkShowResultante
             // 
@@ -2020,12 +1825,8 @@ namespace equilibreuse
             this.tabPage3.ResumeLayout(false);
             this.tabPage3.PerformLayout();
             this.tabPage4.ResumeLayout(false);
-            this.tabPage5.ResumeLayout(false);
-            this.tabPage5.PerformLayout();
             this.tabPage8.ResumeLayout(false);
             this.tabPage8.PerformLayout();
-            this.tabPage6.ResumeLayout(false);
-            this.tabPage6.PerformLayout();
             this.tabPage15.ResumeLayout(false);
             this.tabPage15.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridY)).EndInit();
@@ -2099,10 +1900,6 @@ namespace equilibreuse
         private System.Windows.Forms.ListBox lstPeakGyroZ;
         private System.Windows.Forms.ListBox lstPeakGyroY;
         private System.Windows.Forms.ListBox lstPeakGyroX;
-        private System.Windows.Forms.TabPage tabPage6;
-        private FormsPlot formsPlotAnalysisTemporalX;
-        private FormsPlot formsPlotAnalysisTemporalY;
-        private FormsPlot formsPlotAnalysisTemporalZ;
         private System.Windows.Forms.Label label12;
         private System.Windows.Forms.Label label11;
         private System.Windows.Forms.Label label10;
@@ -2114,29 +1911,17 @@ namespace equilibreuse
         private System.Windows.Forms.Label label15;
         private System.Windows.Forms.ListBox lstPeakResultanteGlobal;
         private System.Windows.Forms.ListBox lstPeakResultanteGyro;
-        private System.Windows.Forms.Label label17;
-        private System.Windows.Forms.Label label16;
-        private System.Windows.Forms.Label label8;
         private System.Windows.Forms.TabPage tabPage7;
         private System.Windows.Forms.Button btnUnselectAll;
         private System.Windows.Forms.Button btnSelectAll;
         private System.Windows.Forms.Button btnUpdateAnalysisSection;
         private System.Windows.Forms.CheckedListBox lstSectionSelector;
-        private System.Windows.Forms.TabPage tabPage5;
-        private System.Windows.Forms.Label label21;
-        private System.Windows.Forms.Label label20;
-        private System.Windows.Forms.Label label19;
-        private System.Windows.Forms.ListBox lstSimulationGyro;
-        private System.Windows.Forms.ListBox lstSimulationGlobal;
-        private System.Windows.Forms.ListBox lstSimulationCompiled;
         private System.Windows.Forms.Button btn240250;
         private System.Windows.Forms.Button btn250300;
         private System.Windows.Forms.Button btn230240;
         private System.Windows.Forms.Button btn210220;
         private System.Windows.Forms.Button btn220230;
         private System.Windows.Forms.Button btn200210;
-        private System.Windows.Forms.Label label22;
-        private System.Windows.Forms.ListBox lstSimulationTurnByTurn;
         private System.Windows.Forms.TabPage tabPage8;
         private System.Windows.Forms.Label label24;
         private FormsPlot formsPlotT1O;
@@ -2146,7 +1931,6 @@ namespace equilibreuse
         private FormsPlot formsPlotT1Y;
         private System.Windows.Forms.Label label18;
         private FormsPlot formsPlotT1X;
-        private System.Windows.Forms.Label label42;
         private System.Windows.Forms.CheckBox chkRemoveDC;
         private System.Windows.Forms.Button btnExportWAV;
         private System.Windows.Forms.TabPage tabPage14;
@@ -2165,7 +1949,6 @@ namespace equilibreuse
         private System.Windows.Forms.TabPage tabPage15;
         private System.Windows.Forms.DataGridView dataGridY;
         private System.Windows.Forms.DataGridView dataGridX;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Column1;
         private System.Windows.Forms.Button btnClearAnalysisHistory;
         private System.Windows.Forms.Label label46;
         private System.Windows.Forms.Label label45;

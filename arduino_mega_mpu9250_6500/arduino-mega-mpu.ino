@@ -67,12 +67,15 @@ int printData()
     // [59-64] Accelerometer
     // [65-66] Temperature
     // [67-72] Gyroscope
+    bool white_before = (PINE & B00010000); porte pin 4 for D2 on mega
     uint8_t buff[16],buffTmp[16];
     I2Cread(MPU9250_ADDR, 58, 15, buffTmp);
-    if(!(buffTmp[0]& 0x01)) return 0; //not ready
+    bool white_after = (PINE & B00010000); porte pin 4 for D2 on mega
+    bool white = white_before || white_after;
+    if(!white || !(buffTmp[0]& 0x01)) return 0; //not ready
     // Accelerometer, create 16 bits values from 8 bits data
     uint16_t ms = (micros() >> 6) & 0xFFFF; // resolution 0.064 ms -> 1 = 0.064ms
-    buff[0] = 0xFE | ((PINE & B00010000) > 0 ? 1:0); //porte pin 4 for D2 on mega
+    buff[0] = 0xFE | (white ? 1 : 0);
     *(uint16_t*)&buff[1] = ms; //fast write timestamp value on buff1 and buff2
     //move accel data and Gyro after timestamp
     for(int i = 0; i < 6;i++)

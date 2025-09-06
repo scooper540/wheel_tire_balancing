@@ -173,29 +173,6 @@ namespace equilibreuse
                     int end = start + signal.Length;
 
                     return new DiscreteSignal((int)sampleRate, filteredSignal2.Samples.Skip(start).Take(signal.Length).ToArray());
-                    // === 4. Corriger le décalage du filtre ===
-                    //int delay = filterOrder / 2;
-                    
-                    // Décaler le signal en supprimant les échantillons du début
-                   /* double[] aligned = filteredSignal2.Skip(delay).Select(s=> (double)s).ToArray();
-
-                    // Pour garder la même taille (optionnel) : remplir avec des zéros au bout
-                    if (aligned.Length < signal.Length)
-                    {
-                        aligned = aligned.Concat(new double[signal.Length - aligned.Length]).ToArray();
-                    }*/
-                   /* double[] aligned = new double[signal.Length];
-                    for (int i = 0; i < signal.Length - delay; i++)
-                    {
-                        aligned[i + delay] = filteredSignal2[i];
-                    }
-                    */
-                    // Les premières valeurs (0 à delay-1) sont mises à 0 automatiquement (ou padding nul)
-                   // return aligned;
-                    //return new DiscreteSignal((int)sampleRate, aligned.Select(s => (float)s).ToArray());
-
-                    break;
-        
                 case "BiQuad LP":
                 case "BiQuad HP":
                 case "BiQuad BP":

@@ -173,53 +173,7 @@ namespace equilibreuse
             };
 
         }
-        public static double SimulateCorrectionAngle(double[] signal, double sampleRate, double fRot, double gain = 1.0, double[] window = null, int angleStepDeg = 10)
-        {
-            int n = signal.Length;
-            Complex[] fftInput = new Complex[n];
-
-            for (int i = 0; i < n; i++)
-            {
-                double value = signal[i];
-                if (window != null)
-                    value *= window[i];
-                fftInput[i] = new Complex(value, 0);
-            }
-
-            // FFT réelle
-            Fourier.Forward(fftInput, FourierOptions.Matlab);
-
-            // Recherche du pic à la fréquence de rotation
-            double binSize = sampleRate / n;
-            int peakIndex = (int)Math.Round(fRot / binSize);
-
-            if (peakIndex <= 0 || peakIndex >= n)
-                return -1; // erreur ou signal non exploitable
-
-            Complex fundamental = fftInput[peakIndex];
-            double originalAmplitude = fundamental.Magnitude;
-
-            double bestReduction = double.MaxValue;
-            double bestAngle = 0;
-
-            for (int angleDeg = 0; angleDeg < 360; angleDeg += angleStepDeg)
-            {
-                double angleRad = angleDeg * Math.PI / 180.0;
-
-                // Ajout d’une contre-masse virtuelle opposée
-                double correctedReal = fundamental.Real + Math.Cos(angleRad) * gain;
-                double correctedImag = fundamental.Imaginary + Math.Sin(angleRad) * gain;
-                double correctedAmplitude = Math.Sqrt(correctedReal * correctedReal + correctedImag * correctedImag);
-
-                if (correctedAmplitude < bestReduction)
-                {
-                    bestReduction = correctedAmplitude;
-                    bestAngle = angleDeg;
-                }
-            }
-
-            return bestAngle;
-        }
+    
         public static PolarSeriesResult GetPolarSeries(FFTData data, double sampleRate,double f_rot, int stepDeg)
         {
             var funda = EquilibrageHelper.GetFundamentalPhase(data.Frequence, data.Magnitude,data.AngleDeg, f_rot);
