@@ -4,6 +4,36 @@
 This open-source project allows you to **balance your car wheels at home** after mounting tires, without needing professional garage equipment.  
 Ce projet open-source permet **d'équilibrer ses roues de voiture chez soi**, après le montage des pneus, sans avoir besoin d’un équipement professionnel.
 
+> ❗ Traditional bubble balancers are **not accurate at all**, as they only detect static imbalance and ignore dynamic imbalance.  
+> This DIY project provides **much better accuracy**, since the wheel is actually spinning — allowing for detection of both static and dynamic imbalance through centrifugal forces, just like in professional-grade equipment.
+
+> ❗ Les équilibreuses à bulle ne sont **pas du tout précises**, car elles ne détectent que le balourd statique et ignorent complètement le balourd dynamique.  
+> Ce projet DIY est **beaucoup plus précis**, car la roue tourne réellement, ce qui permet de mesurer les déséquilibres via les forces centrifuges, comme sur une équilibreuse professionnelle.
+
+---
+
+> ⚠️ **Disclaimer**:  
+> This is a personal DIY project shared for educational purposes.  
+> Use it **at your own risk**.  
+> The wheel spins at high speed — ensure proper safety measures are taken:  
+> - Wear protective gear (gloves, goggles)  
+> - Secure the wheel and structure firmly  
+> - Keep hands, tools and cables away from moving parts  
+> - Never leave the system unattended while spinning  
+>  
+> I take **no responsibility** for any damage, injury, or results caused by the use of this project.
+
+> ⚠️ **Avertissement** :  
+> Ce projet DIY est partagé à des fins éducatives uniquement.  
+> Son utilisation se fait **à vos propres risques**.  
+> La roue tourne à grande vitesse — il est impératif de respecter les consignes de sécurité :  
+> - Porter des équipements de protection (gants, lunettes)  
+> - Fixer solidement la roue et la structure  
+> - Éloigner les mains, outils et câbles des parties mobiles  
+> - Ne jamais laisser le système tourner sans surveillance  
+>  
+> Je décline **toute responsabilité** en cas de dommage, blessure ou conséquence liée à l’utilisation de ce projet.
+
 ---
 
 ## 🏗️ How I Built It  
@@ -59,8 +89,8 @@ Ce projet open-source permet **d'équilibrer ses roues de voiture chez soi**, ap
 - Two `.ino` files included for high-speed sampling  
 - Deux fichiers `.ino` sont fournis pour la lecture à haute fréquence :
 
-  - ~5000 Hz for MPU9250/6500  
-  - ~11,000 Hz for LSM6DS3
+  - ~1000 Hz for MPU9250/6500  
+  - ~2000 Hz for LSM6DS3
 
 - C# software built with **Visual Studio 2017 Community**  
 - Logiciel C# développé avec **Visual Studio 2017 Community**
@@ -77,7 +107,7 @@ Ce projet open-source permet **d'équilibrer ses roues de voiture chez soi**, ap
 ### 🔌 Connexion des capteurs
 
 1. Select correct **COM port**, click **Connect**  
-2. Wait a few seconds  
+2. Wait a few seconds, calibration takes 5 seconds  
 3. Verify sampling rate:
    - ~5000 samples (MPU9250/6500)
    - ~11000 samples (LSM6DS3)
@@ -85,7 +115,7 @@ Ce projet open-source permet **d'équilibrer ses roues de voiture chez soi**, ap
 ---
 
 1. Sélectionner le **port COM**, cliquer sur **Connect**  
-2. Attendre quelques secondes  
+2. Attendre quelques secondes, la calibration dure 5 secondes
 3. Vérifier le débit :
    - ~5000 échantillons (MPU9250/6500)
    - ~11000 échantillons (LSM6DS3)
@@ -116,25 +146,39 @@ Ce projet open-source permet **d'équilibrer ses roues de voiture chez soi**, ap
 ### 📊 Data Analysis  
 ### 📊 Analyse des données
 
-1. Click **Analyze CSV** to load data  
-2. In **Selection Selector**, click **Complete Analysis**  
-3. Shows:
-   - Average **imbalance angle** (X & Y)
-   - Magnitude
-   - **Correction angles** to apply weights
-4. If X & Y angles < 5° apart → place weight at angle +180°  
-5. Repeat until vibration magnitude decreases
+1. Click **Analyze CSV**  
+2. In the **Selection Selector** tab, click **Complete Analysis**  
+3. The results will display:
+   - The **average imbalance angle** (for X and Y axes)
+   - The corresponding **magnitude**
+   - Suggested **correction angles** where to place the weights
+
+4. If X and Y angles are very close (< 5° difference), you can place a the weight at **+180°** from the imbalance angle on both sides.
+
+5. To optimize the balancing:
+   - **Temporarily attach weights** at the suggested angles using masking tape or similar
+   - Capture and analyze a new run
+   - Try **swapping inner and outer positions** if needed
+   - Repeat the process until the **X and Y magnitudes are minimized**
+   - Once confirmed, **permanently attach** the weights to the correct positions on the wheel.
 
 ---
 
 1. Cliquer sur **Analyze CSV**  
-2. Dans **Selection Selector**, cliquer sur **Complete Analysis**  
-3. Affiche :
-   - Angle moyen du **balourd** (X & Y)
-   - Amplitude
-   - **Angles de correction** où placer les masses  
-4. Si X et Y < 5° → placer la masse à **+180°**  
-5. Répéter jusqu’à réduire l’amplitude
+2. Dans l’onglet **Selection Selector**, cliquer sur **Complete Analysis**  
+3. Les résultats affichent :
+   - L’**angle moyen du balourd** (axes X et Y)
+   - L’**amplitude** correspondante
+   - Les **angles de correction** proposés où placer les masses
+
+4. Si les angles X et Y sont très proches (< 5°), il est possible de placer les masses à **l’opposé du balourd** sur les côtés intérieurs et extérieurs (angle +180°)
+
+5. Pour trouver la meilleure position :
+   - Fixer temporairement les masses aux angles proposés avec du **scotch de masquage** ou ruban adhésif
+   - Refaire une mesure
+   - Inverser intérieur/extérieur si nécessaire
+   - Répéter jusqu’à obtenir une **réduction maximale de la magnitude X et Y**
+   - Une fois les bonnes positions trouvées, **coller définitivement** les masses sur la jante.
 
 ---
 
@@ -270,3 +314,13 @@ Ce projet open-source permet **d'équilibrer ses roues de voiture chez soi**, ap
 This is a personal DIY project. Feel free to suggest improvements or contribute!  
 C’est un projet DIY personnel. N’hésitez pas à proposer des améliorations ou contribuer !
 
+## 🔧 Future Improvements
+## 🔧 Améliorations futures
+
+- Build a rigid support frame with **two bearing blocks and a central shaft**, similar to commercial 2-plane dynamic balancers.  
+  This design would make the setup **universal**, no longer limited to the wheel type supported by a specific car hub.
+- Add **two accelerometers** (one on the inner side, one on the outer side of the wheel) to improve measurement accuracy and allow **true 2-plane dynamic balancing**, like professional equipment.
+
+- Construire un châssis rigide avec **deux paliers et un arbre central**, comme les équilibreuses dynamiques à deux plans du commerce.  
+  Cela rendrait le système **universel**, non dépendant d’un type de moyeu ou de roue spécifique.
+- Ajouter **deux accéléromètres** (un côté intérieur, un côté extérieur de la roue) pour améliorer la précision des mesures et permettre un **équilibrage dynamique 2 plans** complet, comme sur les équilibreuses professionnelles.
