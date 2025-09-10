@@ -161,6 +161,7 @@ Ce projet open-source permet **d'équilibrer ses roues de voiture chez soi**, ap
    - Try **swapping inner and outer positions** if needed
    - Repeat the process until the **X and Y magnitudes are minimized**
    - Once confirmed, **permanently attach** the weights to the correct positions on the wheel.
+   - If the wheel is balanced, the detected angle will change, meaning the imbalance has changed.
 
 ---
 
@@ -179,6 +180,7 @@ Ce projet open-source permet **d'équilibrer ses roues de voiture chez soi**, ap
    - Inverser intérieur/extérieur si nécessaire
    - Répéter jusqu’à obtenir une **réduction maximale de la magnitude X et Y**
    - Une fois les bonnes positions trouvées, **coller définitivement** les masses sur la jante.
+   - Si la roue est equilibrée alors les angles trouvés changent, cela signifie que le balourd a changé.
 
 ---
 
