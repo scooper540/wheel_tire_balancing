@@ -75,8 +75,6 @@ namespace equilibreuse
             txtCorrectAngleY.Text = Properties.Settings.Default.YAngleCorrect.ToString();
             txtCorrectXTemporal.Text = Properties.Settings.Default.XAngleCorrectTemporal.ToString();
             txtCorrectYTemporal.Text = Properties.Settings.Default.YAngleCorrectTemporal.ToString();
-            chkUseXGyro.Checked = Properties.Settings.Default.UseXGyro;
-            chkUseYGyro.Checked = Properties.Settings.Default.UseYGyro;
             chkLowPassFilter.Checked = Properties.Settings.Default.LowPassChecked;
             chkPassband.Checked = Properties.Settings.Default.PassBandChecked;
             cbxFilterTypes.SelectedItem = Properties.Settings.Default.FilterSelect;
@@ -120,6 +118,7 @@ namespace equilibreuse
                 byte[] buffer = new byte[sp.ReadBufferSize * 4];
                 sp.ReadTimeout = 1;
                 xyz avgTemp = new xyz();
+                avg = new xyz();
                 double lastX = 0, lastY = 0, lastZ = 0; //remove duplicates
                 byte[] bufDataRemaining = new byte[sp.ReadBufferSize * 4];
                 int dataRemaining = 0;
@@ -1047,7 +1046,7 @@ namespace equilibreuse
                     }
 
                 }
-                //check if we use gyro X for accel Y
+             /*   //check if we use gyro X for accel Y
                 if (chkUseXGyro.Checked)
                 {
                     // 5. PSD (densité spectrale de puissance)
@@ -1064,8 +1063,8 @@ namespace equilibreuse
 
 
                 }
-
-                if (chkUseYGyro.Checked)
+                */
+             /*   if (chkUseYGyro.Checked)
                 {
                     var magnitude = calcResult.py[0].ActualAmplitude;
                     var magPerTurn = magnitude / selectedSections.Count;
@@ -1078,7 +1077,7 @@ namespace equilibreuse
                     currentAnalysisX.gMagPSD = psd;
 
 
-                }
+                }*/
 
             }
             formsPlotGyro.Refresh();
@@ -1514,8 +1513,8 @@ namespace equilibreuse
                 var kx2 = EquilibrageHelper.CalculateAttenuationConstant(magXBalanced, magX1, mass1);
                 var ky2 = EquilibrageHelper.CalculateAttenuationConstant(magYBalanced, magY1, mass1);
                 var res2 = EquilibrageHelper.EstimateDynamicBalancing2(magX, angleX, magY, angleY, kx2, ky2);
-                lblAngleXCorrect.Text += " A:" + res2.AngleOuterDeg.ToString("F0") + " M:" + res2.MassOuter.ToString("F0") + ";" + massX.ToString("F0"); ;
-                lblAngleYCorrect.Text += " A:" + res2.AngleInnerDeg.ToString("F0") + " M:" + res2.MassInner.ToString("F0") + ";" + massY.ToString("F0");
+                lblAngleXCorrect.Text += " Mass1:" + res2.MassOuter.ToString("F0") + ";Mass2:" + massX.ToString("F0"); ;
+                lblAngleYCorrect.Text += " Mass1:" + res2.MassInner.ToString("F0") + ";Mass2:" + massY.ToString("F0");
             }
             catch
             { }
@@ -1894,8 +1893,6 @@ namespace equilibreuse
             Properties.Settings.Default.YAngleCorrect = Convert.ToDouble(txtCorrectAngleY.Text);
             Properties.Settings.Default.XAngleCorrectTemporal = Convert.ToDouble(txtCorrectXTemporal.Text);
             Properties.Settings.Default.YAngleCorrectTemporal = Convert.ToDouble(txtCorrectYTemporal.Text);
-            Properties.Settings.Default.UseXGyro = chkUseXGyro.Checked;
-            Properties.Settings.Default.UseYGyro = chkUseYGyro.Checked;
             Properties.Settings.Default.LowPassChecked = chkLowPassFilter.Checked;
             Properties.Settings.Default.PassBandChecked = chkPassband.Checked;
             Properties.Settings.Default.FilterSelect = cbxFilterTypes.SelectedItem.ToString();
