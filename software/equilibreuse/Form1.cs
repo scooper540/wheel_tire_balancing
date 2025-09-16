@@ -1260,6 +1260,7 @@ namespace equilibreuse
             currentAnalysisX.coPkPkTT = dataCompiledX.pkpkTT;
             currentAnalysisX.coPkPkFilter = dataCompiledX.pkpkFilter;
             currentAnalysisX.coRMS = dataCompiledX.rms;
+            currentAnalysisX.coMagPhaseLockin = dataCompiledX.magLockin;
 
             currentAnalysisY.coAngleTemporal = dataCompiledY.angleTemporal;
             currentAnalysisY.coAngleFFT = dataCompiledY.fund.Angle;
@@ -1267,6 +1268,7 @@ namespace equilibreuse
             currentAnalysisY.coPkPkTT = dataCompiledY.pkpkTT;
             currentAnalysisY.coPkPkFilter = dataCompiledY.pkpkFilter;
             currentAnalysisY.coRMS = dataCompiledY.rms;
+            currentAnalysisY.coMagPhaseLockin = dataCompiledY.magLockin;
 
             currentAnalysisX.gAngleTemporal = dataGlobalX.angleTemporal;
             currentAnalysisX.gAngleFFT = dataGlobalX.fund.Angle;
@@ -1274,6 +1276,7 @@ namespace equilibreuse
             currentAnalysisX.gPkPkTT = dataGlobalX.pkpkTT;
             currentAnalysisX.gPkPkFilter = dataGlobalX.pkpkFilter;
             currentAnalysisX.gRMS = dataGlobalX.rms;
+            currentAnalysisX.gMagPhaseLockin = dataGlobalX.magLockin / currentAnalysisX.numberOfTurn;
             //psd = (magnitude * magnitude) / analyzedY.Length;
             currentAnalysisX.gMagPSD = (dataGlobalX.fund.Magnitude * dataGlobalX.fund.Magnitude) / dataGlobal.x.Length;
             currentAnalysisX.gMagRatio = dataGlobalX.fund.Magnitude / currentAnalysisX.numberOfTurn;
@@ -1285,6 +1288,7 @@ namespace equilibreuse
             currentAnalysisY.gPkPkTT = dataGlobalY.pkpkTT;
             currentAnalysisY.gPkPkFilter = dataGlobalY.pkpkFilter;
             currentAnalysisY.gRMS = dataGlobalY.rms;
+            currentAnalysisY.gMagPhaseLockin = dataGlobalY.magLockin / currentAnalysisY.numberOfTurn;
             //psd = (magnitude * magnitude) / analyzedY.Length;
             currentAnalysisY.gMagPSD = (dataGlobalY.fund.Magnitude * dataGlobalY.fund.Magnitude) / dataGlobal.y.Length;
             currentAnalysisY.gMagRatio = dataGlobalY.fund.Magnitude / currentAnalysisY.numberOfTurn;
@@ -1306,11 +1310,13 @@ namespace equilibreuse
                 currentAnalysisX.ttPkPkTT += dataSingleX.pkpkTT;
                 currentAnalysisX.ttPkPkFilter += dataSingleX.pkpkFilter;
                 currentAnalysisX.ttRMS += dataSingleX.rms;
+                currentAnalysisX.ttMagPhaseLockin += dataSingleX.magLockin;
 
                 currentAnalysisY.ttMagAvg += dataSingleY.fund.Magnitude;
                 currentAnalysisY.ttPkPkTT += dataSingleY.pkpkTT;
                 currentAnalysisY.ttPkPkFilter += dataSingleY.pkpkFilter;
                 currentAnalysisY.ttRMS += dataSingleY.rms;
+                currentAnalysisY.ttMagPhaseLockin += dataSingleY.magLockin;
             }
             currentAnalysisX.ttAngleFFT = MathHelper.CalculateMeanAngle(lstAngleFFTX.ToArray());
             currentAnalysisX.ttAngleTemporal = MathHelper.CalculateMeanAngle(lstAngleTemporalX.ToArray());
@@ -1321,10 +1327,12 @@ namespace equilibreuse
             currentAnalysisX.ttPkPkTT /= currentAnalysisX.numberOfTurn;
             currentAnalysisX.ttPkPkFilter /= currentAnalysisX.numberOfTurn;
             currentAnalysisX.ttRMS /= currentAnalysisX.numberOfTurn;
+            currentAnalysisX.ttMagPhaseLockin /= currentAnalysisX.numberOfTurn;
             currentAnalysisY.ttMagAvg /= currentAnalysisY.numberOfTurn;
             currentAnalysisY.ttPkPkTT /= currentAnalysisY.numberOfTurn;
             currentAnalysisY.ttPkPkFilter /= currentAnalysisY.numberOfTurn;
             currentAnalysisY.ttRMS /= currentAnalysisY.numberOfTurn;
+            currentAnalysisY.ttMagPhaseLockin /= currentAnalysisY.numberOfTurn;
 
             //Adjust the angles and draw the data to the graphs
             var xCorrect = Convert.ToDouble(txtCorrectAngleX.Text);
@@ -1381,7 +1389,7 @@ namespace equilibreuse
 
         }
 
-        private (double angleTemporal, double angleLockin, double pkpkTT, double pkpkFilter, double rms, Fundamentale fund) GetPhaseMagnitude(double[] data, double[] angle, double sampleRate, double rpm, double f_rot)
+        private (double angleTemporal, double angleLockin, double magLockin, double pkpkTT, double pkpkFilter, double rms, Fundamentale fund) GetPhaseMagnitude(double[] data, double[] angle, double sampleRate, double rpm, double f_rot)
         {
             double angleTemporal = 0;
             var l = new LowPassFilter(5, sampleRate);
@@ -1403,10 +1411,10 @@ namespace equilibreuse
             double[] z = new double[1];
             double[] resultante = new double[1];
             ApplyFilters(sampleRate, f_rot, ref data, ref y, ref z, ref resultante);
-            var res = EquilibrageHelper.AnalyzeSignal(data, sampleRate, f_rot, cbxFFT, chkDb, rpm, chkClockwise.Checked);
+            var res = EquilibrageHelper.ComputeLockInPhase(data, f_rot, sampleRate);
             FFTData dataFFT = EquilibrageHelper.CalculateFFT(data, sampleRate, cbxFFTSingle, chkDb.Checked, rpm, f_rot, chkClockwise.Checked);
             var fund = EquilibrageHelper.GetFundamentalPhase(dataFFT.Frequence, dataFFT.Magnitude, dataFFT.AngleDeg, f_rot);
-            return (angleTemporal, res.rPhaseLockIn, dataFiltered.Max() - dataFiltered.Min(), data.Max() - data.Min(), Statistics.RootMeanSquare(data), fund);
+            return (angleTemporal, res.phase, res.amp, dataFiltered.Max() - dataFiltered.Min(), data.Max() - data.Min(), Statistics.RootMeanSquare(data), fund);
         }
 
         private void btnExecuteAnalysis_Click(object sender, EventArgs e)
@@ -1946,6 +1954,9 @@ namespace equilibreuse
                 new DataGridViewColumn(){ HeaderText = "Global Pk-Pk LowPass5hz", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Compiled Pk-PkLowPass5hz", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Turn-Turn Pk-PkLowPass5hz", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Global Amplitude Lockin", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Compiled Amplitude Lockin", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Turn-Turn Amplitude Lockin", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Global RMS", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Compiled RMS", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Turn-Turn RMS", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
@@ -1976,6 +1987,10 @@ namespace equilibreuse
                 new DataGridViewColumn(){ HeaderText = "Global Pk-Pk LowPass5hz", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Compiled Pk-PkLowPass5hz", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Turn-Turn Pk-PkLowPass5hz", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Global Amplitude Lockin", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Compiled Amplitude Lockin", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Turn-Turn Amplitude Lockin", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+
                 new DataGridViewColumn(){ HeaderText = "Global RMS", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Compiled RMS", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Turn-Turn RMS", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
@@ -2048,6 +2063,10 @@ namespace equilibreuse
                 case "Global Magnitude":
                     magX = currentAnalysisX.gMagAvg;
                     magY = currentAnalysisY.gMagAvg;
+                    break;
+                case "Global Magnitude Lockin":
+                    magX = currentAnalysisX.gMagPhaseLockin;
+                    magY = currentAnalysisY.gMagPhaseLockin;
                     break;
                 case "Global Mag / nb of turn":
                     magX = currentAnalysisX.gMagRatio;
@@ -2177,6 +2196,9 @@ namespace equilibreuse
         public double gPkPkTT;
         public double gPkPkFilter;
         public double gMagAvg;
+        public double gMagPhaseLockin;
+        public double coMagPhaseLockin;
+        public double ttMagPhaseLockin;
         public double gMagPSD;
         public double gMagRatio;
         public double gAngleFFT;
@@ -2225,6 +2247,9 @@ namespace equilibreuse
                 gPkPkTT.ToString("F4"),
                 coPkPkTT.ToString("F4"),
                 ttPkPkTT.ToString("F4"),
+                gMagPhaseLockin.ToString("F4"),
+                coMagPhaseLockin.ToString("F4"),
+                ttMagPhaseLockin.ToString("F4"),
                 gRMS.ToString("F4"),
                 coRMS.ToString("F4"),
                 ttRMS.ToString("F4")

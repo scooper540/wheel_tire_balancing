@@ -75,7 +75,7 @@ namespace equilibreuse
         public static PhaseAnalysis AnalyzeSignal(double[] signal, double sampleRate, double f_rot, ComboBox cbxFFT, CheckBox chkDb, double rpm,bool clockWize)
         {
             var res = new PhaseAnalysis();
-            res.rPhaseLockIn = EquilibrageHelper.ComputeLockInPhase(signal, f_rot, sampleRate);
+            res.rPhaseLockIn = EquilibrageHelper.ComputeLockInPhase(signal, f_rot, sampleRate).phase;
             res.rFitSinusoid = EquilibrageHelper.FitSinusoidPhase(signal, f_rot, sampleRate);
             res.rDetectPhase = EquilibrageHelper.DetectPhase(signal, sampleRate, f_rot).phaseDegrees;
             var fft = EquilibrageHelper.CalculateFFT(signal, sampleRate, cbxFFT, chkDb.Checked, rpm, f_rot, clockWize);
@@ -325,7 +325,6 @@ namespace equilibreuse
                 data.AngleDeg[i]  = (double)(Math.Atan2(im[i], re[i]) * (180.0 / Math.PI) + 360) % 360; //360 to have correct angle correction
                 if (bClockwizeRotating)
                     data.AngleDeg[i] = 360 - data.AngleDeg[i]; //if clockwize rotating, the angle has to be inverted
-
             }
             data.Magnitude[0] = Math.Abs(re[0]) / (omega * omega);
 
@@ -430,22 +429,35 @@ namespace equilibreuse
         }
 
 
-        public static double ComputeLockInPhase(double[] signal, double freqFundamental, double samplingRate)
+        public static (double phase, double amp) ComputeLockInPhase(double[] signal, double freqFundamental, double samplingRate)
         {
             double[] referenceSin = GenerateSineWave(freqFundamental, samplingRate, signal.Length, 0);
             double[] referenceCos = GenerateSineWave(freqFundamental, samplingRate, signal.Length, 90);
 
             // Multiplier et intégrer (moyenne)
             double I = 0, Q = 0;
+            double[] IS = new double[signal.Length];
+            double[] QS = new double[signal.Length];
             for (int i = 0; i < signal.Length; i++)
             {
                 I += signal[i] * referenceSin[i];
                 Q += signal[i] * referenceCos[i];
+                IS[i] = signal[i] * referenceSin[i];
+                QS[i] = signal[i] * referenceCos[i];
             }
             I /= signal.Length;
             Q /= signal.Length;
 
-            return ((Math.Atan2(I, Q) * 180 / Math.PI)+360)%360; // Phase en degrés
+            //filter low pass on I and Q for magnitude
+            IS =  LowPassFilter.ApplyLowPassFilterZeroPhase(IS, 1.0, samplingRate, 1);
+            QS = LowPassFilter.ApplyLowPassFilterZeroPhase(QS, 1.0, samplingRate, 1);
+            double phase = ((Math.Atan2(IS.Average(), QS.Average()) * 180 / Math.PI) + 360) % 360; // Phase en degrés
+            double amp1 = Math.Sqrt(IS.Average() * IS.Average() + QS.Average() * QS.Average());
+            double amp2 = Math.Sqrt(IS[signal.Length-1] * IS[signal.Length - 1] + QS[signal.Length - 1] * QS[signal.Length - 1]);
+            double amp = Math.Sqrt(I * I + Q * Q);
+            //normalize amp by rpm
+            double omega = 2 * Math.PI * (freqFundamental*60) / 60.0;
+            return (phase, amp1/(omega*omega));
         }
 
         private static double[] GenerateSineWave(double freq, double samplingRate, int length, double phaseDeg)

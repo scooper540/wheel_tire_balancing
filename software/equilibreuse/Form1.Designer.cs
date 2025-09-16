@@ -576,13 +576,13 @@ namespace equilibreuse
             // 
             // tabControl1
             // 
+            this.tabControl1.Controls.Add(this.tabPage7);
             this.tabControl1.Controls.Add(this.tabPage1);
             this.tabControl1.Controls.Add(this.tabPage2);
             this.tabControl1.Controls.Add(this.tabPage3);
             this.tabControl1.Controls.Add(this.tabPage4);
             this.tabControl1.Controls.Add(this.tabPage8);
             this.tabControl1.Controls.Add(this.tabPage15);
-            this.tabControl1.Controls.Add(this.tabPage7);
             this.tabControl1.Controls.Add(this.tabPage14);
             this.tabControl1.Location = new System.Drawing.Point(15, 82);
             this.tabControl1.Name = "tabControl1";
@@ -1106,7 +1106,8 @@ namespace equilibreuse
             "Global PkPk Filter",
             "Global PkPk LP 5hz",
             "Compiled Mag",
-            "Turn by Turn Mag"});
+            "Turn by Turn Mag",
+            "Global Magnitude Lockin"});
             this.cbxMagData.Location = new System.Drawing.Point(593, 140);
             this.cbxMagData.Name = "cbxMagData";
             this.cbxMagData.Size = new System.Drawing.Size(121, 21);

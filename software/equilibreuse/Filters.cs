@@ -384,7 +384,7 @@ namespace equilibreuse
         {
     
             var bw = new NWaves.Filters.Butterworth.BandPassFilter(f_low, f_high, orderfilter);
-            //var df = DesignFilter.TfToSos(bw.Tf);
+          
             return new IirFilter(bw.Tf);
 
             // =========== filtering ==============           
