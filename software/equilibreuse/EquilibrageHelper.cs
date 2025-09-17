@@ -429,7 +429,7 @@ namespace equilibreuse
         }
 
 
-        public static (double phase, double amp) ComputeLockInPhase(double[] signal, double freqFundamental, double samplingRate)
+        public static (double phase, double amp) ComputeLockInPhase(double[] signal, double freqFundamental, double samplingRate, bool bLowPass = true, bool bNormalizeSpeed = true)
         {
             double[] referenceSin = GenerateSineWave(freqFundamental, samplingRate, signal.Length, 0);
             double[] referenceCos = GenerateSineWave(freqFundamental, samplingRate, signal.Length, 90);
@@ -447,19 +447,83 @@ namespace equilibreuse
             }
             I /= signal.Length;
             Q /= signal.Length;
-
-            //filter low pass on I and Q for magnitude
-            IS =  LowPassFilter.ApplyLowPassFilterZeroPhase(IS, 1.0, samplingRate, 1);
-            QS = LowPassFilter.ApplyLowPassFilterZeroPhase(QS, 1.0, samplingRate, 1);
-            double phase = ((Math.Atan2(IS.Average(), QS.Average()) * 180 / Math.PI) + 360) % 360; // Phase en degrés
-            double amp1 = Math.Sqrt(IS.Average() * IS.Average() + QS.Average() * QS.Average());
-            double amp2 = Math.Sqrt(IS[signal.Length-1] * IS[signal.Length - 1] + QS[signal.Length - 1] * QS[signal.Length - 1]);
+            double omega = 2 * Math.PI * (freqFundamental * 60) / 60.0;
+            if (bLowPass)
+            {
+                //filter low pass on I and Q for magnitude
+                IS = LowPassFilter.ApplyLowPassFilterZeroPhase(IS, 1.0, samplingRate, 1);
+                QS = LowPassFilter.ApplyLowPassFilterZeroPhase(QS, 1.0, samplingRate, 1);
+                double phase = ((Math.Atan2(IS.Average(), QS.Average()) * 180 / Math.PI) + 360) % 360; // Phase en degrés
+                double amp1 = Math.Sqrt(IS.Average() * IS.Average() + QS.Average() * QS.Average());
+                if(bNormalizeSpeed)
+                    return (phase, amp1 * Math.Sqrt(signal.Length)/ (omega * omega));
+                else
+                    return (phase, amp1);
+            }
+            double phase2 = ((Math.Atan2(I, Q) * 180 / Math.PI) + 360) % 360; // Phase en degrés
             double amp = Math.Sqrt(I * I + Q * Q);
             //normalize amp by rpm
-            double omega = 2 * Math.PI * (freqFundamental*60) / 60.0;
-            return (phase, amp1/(omega*omega));
+            if (bNormalizeSpeed)
+                return (phase2, amp* Math.Sqrt(signal.Length) / (omega*omega ));
+            else
+                return (phase2, amp);
         }
+        public static (double Magnitude, double Phase) Goertzel(double[] signal, double sampleRate, double targetFreq)
+        {
+            int N = signal.Length;
+            double k = (int)(0.5 + ((N * targetFreq) / sampleRate)); // index de fréquence
+            double omega = (2.0 * Math.PI * k) / N;
+            double cosine = Math.Cos(omega);
+            double sine = Math.Sin(omega);
+            double coeff = 2.0 * cosine;
 
+            double q0 = 0, q1 = 0, q2 = 0;
+
+            for (int i = 0; i < N; i++)
+            {
+                q0 = coeff * q1 - q2 + signal[i];
+                q2 = q1;
+                q1 = q0;
+            }
+
+            double real = (q1 - q2 * cosine);
+            double imag = (q2 * sine);
+
+            double magnitude = Math.Sqrt(real * real + imag * imag) * Math.Sqrt(signal.Length) / omega*omega; // amplitude normalisée
+            double phase = -Math.Atan2(imag, real); // radians
+
+            return (magnitude, ((phase * 180.0 / Math.PI) + 360) % 360); // retour en degrés
+        }
+        public static (double Magnitude, double Phase) GoertzelEstimator(double[] signal, double targetFreq, double sampleRate)
+        {
+            int N = signal.Length;
+            double k = targetFreq * N / sampleRate;
+    // Coefficients Goertzel
+            double omega = 2.0 * Math.PI * k / N;
+            double cosine = Math.Cos(omega);
+            double sine = Math.Sin(omega);
+            double coeff = 2.0 * cosine;
+
+            // Variables d'état
+            double s0 = 0, s1 = 0, s2 = 0;
+
+            // Boucle principale Goertzel
+            for (int i = 0; i < N; i++)
+            {
+                s0 = signal[i] + coeff * s1 - s2;
+                s2 = s1;
+                s1 = s0;
+            }
+
+            // Calcul final
+            double real = s1 - s2 * cosine;
+            double imag = s2 * sine;
+
+            double magnitude = Math.Sqrt(real * real + imag * imag) * Math.Sqrt(signal.Length) / omega *omega;
+            double phase = -Math.Atan2(imag, real);
+
+            return (magnitude, ((phase * 180.0 / Math.PI) + 360) % 360);
+        }
         private static double[] GenerateSineWave(double freq, double samplingRate, int length, double phaseDeg)
         {
             double[] wave = new double[length];
@@ -1194,6 +1258,14 @@ namespace equilibreuse
             // Masse à ajouter pour que la magnitude retombe au niveau de référence
             return (1.0 / k) * Math.Log(measuredMagnitude / referenceMagnitude);
         }
+        public static double CalculateGrowthConstant(double referenceMagnitude, double newMagnitude, double massAdded)
+        {
+            if (referenceMagnitude <= 0 || newMagnitude <= 0 || massAdded <= 0)
+                return 0;
+
+            return (1.0 / massAdded) * Math.Log(newMagnitude / referenceMagnitude);
+        }
+
         public static double CalculateGrowthConstantFrom2Points(
     double mag0,      // magnitude de base (sans masse)
     double mag1, double mass1,  // première mesure
@@ -1211,17 +1283,32 @@ namespace equilibreuse
 
             return slope;
         }
-
         /// <summary>
-        /// Calcule la constante de croissance k à partir d'une roue équilibrée et d'un poids ajouté.
+        /// Estime la masse correctrice à ajouter pour ramener la magnitude à un niveau de référence,
+        /// en supposant une relation linéaire entre masse et magnitude.
         /// </summary>
-        public static double CalculateGrowthConstant(double referenceMagnitude, double newMagnitude, double massAdded)
+        public static double EstimateCorrectiveMassLinear(double measuredMagnitude, double referenceMagnitude, double k)
         {
-            if (referenceMagnitude <= 0 || newMagnitude <= 0 || massAdded <= 0)
+            if (k <= 0)
                 return 0;
 
-            return (1.0 / massAdded) * Math.Log(newMagnitude / referenceMagnitude);
+            if (measuredMagnitude <= referenceMagnitude)
+                return 0;
+
+            return (measuredMagnitude - referenceMagnitude) / k;
         }
+
+        /// <summary>
+        /// Calcule la constante k dans une relation linéaire : magnitude = ref + k * masse.
+        /// </summary>
+        public static double CalculateGrowthConstantLinear(double referenceMagnitude, double newMagnitude, double massAdded)
+        {
+            if (massAdded <= 0)
+                return 0;
+
+            return (newMagnitude - referenceMagnitude) / massAdded;
+        }
+
 
 
 

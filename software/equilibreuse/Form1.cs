@@ -1245,6 +1245,82 @@ namespace equilibreuse
         }
         private void ExecuteAnalysis()
         {
+            if (chkExcludeWrongTurn.Checked)
+            {
+                List<double> lstFFTX = new List<double>();
+                List<double> lstFFTY = new List<double>();
+                List<double> lstRMSX = new List<double>();
+                List<double> lstRMSY = new List<double>();
+                List<double> lstLockInX = new List<double>();
+                List<double> lstLockInY = new List<double>();
+                List<double> lstPkPkX = new List<double>();
+                List<double> lstPkPkY = new List<double>();
+                //we first find tours to exclude
+                foreach (section s in selectedSections)
+                {
+                    var dataSingle = GetSingleTourSignal(s);
+                    var dataSingleX = GetPhaseMagnitude(dataSingle.x, dataSingle.angle, dataSingle.sampleRate, dataSingle.rpm, dataSingle.f_rot);
+                    var dataSingleY = GetPhaseMagnitude(dataSingle.y, dataSingle.angle, dataSingle.sampleRate, dataSingle.rpm, dataSingle.f_rot);
+                    //exclude out of scope tours
+                    lstFFTX.Add(dataSingleX.fund.Magnitude); lstFFTY.Add(dataSingleY.fund.Magnitude);
+                    lstRMSX.Add(dataSingleX.rms);
+                    lstLockInX.Add(dataSingleX.magLockin);
+                    lstPkPkX.Add(dataSingleX.pkpkFilter);
+                    lstRMSY.Add(dataSingleY.rms);
+                    lstLockInY.Add(dataSingleY.magLockin);
+                    lstPkPkY.Add(dataSingleY.pkpkFilter);
+                }
+                var resultsX = StabilityAnalyzer.AnalyzeStability(lstRMSX, lstLockInX, lstPkPkX, lstFFTX);
+
+                foreach (var result in resultsX)
+                {
+                    Console.WriteLine($"--- for X {result.Variable} ---");
+                    Console.WriteLine($"Best exclusion index: {result.BestExclusionIndex}");
+                    Console.WriteLine($"Original range: {result.OriginalRange:F2}");
+                    Console.WriteLine($"Range after exclusion: {result.RangeAfterExclusion:F2}");
+                    Console.WriteLine($"Z-score outliers: {string.Join(", ", result.ZScoreOutliers)}");
+                    Console.WriteLine();
+                }
+                var resultsY = StabilityAnalyzer.AnalyzeStability(lstRMSY, lstLockInY, lstPkPkY, lstFFTY);
+
+                foreach (var result in resultsY)
+                {
+                    Console.WriteLine($"--- for Y {result.Variable} ---");
+                    Console.WriteLine($"Best exclusion index: {result.BestExclusionIndex}");
+                    Console.WriteLine($"Original range: {result.OriginalRange:F2}");
+                    Console.WriteLine($"Range after exclusion: {result.RangeAfterExclusion:F2}");
+                    Console.WriteLine($"Z-score outliers: {string.Join(", ", result.ZScoreOutliers)}");
+                    Console.WriteLine();
+                }
+                var allIndices = resultsX.Concat(resultsY).Select(r => r.BestExclusionIndex).ToList();
+                var exclusionCounts = allIndices
+                    .GroupBy(i => i)
+                    .ToDictionary(g => g.Key, g => g.Count());
+
+                // Affiche les scores
+                Console.WriteLine("=== Tour exclusion scores ===");
+                foreach (var kvp in exclusionCounts.OrderByDescending(k => k.Value))
+                {
+                    Console.WriteLine($"Tour #{kvp.Key} → Score: {kvp.Value}");
+                }
+
+                // Liste des tours à exclure (si score ≥ 2)
+                var toursToExclude = exclusionCounts
+                    .Where(kvp => kvp.Value >= 2)
+                    .Select(kvp => kvp.Key)
+                    .ToList();
+
+                Console.WriteLine("\nTours à exclure : " + string.Join(", ", toursToExclude));
+                toursToExclude.Sort((a, c) => c.CompareTo(a)); // Tri décroissant
+
+                foreach (int index in toursToExclude)
+                {
+                    if (index >= 0 && index < selectedSections.Count)
+                        selectedSections.RemoveAt(index);
+                }
+                currentAnalysisX.numberOfTurn = selectedSections.Count;
+                currentAnalysisY.numberOfTurn = selectedSections.Count;
+            }
             //get signal, apply low pass filter with 5hz to get temporal peaks, then apply selected user signal to determine phase and magnitude
             var dataCompiled = GetCompiledTourSignal();
             var dataCompiledX = GetPhaseMagnitude(dataCompiled.x, dataCompiled.angle, dataCompiled.sampleRate, dataCompiled.rpm, dataCompiled.f_rot);
@@ -1261,7 +1337,8 @@ namespace equilibreuse
             currentAnalysisX.coPkPkFilter = dataCompiledX.pkpkFilter;
             currentAnalysisX.coRMS = dataCompiledX.rms;
             currentAnalysisX.coMagPhaseLockin = dataCompiledX.magLockin;
-
+            currentAnalysisX.coGoertzelMag = dataCompiledX.goertzelMag;
+            currentAnalysisX.coGoertzelPhase = dataCompiledX.goertzelAngle;
             currentAnalysisY.coAngleTemporal = dataCompiledY.angleTemporal;
             currentAnalysisY.coAngleFFT = dataCompiledY.fund.Angle;
             currentAnalysisY.coMagAvg = dataCompiledY.fund.Magnitude;
@@ -1269,6 +1346,8 @@ namespace equilibreuse
             currentAnalysisY.coPkPkFilter = dataCompiledY.pkpkFilter;
             currentAnalysisY.coRMS = dataCompiledY.rms;
             currentAnalysisY.coMagPhaseLockin = dataCompiledY.magLockin;
+            currentAnalysisY.coGoertzelMag = dataCompiledY.goertzelMag;
+            currentAnalysisY.coGoertzelPhase = dataCompiledY.goertzelAngle;
 
             currentAnalysisX.gAngleTemporal = dataGlobalX.angleTemporal;
             currentAnalysisX.gAngleFFT = dataGlobalX.fund.Angle;
@@ -1281,6 +1360,9 @@ namespace equilibreuse
             currentAnalysisX.gMagPSD = (dataGlobalX.fund.Magnitude * dataGlobalX.fund.Magnitude) / dataGlobal.x.Length;
             currentAnalysisX.gMagRatio = dataGlobalX.fund.Magnitude / currentAnalysisX.numberOfTurn;
             currentAnalysisX.gAlternateFFT = dataGlobalX.angleLockin;
+            currentAnalysisX.gGoertzelMag = dataGlobalX.goertzelMag / currentAnalysisX.numberOfTurn; ;
+            currentAnalysisX.gGoertzelPhase = dataGlobalX.goertzelAngle;
+
 
             currentAnalysisY.gAngleTemporal = dataGlobalY.angleTemporal;
             currentAnalysisY.gAngleFFT = dataGlobalY.fund.Angle;
@@ -1293,16 +1375,23 @@ namespace equilibreuse
             currentAnalysisY.gMagPSD = (dataGlobalY.fund.Magnitude * dataGlobalY.fund.Magnitude) / dataGlobal.y.Length;
             currentAnalysisY.gMagRatio = dataGlobalY.fund.Magnitude / currentAnalysisY.numberOfTurn;
             currentAnalysisY.gAlternateFFT = dataGlobalY.angleLockin;
+            currentAnalysisY.gGoertzelMag = dataGlobalY.goertzelMag/ currentAnalysisY.numberOfTurn;
+            currentAnalysisY.gGoertzelPhase = dataGlobalY.goertzelAngle;
 
             List<double> lstAngleFFTX = new List<double>();
             List<double> lstAngleTemporalX = new List<double>();
             List<double> lstAngleFFTY = new List<double>();
             List<double> lstAngleTemporalY = new List<double>();
+
+
+            //we first find tours to exclude
             foreach (section s in selectedSections)
             {
                 var dataSingle = GetSingleTourSignal(s);
                 var dataSingleX = GetPhaseMagnitude(dataSingle.x, dataSingle.angle, dataSingle.sampleRate, dataSingle.rpm, dataSingle.f_rot);
                 var dataSingleY = GetPhaseMagnitude(dataSingle.y, dataSingle.angle, dataSingle.sampleRate, dataSingle.rpm, dataSingle.f_rot);
+             
+
                 lstAngleFFTX.Add(dataSingleX.fund.Angle); lstAngleTemporalX.Add(dataSingleX.angleTemporal);
                 lstAngleFFTY.Add(dataSingleY.fund.Angle); lstAngleTemporalY.Add(dataSingleY.angleTemporal);
 
@@ -1311,13 +1400,15 @@ namespace equilibreuse
                 currentAnalysisX.ttPkPkFilter += dataSingleX.pkpkFilter;
                 currentAnalysisX.ttRMS += dataSingleX.rms;
                 currentAnalysisX.ttMagPhaseLockin += dataSingleX.magLockin;
-
+                currentAnalysisX.ttGoertzelMag += dataSingleX.goertzelMag;
                 currentAnalysisY.ttMagAvg += dataSingleY.fund.Magnitude;
                 currentAnalysisY.ttPkPkTT += dataSingleY.pkpkTT;
                 currentAnalysisY.ttPkPkFilter += dataSingleY.pkpkFilter;
                 currentAnalysisY.ttRMS += dataSingleY.rms;
                 currentAnalysisY.ttMagPhaseLockin += dataSingleY.magLockin;
+                currentAnalysisY.ttGoertzelMag += dataSingleY.goertzelMag;
             }
+        
             currentAnalysisX.ttAngleFFT = MathHelper.CalculateMeanAngle(lstAngleFFTX.ToArray());
             currentAnalysisX.ttAngleTemporal = MathHelper.CalculateMeanAngle(lstAngleTemporalX.ToArray());
             currentAnalysisY.ttAngleFFT = MathHelper.CalculateMeanAngle(lstAngleFFTY.ToArray());
@@ -1328,11 +1419,13 @@ namespace equilibreuse
             currentAnalysisX.ttPkPkFilter /= currentAnalysisX.numberOfTurn;
             currentAnalysisX.ttRMS /= currentAnalysisX.numberOfTurn;
             currentAnalysisX.ttMagPhaseLockin /= currentAnalysisX.numberOfTurn;
+            currentAnalysisX.ttGoertzelMag /= currentAnalysisX.numberOfTurn;
             currentAnalysisY.ttMagAvg /= currentAnalysisY.numberOfTurn;
             currentAnalysisY.ttPkPkTT /= currentAnalysisY.numberOfTurn;
             currentAnalysisY.ttPkPkFilter /= currentAnalysisY.numberOfTurn;
             currentAnalysisY.ttRMS /= currentAnalysisY.numberOfTurn;
             currentAnalysisY.ttMagPhaseLockin /= currentAnalysisY.numberOfTurn;
+            currentAnalysisY.ttGoertzelMag /= currentAnalysisY.numberOfTurn;
 
             //Adjust the angles and draw the data to the graphs
             var xCorrect = Convert.ToDouble(txtCorrectAngleX.Text);
@@ -1347,6 +1440,8 @@ namespace equilibreuse
             currentAnalysisX.gAngleFFT = (currentAnalysisX.gAngleFFT + xCorrect) % 360;
             currentAnalysisX.gAngleTemporal = (currentAnalysisX.gAngleTemporal + xCorrectTemp) % 360;
             currentAnalysisX.gAlternateFFT = (currentAnalysisX.gAlternateFFT + xCorrect) % 360;
+            currentAnalysisX.gGoertzelPhase = (currentAnalysisX.gGoertzelPhase + xCorrect) % 360;
+            currentAnalysisX.coGoertzelPhase = (currentAnalysisX.coGoertzelPhase + xCorrect) % 360;
 
             currentAnalysisY.ttAngleFFT = (currentAnalysisY.ttAngleFFT + yCorrect) % 360;
             currentAnalysisY.ttAngleTemporal = (currentAnalysisY.ttAngleTemporal + yCorrectTemp) % 360;
@@ -1355,6 +1450,8 @@ namespace equilibreuse
             currentAnalysisY.gAngleFFT = (currentAnalysisY.gAngleFFT + yCorrect) % 360;
             currentAnalysisY.gAngleTemporal = (currentAnalysisY.gAngleTemporal + yCorrectTemp) % 360;
             currentAnalysisY.gAlternateFFT = (currentAnalysisY.gAlternateFFT + yCorrect) % 360;
+            currentAnalysisY.gGoertzelPhase = (currentAnalysisY.gGoertzelPhase + yCorrect) % 360;
+            currentAnalysisY.coGoertzelPhase = (currentAnalysisY.coGoertzelPhase + yCorrect) % 360;
 
             formsPlotT1X.Plot.Add.VerticalLine(currentAnalysisX.gAngleFFT, color: Colors.Green, width: 3);
             formsPlotT1Y.Plot.Add.VerticalLine(currentAnalysisY.gAngleFFT, color: Colors.Green, width: 3);
@@ -1389,7 +1486,7 @@ namespace equilibreuse
 
         }
 
-        private (double angleTemporal, double angleLockin, double magLockin, double pkpkTT, double pkpkFilter, double rms, Fundamentale fund) GetPhaseMagnitude(double[] data, double[] angle, double sampleRate, double rpm, double f_rot)
+        private (double angleTemporal, double goertzelAngle, double goertzelMag, double angleLockin, double magLockin, double pkpkTT, double pkpkFilter, double rms, Fundamentale fund) GetPhaseMagnitude(double[] data, double[] angle, double sampleRate, double rpm, double f_rot)
         {
             double angleTemporal = 0;
             var l = new LowPassFilter(5, sampleRate);
@@ -1411,10 +1508,11 @@ namespace equilibreuse
             double[] z = new double[1];
             double[] resultante = new double[1];
             ApplyFilters(sampleRate, f_rot, ref data, ref y, ref z, ref resultante);
-            var res = EquilibrageHelper.ComputeLockInPhase(data, f_rot, sampleRate);
+            var res = EquilibrageHelper.ComputeLockInPhase(data, f_rot, sampleRate,true,true);
+            var go = EquilibrageHelper.GoertzelEstimator(data, f_rot, sampleRate);
             FFTData dataFFT = EquilibrageHelper.CalculateFFT(data, sampleRate, cbxFFTSingle, chkDb.Checked, rpm, f_rot, chkClockwise.Checked);
             var fund = EquilibrageHelper.GetFundamentalPhase(dataFFT.Frequence, dataFFT.Magnitude, dataFFT.AngleDeg, f_rot);
-            return (angleTemporal, res.phase, res.amp, dataFiltered.Max() - dataFiltered.Min(), data.Max() - data.Min(), Statistics.RootMeanSquare(data), fund);
+            return (angleTemporal,go.Phase, go.Magnitude, res.phase, res.amp, dataFiltered.Max() - dataFiltered.Min(), data.Max() - data.Min(), Statistics.RootMeanSquare(data), fund);
         }
 
         private void btnExecuteAnalysis_Click(object sender, EventArgs e)
@@ -1429,26 +1527,26 @@ namespace equilibreuse
             formsPlotT1X.Plot.Clear(); formsPlotT1Y.Plot.Clear(); formsPlotT1O.Plot.Clear(); formsPlotT1I.Plot.Clear();
             for (int i = 0; i < lstSelectToursAnalysis.CheckedItems.Count;i++)
             {
-                
+                var sSelected = lstSelectToursAnalysis.CheckedItems[i];
                 btnUnselectAll_Click(null, EventArgs.Empty);
                 
-                if (lstSelectToursAnalysis.CheckedItems[i].ToString().StartsWith("200-210"))
+                if (sSelected.ToString().StartsWith("200-210"))
                 {
                     btn200210_Click(null, EventArgs.Empty);
                 }
-                else if (lstSelectToursAnalysis.CheckedItems[i].ToString().StartsWith("210-220"))
+                else if (sSelected.ToString().StartsWith("210-220"))
                 {
                     btn210220_Click(null, EventArgs.Empty);
                 }
-                else if (lstSelectToursAnalysis.CheckedItems[i].ToString().StartsWith("220-230"))
+                else if (sSelected.ToString().StartsWith("220-230"))
                 {
                     btn220230_Click(null, EventArgs.Empty);
                 }
-                else if (lstSelectToursAnalysis.CheckedItems[i].ToString().StartsWith("230-240"))
+                else if (sSelected.ToString().StartsWith("230-240"))
                 {
                     btn230240_Click(null, EventArgs.Empty);
                 }
-                else if (lstSelectToursAnalysis.CheckedItems[i].ToString().StartsWith("240-250"))
+                else if (sSelected.ToString().StartsWith("240-250"))
                 {
                     btn240250_Click(null, EventArgs.Empty);
                 }
@@ -1462,15 +1560,16 @@ namespace equilibreuse
                 magnitudeX.Add(data.magX);
                 angleY.Add(data.angleY);
                 magnitudeY.Add(data.magY);
+                for(int j = 0; j < lstSelectToursAnalysis.Items.Count;j++)
+                {
+                    if(lstSelectToursAnalysis.Items[j].ToString() == sSelected.ToString())
+                    {
+                        lstSelectToursAnalysis.Items[j] = sSelected.ToString().Substring(0,7) + $" X:{data.magX.ToString("F2")}@{data.angleX.ToString("F0")} Y:{data.magY.ToString("F2")}@{data.angleY.ToString("F0")}";
+                    }
+                }
             }
             if (angleX.Count > 0)
             {
-                //remove max and min magnitude
-                magnitudeX.Remove(magnitudeX.Max());
-                magnitudeX.Remove(magnitudeX.Min());
-                magnitudeY.Remove(magnitudeY.Max());
-                magnitudeY.Remove(magnitudeY.Min());
-
                 lblAngleXStat.Text = $"X - Angle:{angleX.Min().ToString("F0")}-{angleX.Max().ToString("F0")} Mag:{magnitudeX.Min().ToString("F2")}-{magnitudeX.Max().ToString("F2")}";
                 lblAngleYStat.Text = $"Y - Angle:{angleY.Min().ToString("F0")}-{angleY.Max().ToString("F0")} Mag:{magnitudeY.Min().ToString("F2")}-{magnitudeY.Max().ToString("F2")}";
                 txtAngleXCalc.Text = MathHelper.CalculateMeanAngle(angleX.ToArray()).ToString("F0");
@@ -1521,8 +1620,12 @@ namespace equilibreuse
                 var kx2 = EquilibrageHelper.CalculateAttenuationConstant(magXBalanced, magX1, mass1);
                 var ky2 = EquilibrageHelper.CalculateAttenuationConstant(magYBalanced, magY1, mass1);
                 var res2 = EquilibrageHelper.EstimateDynamicBalancing2(magX, angleX, magY, angleY, kx2, ky2);
-                lblAngleXCorrect.Text += " Mass1:" + res2.MassOuter.ToString("F0") + ";Mass2:" + massX.ToString("F0"); ;
-                lblAngleYCorrect.Text += " Mass1:" + res2.MassInner.ToString("F0") + ";Mass2:" + massY.ToString("F0");
+                var kx3 = EquilibrageHelper.CalculateGrowthConstantLinear(magXBalanced, magX1, mass1);
+                var ky3 = EquilibrageHelper.CalculateGrowthConstantLinear(magYBalanced, magY1, mass1);
+                var massLX = EquilibrageHelper.EstimateCorrectiveMassLinear(magX, magXBalanced, kx3);
+                var massLY = EquilibrageHelper.EstimateCorrectiveMassLinear(magY, magYBalanced, ky3);
+                lblAngleXCorrect.Text += " Mass:" + res2.MassOuter.ToString("F0") + ";" + massX.ToString("F0")+";" + massLX.ToString("F0");
+                lblAngleYCorrect.Text += " Mass:" + res2.MassInner.ToString("F0") + ";" + massY.ToString("F0") + ";" + massLY.ToString("F0");
             }
             catch
             { }
@@ -1938,6 +2041,8 @@ namespace equilibreuse
                 new DataGridViewColumn(){ HeaderText = "Global Mag", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Global Mag PSD", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Global Mag Ratio" , CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Global Goertzel Phase", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Global Amplitude Lockin", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Compiled Mag AVG", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Turn-Turn Mag AVG", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
 
@@ -1954,16 +2059,22 @@ namespace equilibreuse
                 new DataGridViewColumn(){ HeaderText = "Global Pk-Pk LowPass5hz", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Compiled Pk-PkLowPass5hz", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Turn-Turn Pk-PkLowPass5hz", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Global Amplitude Lockin", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                
                 new DataGridViewColumn(){ HeaderText = "Compiled Amplitude Lockin", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Turn-Turn Amplitude Lockin", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Global Goertzel Mag", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Compiled Goertzel Mag", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Turn-Turn Goertzel Mag", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                
+                new DataGridViewColumn(){ HeaderText = "Compiled Goertzel Phase", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Turn-Turn Goertzel Phase", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Global RMS", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Compiled RMS", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Turn-Turn RMS", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
             };
             List<DataGridViewColumn> dgvcY = new List<DataGridViewColumn>()
             {
-                new DataGridViewColumn(){ HeaderText = "CSV File", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells} ,
+                        new DataGridViewColumn(){ HeaderText = "CSV File", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells} ,
                 new DataGridViewColumn(){ HeaderText = "Selected Nb of turn", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Global Correction", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Compiled Correction", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
@@ -1971,6 +2082,8 @@ namespace equilibreuse
                 new DataGridViewColumn(){ HeaderText = "Global Mag", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Global Mag PSD", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Global Mag Ratio" , CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Global Goertzel Phase", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Global Amplitude Lockin", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Compiled Mag AVG", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Turn-Turn Mag AVG", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
 
@@ -1987,14 +2100,19 @@ namespace equilibreuse
                 new DataGridViewColumn(){ HeaderText = "Global Pk-Pk LowPass5hz", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Compiled Pk-PkLowPass5hz", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Turn-Turn Pk-PkLowPass5hz", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-                new DataGridViewColumn(){ HeaderText = "Global Amplitude Lockin", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+
                 new DataGridViewColumn(){ HeaderText = "Compiled Amplitude Lockin", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Turn-Turn Amplitude Lockin", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Global Goertzel Mag", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Compiled Goertzel Mag", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Turn-Turn Goertzel Mag", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
 
+                new DataGridViewColumn(){ HeaderText = "Compiled Goertzel Phase", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
+                new DataGridViewColumn(){ HeaderText = "Turn-Turn Goertzel Phase", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Global RMS", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Compiled RMS", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
                 new DataGridViewColumn(){ HeaderText = "Turn-Turn RMS", CellTemplate = new DataGridViewTextBoxCell(), AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells},
-            };
+         };
 
             foreach (var c in dgvcX)
                 dataGridX.Columns.Add(c);
@@ -2054,6 +2172,10 @@ namespace equilibreuse
                     angleX = MathHelper.CalculateMeanAngle(new double[] { currentAnalysisX.gAlternateFFT, currentAnalysisX.gAngleFFT });
                     angleY = MathHelper.CalculateMeanAngle(new double[] { currentAnalysisY.gAlternateFFT, currentAnalysisY.gAngleFFT });
                     break;
+                case "Global Goertzel":
+                    angleX = currentAnalysisX.gGoertzelPhase;
+                    angleY = currentAnalysisY.gGoertzelPhase;
+                    break;
                 default:
                     angleX = angleY = 0;
                     break;
@@ -2064,9 +2186,17 @@ namespace equilibreuse
                     magX = currentAnalysisX.gMagAvg;
                     magY = currentAnalysisY.gMagAvg;
                     break;
-                case "Global Magnitude Lockin":
+                case "Global Mag Lockin":
                     magX = currentAnalysisX.gMagPhaseLockin;
                     magY = currentAnalysisY.gMagPhaseLockin;
+                    break;
+                case "Compiled Mag Lockin":
+                    magX = currentAnalysisX.coMagPhaseLockin;
+                    magY = currentAnalysisY.coMagPhaseLockin;
+                    break;
+                case "Turn by Turn Mag Lockin":
+                    magX = currentAnalysisX.ttMagPhaseLockin;
+                    magY = currentAnalysisY.ttMagPhaseLockin;
                     break;
                 case "Global Mag / nb of turn":
                     magX = currentAnalysisX.gMagRatio;
@@ -2083,6 +2213,10 @@ namespace equilibreuse
                 case "Global PkPk LP 5hz":
                     magX = currentAnalysisX.gPkPkTT;
                     magY = currentAnalysisY.gPkPkTT;
+                    break;
+                case "Global Mag Goertzel":
+                    magX = currentAnalysisX.gGoertzelMag;
+                    magY = currentAnalysisY.gGoertzelMag;
                     break;
                 case "Compiled Mag":
                     magX = currentAnalysisX.coMagAvg;
@@ -2220,6 +2354,12 @@ namespace equilibreuse
         public double ttRMS;
         public double coRMS;
 
+        public double gGoertzelPhase;
+        public double coGoertzelPhase;
+        public double ttGoertzelPhase;
+        public double gGoertzelMag;
+        public double coGoertzelMag;
+        public double ttGoertzelMag;
         public String[] toArray()
         {
             List<String> s = new List<string>()
@@ -2232,6 +2372,8 @@ namespace equilibreuse
                 gMagAvg.ToString("F4"),
                 gMagPSD.ToString("F4"),
                 gMagRatio.ToString("F4"),
+                gGoertzelMag.ToString("F4"),
+                gMagPhaseLockin.ToString("F4"),
                 coMagAvg.ToString("F4"),
                 ttMagAvg.ToString("F4"),
                 gAngleFFT.ToString("F4"),
@@ -2247,9 +2389,15 @@ namespace equilibreuse
                 gPkPkTT.ToString("F4"),
                 coPkPkTT.ToString("F4"),
                 ttPkPkTT.ToString("F4"),
-                gMagPhaseLockin.ToString("F4"),
+                
                 coMagPhaseLockin.ToString("F4"),
                 ttMagPhaseLockin.ToString("F4"),
+                
+                coGoertzelMag.ToString("F4"),
+                ttGoertzelMag.ToString("F4"),
+                gGoertzelPhase.ToString("F4"),
+                coGoertzelPhase.ToString("F4"),
+                ttGoertzelPhase.ToString("F4"),
                 gRMS.ToString("F4"),
                 coRMS.ToString("F4"),
                 ttRMS.ToString("F4")

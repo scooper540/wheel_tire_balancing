@@ -71,45 +71,6 @@ namespace equilibreuse
             this.txtSampleRate = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
             this.tabControl1 = new System.Windows.Forms.TabControl();
-            this.tabPage1 = new System.Windows.Forms.TabPage();
-            this.label12 = new System.Windows.Forms.Label();
-            this.label11 = new System.Windows.Forms.Label();
-            this.label10 = new System.Windows.Forms.Label();
-            this.label7 = new System.Windows.Forms.Label();
-            this.lstPeakResultanteCompiled = new System.Windows.Forms.ListBox();
-            this.tabPage2 = new System.Windows.Forms.TabPage();
-            this.tabPage3 = new System.Windows.Forms.TabPage();
-            this.label9 = new System.Windows.Forms.Label();
-            this.label13 = new System.Windows.Forms.Label();
-            this.label14 = new System.Windows.Forms.Label();
-            this.label15 = new System.Windows.Forms.Label();
-            this.lstPeakResultanteGlobal = new System.Windows.Forms.ListBox();
-            this.lstPeakGlobalZ = new System.Windows.Forms.ListBox();
-            this.lstPeakGlobalY = new System.Windows.Forms.ListBox();
-            this.lstPeakGlobalX = new System.Windows.Forms.ListBox();
-            this.formsPlotGlobal = new ScottPlot.WinForms.FormsPlot();
-            this.tabPage4 = new System.Windows.Forms.TabPage();
-            this.lstPeakResultanteGyro = new System.Windows.Forms.ListBox();
-            this.lstPeakGyroZ = new System.Windows.Forms.ListBox();
-            this.lstPeakGyroY = new System.Windows.Forms.ListBox();
-            this.lstPeakGyroX = new System.Windows.Forms.ListBox();
-            this.formsPlotGyro = new ScottPlot.WinForms.FormsPlot();
-            this.tabPage8 = new System.Windows.Forms.TabPage();
-            this.label43 = new System.Windows.Forms.Label();
-            this.label24 = new System.Windows.Forms.Label();
-            this.formsPlotT1O = new ScottPlot.WinForms.FormsPlot();
-            this.formsPlotT1X = new ScottPlot.WinForms.FormsPlot();
-            this.label25 = new System.Windows.Forms.Label();
-            this.formsPlotT1Y = new ScottPlot.WinForms.FormsPlot();
-            this.formsPlotT1I = new ScottPlot.WinForms.FormsPlot();
-            this.label18 = new System.Windows.Forms.Label();
-            this.label23 = new System.Windows.Forms.Label();
-            this.tabPage15 = new System.Windows.Forms.TabPage();
-            this.label46 = new System.Windows.Forms.Label();
-            this.label45 = new System.Windows.Forms.Label();
-            this.btnClearAnalysisHistory = new System.Windows.Forms.Button();
-            this.dataGridY = new System.Windows.Forms.DataGridView();
-            this.dataGridX = new System.Windows.Forms.DataGridView();
             this.tabPage7 = new System.Windows.Forms.TabPage();
             this.label16 = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
@@ -160,6 +121,45 @@ namespace equilibreuse
             this.btnSelectAll = new System.Windows.Forms.Button();
             this.btnUpdateAnalysisSection = new System.Windows.Forms.Button();
             this.lstSectionSelector = new System.Windows.Forms.CheckedListBox();
+            this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.label12 = new System.Windows.Forms.Label();
+            this.label11 = new System.Windows.Forms.Label();
+            this.label10 = new System.Windows.Forms.Label();
+            this.label7 = new System.Windows.Forms.Label();
+            this.lstPeakResultanteCompiled = new System.Windows.Forms.ListBox();
+            this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.label9 = new System.Windows.Forms.Label();
+            this.label13 = new System.Windows.Forms.Label();
+            this.label14 = new System.Windows.Forms.Label();
+            this.label15 = new System.Windows.Forms.Label();
+            this.lstPeakResultanteGlobal = new System.Windows.Forms.ListBox();
+            this.lstPeakGlobalZ = new System.Windows.Forms.ListBox();
+            this.lstPeakGlobalY = new System.Windows.Forms.ListBox();
+            this.lstPeakGlobalX = new System.Windows.Forms.ListBox();
+            this.formsPlotGlobal = new ScottPlot.WinForms.FormsPlot();
+            this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.lstPeakResultanteGyro = new System.Windows.Forms.ListBox();
+            this.lstPeakGyroZ = new System.Windows.Forms.ListBox();
+            this.lstPeakGyroY = new System.Windows.Forms.ListBox();
+            this.lstPeakGyroX = new System.Windows.Forms.ListBox();
+            this.formsPlotGyro = new ScottPlot.WinForms.FormsPlot();
+            this.tabPage8 = new System.Windows.Forms.TabPage();
+            this.label43 = new System.Windows.Forms.Label();
+            this.label24 = new System.Windows.Forms.Label();
+            this.formsPlotT1O = new ScottPlot.WinForms.FormsPlot();
+            this.formsPlotT1X = new ScottPlot.WinForms.FormsPlot();
+            this.label25 = new System.Windows.Forms.Label();
+            this.formsPlotT1Y = new ScottPlot.WinForms.FormsPlot();
+            this.formsPlotT1I = new ScottPlot.WinForms.FormsPlot();
+            this.label18 = new System.Windows.Forms.Label();
+            this.label23 = new System.Windows.Forms.Label();
+            this.tabPage15 = new System.Windows.Forms.TabPage();
+            this.label46 = new System.Windows.Forms.Label();
+            this.label45 = new System.Windows.Forms.Label();
+            this.btnClearAnalysisHistory = new System.Windows.Forms.Button();
+            this.dataGridY = new System.Windows.Forms.DataGridView();
+            this.dataGridX = new System.Windows.Forms.DataGridView();
             this.tabPage14 = new System.Windows.Forms.TabPage();
             this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.chkOrderTracking = new System.Windows.Forms.CheckBox();
@@ -182,7 +182,11 @@ namespace equilibreuse
             this.cbxFilterTypes = new System.Windows.Forms.ComboBox();
             this.cbxSmoothing = new System.Windows.Forms.ComboBox();
             this.chkClockwise = new System.Windows.Forms.CheckBox();
+            this.chkExcludeWrongTurn = new System.Windows.Forms.CheckBox();
             this.tabControl1.SuspendLayout();
+            this.tabPage7.SuspendLayout();
+            this.groupBox2.SuspendLayout();
+            this.groupBox1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.tabPage3.SuspendLayout();
@@ -191,9 +195,6 @@ namespace equilibreuse
             this.tabPage15.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridY)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridX)).BeginInit();
-            this.tabPage7.SuspendLayout();
-            this.groupBox2.SuspendLayout();
-            this.groupBox1.SuspendLayout();
             this.tabPage14.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -589,6 +590,523 @@ namespace equilibreuse
             this.tabControl1.SelectedIndex = 0;
             this.tabControl1.Size = new System.Drawing.Size(1260, 549);
             this.tabControl1.TabIndex = 45;
+            // 
+            // tabPage7
+            // 
+            this.tabPage7.Controls.Add(this.label16);
+            this.tabPage7.Controls.Add(this.label8);
+            this.tabPage7.Controls.Add(this.lstSelectToursAnalysis);
+            this.tabPage7.Controls.Add(this.label31);
+            this.tabPage7.Controls.Add(this.label30);
+            this.tabPage7.Controls.Add(this.cbxMagData);
+            this.tabPage7.Controls.Add(this.cbxAngleData);
+            this.tabPage7.Controls.Add(this.label51);
+            this.tabPage7.Controls.Add(this.lblAngleYCorrect);
+            this.tabPage7.Controls.Add(this.lblAngleXCorrect);
+            this.tabPage7.Controls.Add(this.label29);
+            this.tabPage7.Controls.Add(this.txtMagGrams1);
+            this.tabPage7.Controls.Add(this.txtMagnitudeY);
+            this.tabPage7.Controls.Add(this.txtMagnitudeX);
+            this.tabPage7.Controls.Add(this.lblAngleYStat);
+            this.tabPage7.Controls.Add(this.lblAngleXStat);
+            this.tabPage7.Controls.Add(this.label28);
+            this.tabPage7.Controls.Add(this.txtAngleYCalc);
+            this.tabPage7.Controls.Add(this.txtAngleXCalc);
+            this.tabPage7.Controls.Add(this.btnCalculateCorrection);
+            this.tabPage7.Controls.Add(this.txtCorrectYTemporal);
+            this.tabPage7.Controls.Add(this.txtCorrectXTemporal);
+            this.tabPage7.Controls.Add(this.label27);
+            this.tabPage7.Controls.Add(this.label26);
+            this.tabPage7.Controls.Add(this.btnFindAngles);
+            this.tabPage7.Controls.Add(this.txtCorrectAngleY);
+            this.tabPage7.Controls.Add(this.txtCorrectAngleX);
+            this.tabPage7.Controls.Add(this.btnSaveData);
+            this.tabPage7.Controls.Add(this.groupBox2);
+            this.tabPage7.Controls.Add(this.groupBox1);
+            this.tabPage7.Controls.Add(this.btnExportWAV);
+            this.tabPage7.Controls.Add(this.btn240250);
+            this.tabPage7.Controls.Add(this.btn250300);
+            this.tabPage7.Controls.Add(this.btn230240);
+            this.tabPage7.Controls.Add(this.btn210220);
+            this.tabPage7.Controls.Add(this.btn220230);
+            this.tabPage7.Controls.Add(this.btn200210);
+            this.tabPage7.Controls.Add(this.btnUnselectAll);
+            this.tabPage7.Controls.Add(this.btnSelectAll);
+            this.tabPage7.Controls.Add(this.btnUpdateAnalysisSection);
+            this.tabPage7.Controls.Add(this.lstSectionSelector);
+            this.tabPage7.Location = new System.Drawing.Point(4, 22);
+            this.tabPage7.Name = "tabPage7";
+            this.tabPage7.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage7.Size = new System.Drawing.Size(1252, 523);
+            this.tabPage7.TabIndex = 6;
+            this.tabPage7.Text = "Section selector";
+            this.tabPage7.UseVisualStyleBackColor = true;
+            // 
+            // label16
+            // 
+            this.label16.AutoSize = true;
+            this.label16.Location = new System.Drawing.Point(539, 469);
+            this.label16.Name = "label16";
+            this.label16.Size = new System.Drawing.Size(96, 13);
+            this.label16.TabIndex = 106;
+            this.label16.Text = "Offset angle Y FFT";
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(539, 446);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(96, 13);
+            this.label8.TabIndex = 105;
+            this.label8.Text = "Offset angle X FFT";
+            // 
+            // lstSelectToursAnalysis
+            // 
+            this.lstSelectToursAnalysis.CheckOnClick = true;
+            this.lstSelectToursAnalysis.FormattingEnabled = true;
+            this.lstSelectToursAnalysis.Location = new System.Drawing.Point(943, 67);
+            this.lstSelectToursAnalysis.Name = "lstSelectToursAnalysis";
+            this.lstSelectToursAnalysis.Size = new System.Drawing.Size(218, 94);
+            this.lstSelectToursAnalysis.TabIndex = 104;
+            // 
+            // label31
+            // 
+            this.label31.AutoSize = true;
+            this.label31.Location = new System.Drawing.Point(515, 143);
+            this.label31.Name = "label31";
+            this.label31.Size = new System.Drawing.Size(72, 13);
+            this.label31.TabIndex = 103;
+            this.label31.Text = "MAGNITUDE";
+            // 
+            // label30
+            // 
+            this.label30.AutoSize = true;
+            this.label30.Location = new System.Drawing.Point(516, 116);
+            this.label30.Name = "label30";
+            this.label30.Size = new System.Drawing.Size(43, 13);
+            this.label30.TabIndex = 102;
+            this.label30.Text = "ANGLE";
+            // 
+            // cbxMagData
+            // 
+            this.cbxMagData.FormattingEnabled = true;
+            this.cbxMagData.Items.AddRange(new object[] {
+            "Global Magnitude",
+            "Global Mag / nb of turn",
+            "Global PSD",
+            "Global PkPk Filter",
+            "Global PkPk LP 5hz",
+            "Compiled Mag",
+            "Turn by Turn Mag",
+            "Global Mag Lockin",
+            "Compiled Mag Lockin",
+            "Turn by Turn Mag Lockin",
+            "Global Mag Goertzel"});
+            this.cbxMagData.Location = new System.Drawing.Point(593, 140);
+            this.cbxMagData.Name = "cbxMagData";
+            this.cbxMagData.Size = new System.Drawing.Size(121, 21);
+            this.cbxMagData.TabIndex = 101;
+            // 
+            // cbxAngleData
+            // 
+            this.cbxAngleData.FormattingEnabled = true;
+            this.cbxAngleData.Items.AddRange(new object[] {
+            "Global FFT",
+            "Global Temporal",
+            "Compiled FFT",
+            "Compiled Temporal",
+            "Turn by Turn FFT",
+            "Turn by Turn Temporal",
+            "Global lock-in",
+            "AVG FFT-Lockin",
+            "Global Goertzel"});
+            this.cbxAngleData.Location = new System.Drawing.Point(593, 113);
+            this.cbxAngleData.Name = "cbxAngleData";
+            this.cbxAngleData.Size = new System.Drawing.Size(121, 21);
+            this.cbxAngleData.TabIndex = 100;
+            // 
+            // label51
+            // 
+            this.label51.AutoSize = true;
+            this.label51.Location = new System.Drawing.Point(872, 339);
+            this.label51.Name = "label51";
+            this.label51.Size = new System.Drawing.Size(13, 13);
+            this.label51.TabIndex = 73;
+            this.label51.Text = "g";
+            // 
+            // lblAngleYCorrect
+            // 
+            this.lblAngleYCorrect.AutoSize = true;
+            this.lblAngleYCorrect.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblAngleYCorrect.ForeColor = System.Drawing.Color.Red;
+            this.lblAngleYCorrect.Location = new System.Drawing.Point(907, 251);
+            this.lblAngleYCorrect.Name = "lblAngleYCorrect";
+            this.lblAngleYCorrect.Size = new System.Drawing.Size(131, 16);
+            this.lblAngleYCorrect.TabIndex = 99;
+            this.lblAngleYCorrect.Text = "Angle to correct Y";
+            // 
+            // lblAngleXCorrect
+            // 
+            this.lblAngleXCorrect.AutoSize = true;
+            this.lblAngleXCorrect.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblAngleXCorrect.ForeColor = System.Drawing.Color.Red;
+            this.lblAngleXCorrect.Location = new System.Drawing.Point(907, 209);
+            this.lblAngleXCorrect.Name = "lblAngleXCorrect";
+            this.lblAngleXCorrect.Size = new System.Drawing.Size(130, 16);
+            this.lblAngleXCorrect.TabIndex = 98;
+            this.lblAngleXCorrect.Text = "Angle to correct X";
+            // 
+            // label29
+            // 
+            this.label29.AutoSize = true;
+            this.label29.Location = new System.Drawing.Point(827, 184);
+            this.label29.Name = "label29";
+            this.label29.Size = new System.Drawing.Size(72, 13);
+            this.label29.TabIndex = 97;
+            this.label29.Text = "MAGNITUDE";
+            // 
+            // txtMagGrams1
+            // 
+            this.txtMagGrams1.Location = new System.Drawing.Point(836, 336);
+            this.txtMagGrams1.Name = "txtMagGrams1";
+            this.txtMagGrams1.Size = new System.Drawing.Size(32, 20);
+            this.txtMagGrams1.TabIndex = 72;
+            // 
+            // txtMagnitudeY
+            // 
+            this.txtMagnitudeY.Location = new System.Drawing.Point(836, 247);
+            this.txtMagnitudeY.Name = "txtMagnitudeY";
+            this.txtMagnitudeY.Size = new System.Drawing.Size(61, 20);
+            this.txtMagnitudeY.TabIndex = 96;
+            // 
+            // txtMagnitudeX
+            // 
+            this.txtMagnitudeX.Location = new System.Drawing.Point(835, 209);
+            this.txtMagnitudeX.Name = "txtMagnitudeX";
+            this.txtMagnitudeX.Size = new System.Drawing.Size(61, 20);
+            this.txtMagnitudeX.TabIndex = 95;
+            // 
+            // lblAngleYStat
+            // 
+            this.lblAngleYStat.AutoSize = true;
+            this.lblAngleYStat.Location = new System.Drawing.Point(512, 251);
+            this.lblAngleYStat.Name = "lblAngleYStat";
+            this.lblAngleYStat.Size = new System.Drawing.Size(14, 13);
+            this.lblAngleYStat.TabIndex = 94;
+            this.lblAngleYStat.Text = "Y";
+            // 
+            // lblAngleXStat
+            // 
+            this.lblAngleXStat.AutoSize = true;
+            this.lblAngleXStat.Location = new System.Drawing.Point(512, 209);
+            this.lblAngleXStat.Name = "lblAngleXStat";
+            this.lblAngleXStat.Size = new System.Drawing.Size(14, 13);
+            this.lblAngleXStat.TabIndex = 93;
+            this.lblAngleXStat.Text = "X";
+            // 
+            // label28
+            // 
+            this.label28.AutoSize = true;
+            this.label28.Location = new System.Drawing.Point(746, 184);
+            this.label28.Name = "label28";
+            this.label28.Size = new System.Drawing.Size(43, 13);
+            this.label28.TabIndex = 92;
+            this.label28.Text = "ANGLE";
+            // 
+            // txtAngleYCalc
+            // 
+            this.txtAngleYCalc.Location = new System.Drawing.Point(735, 247);
+            this.txtAngleYCalc.Name = "txtAngleYCalc";
+            this.txtAngleYCalc.Size = new System.Drawing.Size(61, 20);
+            this.txtAngleYCalc.TabIndex = 91;
+            // 
+            // txtAngleXCalc
+            // 
+            this.txtAngleXCalc.Location = new System.Drawing.Point(734, 209);
+            this.txtAngleXCalc.Name = "txtAngleXCalc";
+            this.txtAngleXCalc.Size = new System.Drawing.Size(61, 20);
+            this.txtAngleXCalc.TabIndex = 90;
+            // 
+            // btnCalculateCorrection
+            // 
+            this.btnCalculateCorrection.Location = new System.Drawing.Point(789, 391);
+            this.btnCalculateCorrection.Name = "btnCalculateCorrection";
+            this.btnCalculateCorrection.Size = new System.Drawing.Size(165, 23);
+            this.btnCalculateCorrection.TabIndex = 89;
+            this.btnCalculateCorrection.Text = "Calculate correction";
+            this.btnCalculateCorrection.UseVisualStyleBackColor = true;
+            this.btnCalculateCorrection.Click += new System.EventHandler(this.btnCalculateCorrection_Click);
+            // 
+            // txtCorrectYTemporal
+            // 
+            this.txtCorrectYTemporal.Location = new System.Drawing.Point(854, 469);
+            this.txtCorrectYTemporal.Name = "txtCorrectYTemporal";
+            this.txtCorrectYTemporal.Size = new System.Drawing.Size(100, 20);
+            this.txtCorrectYTemporal.TabIndex = 88;
+            this.txtCorrectYTemporal.Text = "0";
+            // 
+            // txtCorrectXTemporal
+            // 
+            this.txtCorrectXTemporal.Location = new System.Drawing.Point(854, 443);
+            this.txtCorrectXTemporal.Name = "txtCorrectXTemporal";
+            this.txtCorrectXTemporal.Size = new System.Drawing.Size(100, 20);
+            this.txtCorrectXTemporal.TabIndex = 87;
+            this.txtCorrectXTemporal.Text = "0";
+            // 
+            // label27
+            // 
+            this.label27.AutoSize = true;
+            this.label27.Location = new System.Drawing.Point(747, 469);
+            this.label27.Name = "label27";
+            this.label27.Size = new System.Drawing.Size(101, 13);
+            this.label27.TabIndex = 86;
+            this.label27.Text = "Temporal correction";
+            // 
+            // label26
+            // 
+            this.label26.AutoSize = true;
+            this.label26.Location = new System.Drawing.Point(747, 449);
+            this.label26.Name = "label26";
+            this.label26.Size = new System.Drawing.Size(101, 13);
+            this.label26.TabIndex = 85;
+            this.label26.Text = "Temporal correction";
+            // 
+            // btnFindAngles
+            // 
+            this.btnFindAngles.Location = new System.Drawing.Point(735, 110);
+            this.btnFindAngles.Name = "btnFindAngles";
+            this.btnFindAngles.Size = new System.Drawing.Size(179, 51);
+            this.btnFindAngles.TabIndex = 82;
+            this.btnFindAngles.Text = "Complete Analysis";
+            this.btnFindAngles.UseVisualStyleBackColor = true;
+            this.btnFindAngles.Click += new System.EventHandler(this.btnExecuteAnalysis_Click);
+            // 
+            // txtCorrectAngleY
+            // 
+            this.txtCorrectAngleY.Location = new System.Drawing.Point(641, 466);
+            this.txtCorrectAngleY.Name = "txtCorrectAngleY";
+            this.txtCorrectAngleY.Size = new System.Drawing.Size(100, 20);
+            this.txtCorrectAngleY.TabIndex = 80;
+            this.txtCorrectAngleY.Text = "90";
+            // 
+            // txtCorrectAngleX
+            // 
+            this.txtCorrectAngleX.Location = new System.Drawing.Point(641, 443);
+            this.txtCorrectAngleX.Name = "txtCorrectAngleX";
+            this.txtCorrectAngleX.Size = new System.Drawing.Size(100, 20);
+            this.txtCorrectAngleX.TabIndex = 79;
+            this.txtCorrectAngleX.Text = "0";
+            // 
+            // btnSaveData
+            // 
+            this.btnSaveData.Location = new System.Drawing.Point(1009, 8);
+            this.btnSaveData.Name = "btnSaveData";
+            this.btnSaveData.Size = new System.Drawing.Size(152, 23);
+            this.btnSaveData.TabIndex = 76;
+            this.btnSaveData.Text = "Save all parameters";
+            this.btnSaveData.UseVisualStyleBackColor = true;
+            this.btnSaveData.Click += new System.EventHandler(this.btnSaveData_Click);
+            // 
+            // groupBox2
+            // 
+            this.groupBox2.Controls.Add(this.label50);
+            this.groupBox2.Controls.Add(this.txtXMagBalanced);
+            this.groupBox2.Controls.Add(this.label52);
+            this.groupBox2.Controls.Add(this.txtXMagG1);
+            this.groupBox2.Location = new System.Drawing.Point(542, 285);
+            this.groupBox2.Name = "groupBox2";
+            this.groupBox2.Size = new System.Drawing.Size(270, 87);
+            this.groupBox2.TabIndex = 75;
+            this.groupBox2.TabStop = false;
+            this.groupBox2.Text = "X calibration";
+            // 
+            // label50
+            // 
+            this.label50.AutoSize = true;
+            this.label50.Location = new System.Drawing.Point(36, 29);
+            this.label50.Name = "label50";
+            this.label50.Size = new System.Drawing.Size(104, 13);
+            this.label50.TabIndex = 68;
+            this.label50.Text = "Magnitude balanced";
+            // 
+            // txtXMagBalanced
+            // 
+            this.txtXMagBalanced.Location = new System.Drawing.Point(179, 25);
+            this.txtXMagBalanced.Name = "txtXMagBalanced";
+            this.txtXMagBalanced.Size = new System.Drawing.Size(68, 20);
+            this.txtXMagBalanced.TabIndex = 69;
+            this.txtXMagBalanced.Text = "2.5";
+            // 
+            // label52
+            // 
+            this.label52.AutoSize = true;
+            this.label52.Location = new System.Drawing.Point(36, 54);
+            this.label52.Name = "label52";
+            this.label52.Size = new System.Drawing.Size(106, 13);
+            this.label52.TabIndex = 70;
+            this.label52.Text = "Magnitude with mass";
+            // 
+            // txtXMagG1
+            // 
+            this.txtXMagG1.Location = new System.Drawing.Point(179, 54);
+            this.txtXMagG1.Name = "txtXMagG1";
+            this.txtXMagG1.Size = new System.Drawing.Size(68, 20);
+            this.txtXMagG1.TabIndex = 71;
+            // 
+            // groupBox1
+            // 
+            this.groupBox1.Controls.Add(this.label47);
+            this.groupBox1.Controls.Add(this.txtYMagBalanced);
+            this.groupBox1.Controls.Add(this.label48);
+            this.groupBox1.Controls.Add(this.txtYMag1);
+            this.groupBox1.Location = new System.Drawing.Point(895, 285);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(297, 87);
+            this.groupBox1.TabIndex = 74;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "Y calibration";
+            // 
+            // label47
+            // 
+            this.label47.AutoSize = true;
+            this.label47.Location = new System.Drawing.Point(45, 29);
+            this.label47.Name = "label47";
+            this.label47.Size = new System.Drawing.Size(104, 13);
+            this.label47.TabIndex = 68;
+            this.label47.Text = "Magnitude balanced";
+            // 
+            // txtYMagBalanced
+            // 
+            this.txtYMagBalanced.Location = new System.Drawing.Point(193, 25);
+            this.txtYMagBalanced.Name = "txtYMagBalanced";
+            this.txtYMagBalanced.Size = new System.Drawing.Size(68, 20);
+            this.txtYMagBalanced.TabIndex = 69;
+            this.txtYMagBalanced.Text = "2.5";
+            // 
+            // label48
+            // 
+            this.label48.AutoSize = true;
+            this.label48.Location = new System.Drawing.Point(45, 54);
+            this.label48.Name = "label48";
+            this.label48.Size = new System.Drawing.Size(106, 13);
+            this.label48.TabIndex = 70;
+            this.label48.Text = "Magnitude with mass";
+            // 
+            // txtYMag1
+            // 
+            this.txtYMag1.Location = new System.Drawing.Point(193, 51);
+            this.txtYMag1.Name = "txtYMag1";
+            this.txtYMag1.Size = new System.Drawing.Size(65, 20);
+            this.txtYMag1.TabIndex = 71;
+            // 
+            // btnExportWAV
+            // 
+            this.btnExportWAV.Location = new System.Drawing.Point(897, 8);
+            this.btnExportWAV.Name = "btnExportWAV";
+            this.btnExportWAV.Size = new System.Drawing.Size(75, 23);
+            this.btnExportWAV.TabIndex = 10;
+            this.btnExportWAV.Text = "Export WAV";
+            this.btnExportWAV.UseVisualStyleBackColor = true;
+            this.btnExportWAV.Click += new System.EventHandler(this.btnExportWAV_Click);
+            // 
+            // btn240250
+            // 
+            this.btn240250.Location = new System.Drawing.Point(714, 37);
+            this.btn240250.Name = "btn240250";
+            this.btn240250.Size = new System.Drawing.Size(75, 23);
+            this.btn240250.TabIndex = 9;
+            this.btn240250.Text = "240-250";
+            this.btn240250.UseVisualStyleBackColor = true;
+            this.btn240250.Click += new System.EventHandler(this.btn240250_Click);
+            // 
+            // btn250300
+            // 
+            this.btn250300.Location = new System.Drawing.Point(806, 37);
+            this.btn250300.Name = "btn250300";
+            this.btn250300.Size = new System.Drawing.Size(75, 23);
+            this.btn250300.TabIndex = 8;
+            this.btn250300.Text = "250-300";
+            this.btn250300.UseVisualStyleBackColor = true;
+            this.btn250300.Click += new System.EventHandler(this.btn250300_Click);
+            // 
+            // btn230240
+            // 
+            this.btn230240.Location = new System.Drawing.Point(618, 37);
+            this.btn230240.Name = "btn230240";
+            this.btn230240.Size = new System.Drawing.Size(75, 23);
+            this.btn230240.TabIndex = 7;
+            this.btn230240.Text = "230-240";
+            this.btn230240.UseVisualStyleBackColor = true;
+            this.btn230240.Click += new System.EventHandler(this.btn230240_Click);
+            // 
+            // btn210220
+            // 
+            this.btn210220.Location = new System.Drawing.Point(714, 8);
+            this.btn210220.Name = "btn210220";
+            this.btn210220.Size = new System.Drawing.Size(75, 23);
+            this.btn210220.TabIndex = 6;
+            this.btn210220.Text = "210-220";
+            this.btn210220.UseVisualStyleBackColor = true;
+            this.btn210220.Click += new System.EventHandler(this.btn210220_Click);
+            // 
+            // btn220230
+            // 
+            this.btn220230.Location = new System.Drawing.Point(806, 8);
+            this.btn220230.Name = "btn220230";
+            this.btn220230.Size = new System.Drawing.Size(75, 23);
+            this.btn220230.TabIndex = 5;
+            this.btn220230.Text = "220-230";
+            this.btn220230.UseVisualStyleBackColor = true;
+            this.btn220230.Click += new System.EventHandler(this.btn220230_Click);
+            // 
+            // btn200210
+            // 
+            this.btn200210.Location = new System.Drawing.Point(618, 6);
+            this.btn200210.Name = "btn200210";
+            this.btn200210.Size = new System.Drawing.Size(75, 23);
+            this.btn200210.TabIndex = 4;
+            this.btn200210.Text = "200-210";
+            this.btn200210.UseVisualStyleBackColor = true;
+            this.btn200210.Click += new System.EventHandler(this.btn200210_Click);
+            // 
+            // btnUnselectAll
+            // 
+            this.btnUnselectAll.Location = new System.Drawing.Point(514, 66);
+            this.btnUnselectAll.Name = "btnUnselectAll";
+            this.btnUnselectAll.Size = new System.Drawing.Size(75, 23);
+            this.btnUnselectAll.TabIndex = 3;
+            this.btnUnselectAll.Text = "unselect all";
+            this.btnUnselectAll.UseVisualStyleBackColor = true;
+            this.btnUnselectAll.Click += new System.EventHandler(this.btnUnselectAll_Click);
+            // 
+            // btnSelectAll
+            // 
+            this.btnSelectAll.Location = new System.Drawing.Point(514, 37);
+            this.btnSelectAll.Name = "btnSelectAll";
+            this.btnSelectAll.Size = new System.Drawing.Size(75, 23);
+            this.btnSelectAll.TabIndex = 2;
+            this.btnSelectAll.Text = "Select Alll";
+            this.btnSelectAll.UseVisualStyleBackColor = true;
+            this.btnSelectAll.Click += new System.EventHandler(this.btnSelectAll_Click);
+            // 
+            // btnUpdateAnalysisSection
+            // 
+            this.btnUpdateAnalysisSection.Location = new System.Drawing.Point(514, 7);
+            this.btnUpdateAnalysisSection.Name = "btnUpdateAnalysisSection";
+            this.btnUpdateAnalysisSection.Size = new System.Drawing.Size(75, 23);
+            this.btnUpdateAnalysisSection.TabIndex = 1;
+            this.btnUpdateAnalysisSection.Text = "Analyze";
+            this.btnUpdateAnalysisSection.UseVisualStyleBackColor = true;
+            this.btnUpdateAnalysisSection.Click += new System.EventHandler(this.btnUpdateAnalysisSection_Click);
+            // 
+            // lstSectionSelector
+            // 
+            this.lstSectionSelector.CheckOnClick = true;
+            this.lstSectionSelector.FormattingEnabled = true;
+            this.lstSectionSelector.Location = new System.Drawing.Point(22, 6);
+            this.lstSectionSelector.Name = "lstSectionSelector";
+            this.lstSectionSelector.Size = new System.Drawing.Size(468, 499);
+            this.lstSectionSelector.TabIndex = 0;
             // 
             // tabPage1
             // 
@@ -1000,519 +1518,6 @@ namespace equilibreuse
             this.dataGridX.Size = new System.Drawing.Size(1228, 185);
             this.dataGridX.TabIndex = 0;
             // 
-            // tabPage7
-            // 
-            this.tabPage7.Controls.Add(this.label16);
-            this.tabPage7.Controls.Add(this.label8);
-            this.tabPage7.Controls.Add(this.lstSelectToursAnalysis);
-            this.tabPage7.Controls.Add(this.label31);
-            this.tabPage7.Controls.Add(this.label30);
-            this.tabPage7.Controls.Add(this.cbxMagData);
-            this.tabPage7.Controls.Add(this.cbxAngleData);
-            this.tabPage7.Controls.Add(this.label51);
-            this.tabPage7.Controls.Add(this.lblAngleYCorrect);
-            this.tabPage7.Controls.Add(this.lblAngleXCorrect);
-            this.tabPage7.Controls.Add(this.label29);
-            this.tabPage7.Controls.Add(this.txtMagGrams1);
-            this.tabPage7.Controls.Add(this.txtMagnitudeY);
-            this.tabPage7.Controls.Add(this.txtMagnitudeX);
-            this.tabPage7.Controls.Add(this.lblAngleYStat);
-            this.tabPage7.Controls.Add(this.lblAngleXStat);
-            this.tabPage7.Controls.Add(this.label28);
-            this.tabPage7.Controls.Add(this.txtAngleYCalc);
-            this.tabPage7.Controls.Add(this.txtAngleXCalc);
-            this.tabPage7.Controls.Add(this.btnCalculateCorrection);
-            this.tabPage7.Controls.Add(this.txtCorrectYTemporal);
-            this.tabPage7.Controls.Add(this.txtCorrectXTemporal);
-            this.tabPage7.Controls.Add(this.label27);
-            this.tabPage7.Controls.Add(this.label26);
-            this.tabPage7.Controls.Add(this.btnFindAngles);
-            this.tabPage7.Controls.Add(this.txtCorrectAngleY);
-            this.tabPage7.Controls.Add(this.txtCorrectAngleX);
-            this.tabPage7.Controls.Add(this.btnSaveData);
-            this.tabPage7.Controls.Add(this.groupBox2);
-            this.tabPage7.Controls.Add(this.groupBox1);
-            this.tabPage7.Controls.Add(this.btnExportWAV);
-            this.tabPage7.Controls.Add(this.btn240250);
-            this.tabPage7.Controls.Add(this.btn250300);
-            this.tabPage7.Controls.Add(this.btn230240);
-            this.tabPage7.Controls.Add(this.btn210220);
-            this.tabPage7.Controls.Add(this.btn220230);
-            this.tabPage7.Controls.Add(this.btn200210);
-            this.tabPage7.Controls.Add(this.btnUnselectAll);
-            this.tabPage7.Controls.Add(this.btnSelectAll);
-            this.tabPage7.Controls.Add(this.btnUpdateAnalysisSection);
-            this.tabPage7.Controls.Add(this.lstSectionSelector);
-            this.tabPage7.Location = new System.Drawing.Point(4, 22);
-            this.tabPage7.Name = "tabPage7";
-            this.tabPage7.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage7.Size = new System.Drawing.Size(1252, 523);
-            this.tabPage7.TabIndex = 6;
-            this.tabPage7.Text = "Section selector";
-            this.tabPage7.UseVisualStyleBackColor = true;
-            // 
-            // label16
-            // 
-            this.label16.AutoSize = true;
-            this.label16.Location = new System.Drawing.Point(539, 469);
-            this.label16.Name = "label16";
-            this.label16.Size = new System.Drawing.Size(96, 13);
-            this.label16.TabIndex = 106;
-            this.label16.Text = "Offset angle Y FFT";
-            // 
-            // label8
-            // 
-            this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(539, 446);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(96, 13);
-            this.label8.TabIndex = 105;
-            this.label8.Text = "Offset angle X FFT";
-            // 
-            // lstSelectToursAnalysis
-            // 
-            this.lstSelectToursAnalysis.CheckOnClick = true;
-            this.lstSelectToursAnalysis.FormattingEnabled = true;
-            this.lstSelectToursAnalysis.Location = new System.Drawing.Point(943, 67);
-            this.lstSelectToursAnalysis.Name = "lstSelectToursAnalysis";
-            this.lstSelectToursAnalysis.Size = new System.Drawing.Size(218, 94);
-            this.lstSelectToursAnalysis.TabIndex = 104;
-            // 
-            // label31
-            // 
-            this.label31.AutoSize = true;
-            this.label31.Location = new System.Drawing.Point(515, 143);
-            this.label31.Name = "label31";
-            this.label31.Size = new System.Drawing.Size(72, 13);
-            this.label31.TabIndex = 103;
-            this.label31.Text = "MAGNITUDE";
-            // 
-            // label30
-            // 
-            this.label30.AutoSize = true;
-            this.label30.Location = new System.Drawing.Point(516, 116);
-            this.label30.Name = "label30";
-            this.label30.Size = new System.Drawing.Size(43, 13);
-            this.label30.TabIndex = 102;
-            this.label30.Text = "ANGLE";
-            // 
-            // cbxMagData
-            // 
-            this.cbxMagData.FormattingEnabled = true;
-            this.cbxMagData.Items.AddRange(new object[] {
-            "Global Magnitude",
-            "Global Mag / nb of turn",
-            "Global PSD",
-            "Global PkPk Filter",
-            "Global PkPk LP 5hz",
-            "Compiled Mag",
-            "Turn by Turn Mag",
-            "Global Magnitude Lockin"});
-            this.cbxMagData.Location = new System.Drawing.Point(593, 140);
-            this.cbxMagData.Name = "cbxMagData";
-            this.cbxMagData.Size = new System.Drawing.Size(121, 21);
-            this.cbxMagData.TabIndex = 101;
-            // 
-            // cbxAngleData
-            // 
-            this.cbxAngleData.FormattingEnabled = true;
-            this.cbxAngleData.Items.AddRange(new object[] {
-            "Global FFT",
-            "Global Temporal",
-            "Compiled FFT",
-            "Compiled Temporal",
-            "Turn by Turn FFT",
-            "Turn by Turn Temporal",
-            "Global lock-in",
-            "AVG FFT-Lockin"});
-            this.cbxAngleData.Location = new System.Drawing.Point(593, 113);
-            this.cbxAngleData.Name = "cbxAngleData";
-            this.cbxAngleData.Size = new System.Drawing.Size(121, 21);
-            this.cbxAngleData.TabIndex = 100;
-            // 
-            // label51
-            // 
-            this.label51.AutoSize = true;
-            this.label51.Location = new System.Drawing.Point(872, 339);
-            this.label51.Name = "label51";
-            this.label51.Size = new System.Drawing.Size(13, 13);
-            this.label51.TabIndex = 73;
-            this.label51.Text = "g";
-            // 
-            // lblAngleYCorrect
-            // 
-            this.lblAngleYCorrect.AutoSize = true;
-            this.lblAngleYCorrect.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblAngleYCorrect.ForeColor = System.Drawing.Color.Red;
-            this.lblAngleYCorrect.Location = new System.Drawing.Point(907, 251);
-            this.lblAngleYCorrect.Name = "lblAngleYCorrect";
-            this.lblAngleYCorrect.Size = new System.Drawing.Size(131, 16);
-            this.lblAngleYCorrect.TabIndex = 99;
-            this.lblAngleYCorrect.Text = "Angle to correct Y";
-            // 
-            // lblAngleXCorrect
-            // 
-            this.lblAngleXCorrect.AutoSize = true;
-            this.lblAngleXCorrect.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblAngleXCorrect.ForeColor = System.Drawing.Color.Red;
-            this.lblAngleXCorrect.Location = new System.Drawing.Point(907, 209);
-            this.lblAngleXCorrect.Name = "lblAngleXCorrect";
-            this.lblAngleXCorrect.Size = new System.Drawing.Size(130, 16);
-            this.lblAngleXCorrect.TabIndex = 98;
-            this.lblAngleXCorrect.Text = "Angle to correct X";
-            // 
-            // label29
-            // 
-            this.label29.AutoSize = true;
-            this.label29.Location = new System.Drawing.Point(827, 184);
-            this.label29.Name = "label29";
-            this.label29.Size = new System.Drawing.Size(72, 13);
-            this.label29.TabIndex = 97;
-            this.label29.Text = "MAGNITUDE";
-            // 
-            // txtMagGrams1
-            // 
-            this.txtMagGrams1.Location = new System.Drawing.Point(836, 336);
-            this.txtMagGrams1.Name = "txtMagGrams1";
-            this.txtMagGrams1.Size = new System.Drawing.Size(32, 20);
-            this.txtMagGrams1.TabIndex = 72;
-            // 
-            // txtMagnitudeY
-            // 
-            this.txtMagnitudeY.Location = new System.Drawing.Point(836, 247);
-            this.txtMagnitudeY.Name = "txtMagnitudeY";
-            this.txtMagnitudeY.Size = new System.Drawing.Size(61, 20);
-            this.txtMagnitudeY.TabIndex = 96;
-            // 
-            // txtMagnitudeX
-            // 
-            this.txtMagnitudeX.Location = new System.Drawing.Point(835, 209);
-            this.txtMagnitudeX.Name = "txtMagnitudeX";
-            this.txtMagnitudeX.Size = new System.Drawing.Size(61, 20);
-            this.txtMagnitudeX.TabIndex = 95;
-            // 
-            // lblAngleYStat
-            // 
-            this.lblAngleYStat.AutoSize = true;
-            this.lblAngleYStat.Location = new System.Drawing.Point(512, 251);
-            this.lblAngleYStat.Name = "lblAngleYStat";
-            this.lblAngleYStat.Size = new System.Drawing.Size(14, 13);
-            this.lblAngleYStat.TabIndex = 94;
-            this.lblAngleYStat.Text = "Y";
-            // 
-            // lblAngleXStat
-            // 
-            this.lblAngleXStat.AutoSize = true;
-            this.lblAngleXStat.Location = new System.Drawing.Point(512, 209);
-            this.lblAngleXStat.Name = "lblAngleXStat";
-            this.lblAngleXStat.Size = new System.Drawing.Size(14, 13);
-            this.lblAngleXStat.TabIndex = 93;
-            this.lblAngleXStat.Text = "X";
-            // 
-            // label28
-            // 
-            this.label28.AutoSize = true;
-            this.label28.Location = new System.Drawing.Point(746, 184);
-            this.label28.Name = "label28";
-            this.label28.Size = new System.Drawing.Size(43, 13);
-            this.label28.TabIndex = 92;
-            this.label28.Text = "ANGLE";
-            // 
-            // txtAngleYCalc
-            // 
-            this.txtAngleYCalc.Location = new System.Drawing.Point(735, 247);
-            this.txtAngleYCalc.Name = "txtAngleYCalc";
-            this.txtAngleYCalc.Size = new System.Drawing.Size(61, 20);
-            this.txtAngleYCalc.TabIndex = 91;
-            // 
-            // txtAngleXCalc
-            // 
-            this.txtAngleXCalc.Location = new System.Drawing.Point(734, 209);
-            this.txtAngleXCalc.Name = "txtAngleXCalc";
-            this.txtAngleXCalc.Size = new System.Drawing.Size(61, 20);
-            this.txtAngleXCalc.TabIndex = 90;
-            // 
-            // btnCalculateCorrection
-            // 
-            this.btnCalculateCorrection.Location = new System.Drawing.Point(789, 391);
-            this.btnCalculateCorrection.Name = "btnCalculateCorrection";
-            this.btnCalculateCorrection.Size = new System.Drawing.Size(165, 23);
-            this.btnCalculateCorrection.TabIndex = 89;
-            this.btnCalculateCorrection.Text = "Calculate correction";
-            this.btnCalculateCorrection.UseVisualStyleBackColor = true;
-            this.btnCalculateCorrection.Click += new System.EventHandler(this.btnCalculateCorrection_Click);
-            // 
-            // txtCorrectYTemporal
-            // 
-            this.txtCorrectYTemporal.Location = new System.Drawing.Point(854, 469);
-            this.txtCorrectYTemporal.Name = "txtCorrectYTemporal";
-            this.txtCorrectYTemporal.Size = new System.Drawing.Size(100, 20);
-            this.txtCorrectYTemporal.TabIndex = 88;
-            this.txtCorrectYTemporal.Text = "0";
-            // 
-            // txtCorrectXTemporal
-            // 
-            this.txtCorrectXTemporal.Location = new System.Drawing.Point(854, 443);
-            this.txtCorrectXTemporal.Name = "txtCorrectXTemporal";
-            this.txtCorrectXTemporal.Size = new System.Drawing.Size(100, 20);
-            this.txtCorrectXTemporal.TabIndex = 87;
-            this.txtCorrectXTemporal.Text = "0";
-            // 
-            // label27
-            // 
-            this.label27.AutoSize = true;
-            this.label27.Location = new System.Drawing.Point(747, 469);
-            this.label27.Name = "label27";
-            this.label27.Size = new System.Drawing.Size(101, 13);
-            this.label27.TabIndex = 86;
-            this.label27.Text = "Temporal correction";
-            // 
-            // label26
-            // 
-            this.label26.AutoSize = true;
-            this.label26.Location = new System.Drawing.Point(747, 449);
-            this.label26.Name = "label26";
-            this.label26.Size = new System.Drawing.Size(101, 13);
-            this.label26.TabIndex = 85;
-            this.label26.Text = "Temporal correction";
-            // 
-            // btnFindAngles
-            // 
-            this.btnFindAngles.Location = new System.Drawing.Point(735, 110);
-            this.btnFindAngles.Name = "btnFindAngles";
-            this.btnFindAngles.Size = new System.Drawing.Size(179, 51);
-            this.btnFindAngles.TabIndex = 82;
-            this.btnFindAngles.Text = "Complete Analysis";
-            this.btnFindAngles.UseVisualStyleBackColor = true;
-            this.btnFindAngles.Click += new System.EventHandler(this.btnExecuteAnalysis_Click);
-            // 
-            // txtCorrectAngleY
-            // 
-            this.txtCorrectAngleY.Location = new System.Drawing.Point(641, 466);
-            this.txtCorrectAngleY.Name = "txtCorrectAngleY";
-            this.txtCorrectAngleY.Size = new System.Drawing.Size(100, 20);
-            this.txtCorrectAngleY.TabIndex = 80;
-            this.txtCorrectAngleY.Text = "90";
-            // 
-            // txtCorrectAngleX
-            // 
-            this.txtCorrectAngleX.Location = new System.Drawing.Point(641, 443);
-            this.txtCorrectAngleX.Name = "txtCorrectAngleX";
-            this.txtCorrectAngleX.Size = new System.Drawing.Size(100, 20);
-            this.txtCorrectAngleX.TabIndex = 79;
-            this.txtCorrectAngleX.Text = "0";
-            // 
-            // btnSaveData
-            // 
-            this.btnSaveData.Location = new System.Drawing.Point(1009, 8);
-            this.btnSaveData.Name = "btnSaveData";
-            this.btnSaveData.Size = new System.Drawing.Size(152, 23);
-            this.btnSaveData.TabIndex = 76;
-            this.btnSaveData.Text = "Save all parameters";
-            this.btnSaveData.UseVisualStyleBackColor = true;
-            this.btnSaveData.Click += new System.EventHandler(this.btnSaveData_Click);
-            // 
-            // groupBox2
-            // 
-            this.groupBox2.Controls.Add(this.label50);
-            this.groupBox2.Controls.Add(this.txtXMagBalanced);
-            this.groupBox2.Controls.Add(this.label52);
-            this.groupBox2.Controls.Add(this.txtXMagG1);
-            this.groupBox2.Location = new System.Drawing.Point(542, 285);
-            this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(270, 87);
-            this.groupBox2.TabIndex = 75;
-            this.groupBox2.TabStop = false;
-            this.groupBox2.Text = "X calibration";
-            // 
-            // label50
-            // 
-            this.label50.AutoSize = true;
-            this.label50.Location = new System.Drawing.Point(36, 29);
-            this.label50.Name = "label50";
-            this.label50.Size = new System.Drawing.Size(104, 13);
-            this.label50.TabIndex = 68;
-            this.label50.Text = "Magnitude balanced";
-            // 
-            // txtXMagBalanced
-            // 
-            this.txtXMagBalanced.Location = new System.Drawing.Point(179, 25);
-            this.txtXMagBalanced.Name = "txtXMagBalanced";
-            this.txtXMagBalanced.Size = new System.Drawing.Size(68, 20);
-            this.txtXMagBalanced.TabIndex = 69;
-            this.txtXMagBalanced.Text = "2.5";
-            // 
-            // label52
-            // 
-            this.label52.AutoSize = true;
-            this.label52.Location = new System.Drawing.Point(36, 54);
-            this.label52.Name = "label52";
-            this.label52.Size = new System.Drawing.Size(106, 13);
-            this.label52.TabIndex = 70;
-            this.label52.Text = "Magnitude with mass";
-            // 
-            // txtXMagG1
-            // 
-            this.txtXMagG1.Location = new System.Drawing.Point(179, 54);
-            this.txtXMagG1.Name = "txtXMagG1";
-            this.txtXMagG1.Size = new System.Drawing.Size(68, 20);
-            this.txtXMagG1.TabIndex = 71;
-            // 
-            // groupBox1
-            // 
-            this.groupBox1.Controls.Add(this.label47);
-            this.groupBox1.Controls.Add(this.txtYMagBalanced);
-            this.groupBox1.Controls.Add(this.label48);
-            this.groupBox1.Controls.Add(this.txtYMag1);
-            this.groupBox1.Location = new System.Drawing.Point(895, 285);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(297, 87);
-            this.groupBox1.TabIndex = 74;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Y calibration";
-            // 
-            // label47
-            // 
-            this.label47.AutoSize = true;
-            this.label47.Location = new System.Drawing.Point(45, 29);
-            this.label47.Name = "label47";
-            this.label47.Size = new System.Drawing.Size(104, 13);
-            this.label47.TabIndex = 68;
-            this.label47.Text = "Magnitude balanced";
-            // 
-            // txtYMagBalanced
-            // 
-            this.txtYMagBalanced.Location = new System.Drawing.Point(193, 25);
-            this.txtYMagBalanced.Name = "txtYMagBalanced";
-            this.txtYMagBalanced.Size = new System.Drawing.Size(68, 20);
-            this.txtYMagBalanced.TabIndex = 69;
-            this.txtYMagBalanced.Text = "2.5";
-            // 
-            // label48
-            // 
-            this.label48.AutoSize = true;
-            this.label48.Location = new System.Drawing.Point(45, 54);
-            this.label48.Name = "label48";
-            this.label48.Size = new System.Drawing.Size(106, 13);
-            this.label48.TabIndex = 70;
-            this.label48.Text = "Magnitude with mass";
-            // 
-            // txtYMag1
-            // 
-            this.txtYMag1.Location = new System.Drawing.Point(193, 51);
-            this.txtYMag1.Name = "txtYMag1";
-            this.txtYMag1.Size = new System.Drawing.Size(65, 20);
-            this.txtYMag1.TabIndex = 71;
-            // 
-            // btnExportWAV
-            // 
-            this.btnExportWAV.Location = new System.Drawing.Point(897, 8);
-            this.btnExportWAV.Name = "btnExportWAV";
-            this.btnExportWAV.Size = new System.Drawing.Size(75, 23);
-            this.btnExportWAV.TabIndex = 10;
-            this.btnExportWAV.Text = "Export WAV";
-            this.btnExportWAV.UseVisualStyleBackColor = true;
-            this.btnExportWAV.Click += new System.EventHandler(this.btnExportWAV_Click);
-            // 
-            // btn240250
-            // 
-            this.btn240250.Location = new System.Drawing.Point(714, 37);
-            this.btn240250.Name = "btn240250";
-            this.btn240250.Size = new System.Drawing.Size(75, 23);
-            this.btn240250.TabIndex = 9;
-            this.btn240250.Text = "240-250";
-            this.btn240250.UseVisualStyleBackColor = true;
-            this.btn240250.Click += new System.EventHandler(this.btn240250_Click);
-            // 
-            // btn250300
-            // 
-            this.btn250300.Location = new System.Drawing.Point(806, 37);
-            this.btn250300.Name = "btn250300";
-            this.btn250300.Size = new System.Drawing.Size(75, 23);
-            this.btn250300.TabIndex = 8;
-            this.btn250300.Text = "250-300";
-            this.btn250300.UseVisualStyleBackColor = true;
-            this.btn250300.Click += new System.EventHandler(this.btn250300_Click);
-            // 
-            // btn230240
-            // 
-            this.btn230240.Location = new System.Drawing.Point(618, 37);
-            this.btn230240.Name = "btn230240";
-            this.btn230240.Size = new System.Drawing.Size(75, 23);
-            this.btn230240.TabIndex = 7;
-            this.btn230240.Text = "230-240";
-            this.btn230240.UseVisualStyleBackColor = true;
-            this.btn230240.Click += new System.EventHandler(this.btn230240_Click);
-            // 
-            // btn210220
-            // 
-            this.btn210220.Location = new System.Drawing.Point(714, 8);
-            this.btn210220.Name = "btn210220";
-            this.btn210220.Size = new System.Drawing.Size(75, 23);
-            this.btn210220.TabIndex = 6;
-            this.btn210220.Text = "210-220";
-            this.btn210220.UseVisualStyleBackColor = true;
-            this.btn210220.Click += new System.EventHandler(this.btn210220_Click);
-            // 
-            // btn220230
-            // 
-            this.btn220230.Location = new System.Drawing.Point(806, 8);
-            this.btn220230.Name = "btn220230";
-            this.btn220230.Size = new System.Drawing.Size(75, 23);
-            this.btn220230.TabIndex = 5;
-            this.btn220230.Text = "220-230";
-            this.btn220230.UseVisualStyleBackColor = true;
-            this.btn220230.Click += new System.EventHandler(this.btn220230_Click);
-            // 
-            // btn200210
-            // 
-            this.btn200210.Location = new System.Drawing.Point(618, 6);
-            this.btn200210.Name = "btn200210";
-            this.btn200210.Size = new System.Drawing.Size(75, 23);
-            this.btn200210.TabIndex = 4;
-            this.btn200210.Text = "200-210";
-            this.btn200210.UseVisualStyleBackColor = true;
-            this.btn200210.Click += new System.EventHandler(this.btn200210_Click);
-            // 
-            // btnUnselectAll
-            // 
-            this.btnUnselectAll.Location = new System.Drawing.Point(514, 66);
-            this.btnUnselectAll.Name = "btnUnselectAll";
-            this.btnUnselectAll.Size = new System.Drawing.Size(75, 23);
-            this.btnUnselectAll.TabIndex = 3;
-            this.btnUnselectAll.Text = "unselect all";
-            this.btnUnselectAll.UseVisualStyleBackColor = true;
-            this.btnUnselectAll.Click += new System.EventHandler(this.btnUnselectAll_Click);
-            // 
-            // btnSelectAll
-            // 
-            this.btnSelectAll.Location = new System.Drawing.Point(514, 37);
-            this.btnSelectAll.Name = "btnSelectAll";
-            this.btnSelectAll.Size = new System.Drawing.Size(75, 23);
-            this.btnSelectAll.TabIndex = 2;
-            this.btnSelectAll.Text = "Select Alll";
-            this.btnSelectAll.UseVisualStyleBackColor = true;
-            this.btnSelectAll.Click += new System.EventHandler(this.btnSelectAll_Click);
-            // 
-            // btnUpdateAnalysisSection
-            // 
-            this.btnUpdateAnalysisSection.Location = new System.Drawing.Point(514, 7);
-            this.btnUpdateAnalysisSection.Name = "btnUpdateAnalysisSection";
-            this.btnUpdateAnalysisSection.Size = new System.Drawing.Size(75, 23);
-            this.btnUpdateAnalysisSection.TabIndex = 1;
-            this.btnUpdateAnalysisSection.Text = "Analyze";
-            this.btnUpdateAnalysisSection.UseVisualStyleBackColor = true;
-            this.btnUpdateAnalysisSection.Click += new System.EventHandler(this.btnUpdateAnalysisSection_Click);
-            // 
-            // lstSectionSelector
-            // 
-            this.lstSectionSelector.CheckOnClick = true;
-            this.lstSectionSelector.FormattingEnabled = true;
-            this.lstSectionSelector.Location = new System.Drawing.Point(22, 6);
-            this.lstSectionSelector.Name = "lstSectionSelector";
-            this.lstSectionSelector.Size = new System.Drawing.Size(468, 499);
-            this.lstSectionSelector.TabIndex = 0;
-            // 
             // tabPage14
             // 
             this.tabPage14.Controls.Add(this.richTextBox1);
@@ -1754,11 +1759,22 @@ namespace equilibreuse
             this.chkClockwise.Text = "Clockwise Rotating";
             this.chkClockwise.UseVisualStyleBackColor = true;
             // 
+            // chkExcludeWrongTurn
+            // 
+            this.chkExcludeWrongTurn.AutoSize = true;
+            this.chkExcludeWrongTurn.Location = new System.Drawing.Point(997, 42);
+            this.chkExcludeWrongTurn.Name = "chkExcludeWrongTurn";
+            this.chkExcludeWrongTurn.Size = new System.Drawing.Size(122, 17);
+            this.chkExcludeWrongTurn.TabIndex = 73;
+            this.chkExcludeWrongTurn.Text = "Exclude wrong turns";
+            this.chkExcludeWrongTurn.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1287, 639);
+            this.Controls.Add(this.chkExcludeWrongTurn);
             this.Controls.Add(this.chkClockwise);
             this.Controls.Add(this.cbxSmoothing);
             this.Controls.Add(this.cbxFilterTypes);
@@ -1809,6 +1825,12 @@ namespace equilibreuse
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
             this.tabControl1.ResumeLayout(false);
+            this.tabPage7.ResumeLayout(false);
+            this.tabPage7.PerformLayout();
+            this.groupBox2.ResumeLayout(false);
+            this.groupBox2.PerformLayout();
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
             this.tabPage1.ResumeLayout(false);
             this.tabPage1.PerformLayout();
             this.tabPage2.ResumeLayout(false);
@@ -1822,12 +1844,6 @@ namespace equilibreuse
             this.tabPage15.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridY)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridX)).EndInit();
-            this.tabPage7.ResumeLayout(false);
-            this.tabPage7.PerformLayout();
-            this.groupBox2.ResumeLayout(false);
-            this.groupBox2.PerformLayout();
-            this.groupBox1.ResumeLayout(false);
-            this.groupBox1.PerformLayout();
             this.tabPage14.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -1986,6 +2002,7 @@ namespace equilibreuse
         private System.Windows.Forms.CheckBox chkClockwise;
         private System.Windows.Forms.Label label16;
         private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.CheckBox chkExcludeWrongTurn;
     }
 }
 

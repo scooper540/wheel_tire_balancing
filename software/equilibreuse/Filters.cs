@@ -181,7 +181,7 @@ namespace equilibreuse
                 case "BiQuad peaking":
                 case "BiQuad lowshelf":
                 case "BiQuad highshelf":
-                    filter = AnalyzeBiQuadFilter(filterName, fLow, fHigh, freq, lowpass/sampleRate, filterOrder);
+                    filter = AnalyzeBiQuadFilter(filterName, fLow, fHigh, freq, f_rot/sampleRate, filterOrder);
                     break;
                 case "One-pole LP":
                     filter = new NWaves.Filters.OnePole.LowPassFilter(lowpass);
