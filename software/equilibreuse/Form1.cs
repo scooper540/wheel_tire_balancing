@@ -1579,6 +1579,15 @@ namespace equilibreuse
             }
             if (angleX.Count > 0)
             {
+                var statAngleX = MathHelper.ComputeStatistics(angleX);
+                var statAngleY = MathHelper.ComputeStatistics(angleY);
+                var statMagX = MathHelper.ComputeStatistics(magnitudeX);
+                var statMagY = MathHelper.ComputeStatistics(magnitudeY);
+                lstStats.Items.Clear();
+                lstStats.Items.Add("AngleX " + statAngleX.ToString());
+                lstStats.Items.Add("AngleY " + statAngleY.ToString());
+                lstStats.Items.Add("MagX " + statMagX.ToString());
+                lstStats.Items.Add("MagY " + statMagY.ToString());
                 lblAngleXStat.Text = $"X - Angle:{angleX.Min().ToString("F0")}-{angleX.Max().ToString("F0")} Mag:{magnitudeX.Min().ToString("F2")}-{magnitudeX.Max().ToString("F2")}";
                 lblAngleYStat.Text = $"Y - Angle:{angleY.Min().ToString("F0")}-{angleY.Max().ToString("F0")} Mag:{magnitudeY.Min().ToString("F2")}-{magnitudeY.Max().ToString("F2")}";
                 txtAngleXCalc.Text = MathHelper.CalculateMeanAngle(angleX.ToArray()).ToString("F0");

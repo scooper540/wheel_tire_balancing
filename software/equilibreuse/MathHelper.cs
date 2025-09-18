@@ -362,5 +362,56 @@ namespace equilibreuse
             sp.LegendText = axisName;
             MathHelper.DisplayPeaksTemporal(data, temporal, "Top Peak "+axisName, plotTemporal,null);
         }
+    
+
+        public static StatisticsRes ComputeStatistics(List<double> values)
+        {
+            if (values == null || values.Count == 0)
+                throw new ArgumentException("La liste ne doit pas être vide.");
+
+            var stats = new StatisticsRes();
+
+            // Moyenne
+            stats.Mean = values.Average();
+
+            // Médiane
+            var sorted = values.OrderBy(x => x).ToList();
+            int n = sorted.Count;
+            stats.Median = (n % 2 == 0)
+                ? (sorted[n / 2 - 1] + sorted[n / 2]) / 2.0
+                : sorted[n / 2];
+
+            // Variance et Écart-type
+            stats.Variance = values.Average(v => Math.Pow(v - stats.Mean, 2));
+            stats.StandardDeviation = Math.Sqrt(stats.Variance);
+
+            // Coefficient de variation
+            stats.CoefficientOfVariation = stats.Mean != 0
+                ? stats.StandardDeviation / stats.Mean
+                : 0;
+
+            // Min, Max, Étendue
+            stats.Min = sorted.First();
+            stats.Max = sorted.Last();
+            stats.Range = stats.Max - stats.Min;
+
+            return stats;
+        }
+    }
+    public class StatisticsRes
+    {
+        public double Mean { get; set; }
+        public double Median { get; set; }
+        public double Variance { get; set; }
+        public double StandardDeviation { get; set; }
+        public double CoefficientOfVariation { get; set; }
+        public double Min { get; set; }
+        public double Max { get; set; }
+        public double Range { get; set; }
+
+        public override string ToString()
+        {
+            return $"Median {Median.ToString("F2")} Variance {Variance.ToString("F5")} StdDev {StandardDeviation.ToString("F5")} Coef {CoefficientOfVariation.ToString("F5")}";
+        }
     }
 }

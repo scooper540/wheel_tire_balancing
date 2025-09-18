@@ -147,8 +147,8 @@ namespace equilibreuse
                 return new DiscreteSignal(1,0);
 
             var freq = f_rot / sampleRate;
-            double fLow = (f_rot - 0.3) / sampleRate; // normalize frequency onto [0, 0.5] range
-            double fHigh = (f_rot + 0.3) / sampleRate; // normalize frequency onto [0, 0.5] range
+            double fLow = (f_rot - f_rot * 0.10) / sampleRate; // normalize frequency onto [0, 0.5] range
+            double fHigh = (f_rot + f_rot * 0.10) / sampleRate; // normalize frequency onto [0, 0.5] range
             
             LtiFilter filter = new NWaves.Filters.BiQuad.PeakFilter(f_rot, 100, 100);
             switch (filterName)
