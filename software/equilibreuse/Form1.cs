@@ -1256,13 +1256,15 @@ namespace equilibreuse
                 List<double> lstPkPkX = new List<double>();
                 List<double> lstPkPkY = new List<double>();
                 //we first find tours to exclude
+                List<int> zScoreToExclude = new List<int>();
                 foreach (section s in selectedSections)
                 {
                     var dataSingle = GetSingleTourSignal(s);
                     var dataSingleX = GetPhaseMagnitude(dataSingle.x, dataSingle.angle, dataSingle.sampleRate, dataSingle.rpm, dataSingle.f_rot);
                     var dataSingleY = GetPhaseMagnitude(dataSingle.y, dataSingle.angle, dataSingle.sampleRate, dataSingle.rpm, dataSingle.f_rot);
                     //exclude out of scope tours
-                    lstFFTX.Add(dataSingleX.fund.Magnitude); lstFFTY.Add(dataSingleY.fund.Magnitude);
+                    lstFFTX.Add(dataSingleX.fund.Magnitude);
+                    lstFFTY.Add(dataSingleY.fund.Magnitude);
                     lstRMSX.Add(dataSingleX.rms);
                     lstLockInX.Add(dataSingleX.magLockin);
                     lstPkPkX.Add(dataSingleX.pkpkFilter);
@@ -1279,6 +1281,7 @@ namespace equilibreuse
                     Console.WriteLine($"Original range: {result.OriginalRange:F2}");
                     Console.WriteLine($"Range after exclusion: {result.RangeAfterExclusion:F2}");
                     Console.WriteLine($"Z-score outliers: {string.Join(", ", result.ZScoreOutliers)}");
+                    zScoreToExclude.AddRange(result.ZScoreOutliers.ToArray());
                     Console.WriteLine();
                 }
                 var resultsY = StabilityAnalyzer.AnalyzeStability(lstRMSY, lstLockInY, lstPkPkY, lstFFTY);
@@ -1290,34 +1293,40 @@ namespace equilibreuse
                     Console.WriteLine($"Original range: {result.OriginalRange:F2}");
                     Console.WriteLine($"Range after exclusion: {result.RangeAfterExclusion:F2}");
                     Console.WriteLine($"Z-score outliers: {string.Join(", ", result.ZScoreOutliers)}");
+                    zScoreToExclude.AddRange(result.ZScoreOutliers.ToArray());
                     Console.WriteLine();
                 }
-                var allIndices = resultsX.Concat(resultsY).Select(r => r.BestExclusionIndex).ToList();
-                var exclusionCounts = allIndices
-                    .GroupBy(i => i)
-                    .ToDictionary(g => g.Key, g => g.Count());
 
-                // Affiche les scores
-                Console.WriteLine("=== Tour exclusion scores ===");
-                foreach (var kvp in exclusionCounts.OrderByDescending(k => k.Value))
-                {
-                    Console.WriteLine($"Tour #{kvp.Key} → Score: {kvp.Value}");
-                }
+                //var allIndices = resultsX.Concat(resultsY).Select(r => r.BestExclusionIndex).ToList();
+                var allIndices = zScoreToExclude;
+                 var exclusionCounts = allIndices
+                     .GroupBy(i => i)
+                     .ToDictionary(g => g.Key, g => g.Count());
 
-                // Liste des tours à exclure (si score ≥ 2)
-                var toursToExclude = exclusionCounts
-                    .Where(kvp => kvp.Value >= 2)
-                    .Select(kvp => kvp.Key)
-                    .ToList();
+                 // Affiche les scores
+                 Console.WriteLine("=== Tour exclusion scores ===");
+                 foreach (var kvp in exclusionCounts.OrderByDescending(k => k.Value))
+                 {
+                     Console.WriteLine($"Tour #{kvp.Key} → Score: {kvp.Value}");
+                 }
 
-                Console.WriteLine("\nTours à exclure : " + string.Join(", ", toursToExclude));
-                toursToExclude.Sort((a, c) => c.CompareTo(a)); // Tri décroissant
+                 // Liste des tours à exclure (si score ≥ 2)
+                 var toursToExclude = exclusionCounts
+                     .Where(kvp => kvp.Value >= 2)
+                     .Select(kvp => kvp.Key)
+                     .ToList();
 
+                 Console.WriteLine("\nTours à exclure : " + string.Join(", ", toursToExclude));
+                 toursToExclude.Sort((a, c) => c.CompareTo(a)); // Tri décroissant
+                 
+                //we remove the ZScore only
+             //  var toursToExclude = zScoreToExclude.Distinct().OrderByDescending(n => n).ToList();
                 foreach (int index in toursToExclude)
                 {
                     if (index >= 0 && index < selectedSections.Count)
                         selectedSections.RemoveAt(index);
                 }
+
                 currentAnalysisX.numberOfTurn = selectedSections.Count;
                 currentAnalysisY.numberOfTurn = selectedSections.Count;
             }
