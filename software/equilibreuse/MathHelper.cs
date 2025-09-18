@@ -411,7 +411,7 @@ namespace equilibreuse
 
         public override string ToString()
         {
-            return $"Median {Median.ToString("F2")} Variance {Variance.ToString("F5")} StdDev {StandardDeviation.ToString("F5")} Coef {CoefficientOfVariation.ToString("F5")}";
+            return $"MinMax [{Min.ToString("F2")}-{Max.ToString("F2")}] Median {Median.ToString("F2")} Coef variation {CoefficientOfVariation.ToString("F5")}";
         }
     }
 }

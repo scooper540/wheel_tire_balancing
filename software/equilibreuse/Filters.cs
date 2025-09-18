@@ -80,9 +80,9 @@ namespace equilibreuse
             var coeffs = FirCoefficients.LowPass(sampleRate, cutoffFrequency, halfOrder);
 
             // Application d'une fenêtre Hamming pour lisser les bords
-          //  var window = new HammingWindow { Width = coeffs.Length }.CopyToArray();
-          //  for (int i = 0; i < coeffs.Length; i++)
-          //      coeffs[i] *= window[i];
+            //var window = new HammingWindow { Width = coeffs.Length }.CopyToArray();
+            //for (int i = 0; i < coeffs.Length; i++)
+            //    coeffs[i] *= window[i];
 
             // Création du filtre FIR
             var fir = new OnlineFirFilter(coeffs);

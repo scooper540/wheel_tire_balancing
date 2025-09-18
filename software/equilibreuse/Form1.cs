@@ -58,7 +58,7 @@ namespace equilibreuse
             cbxFFTSingle.SelectedItem = "BlackmanNuttal";
             cbxFilterTypes.SelectedItem = "Butterworth";
             cbxAngleData.SelectedItem = "Global FFT";
-            cbxMagData.SelectedItem = "Global PkPk Filter";
+            
 
             cbxSensor.SelectedIndex = 0; //mpu per default
             Help.FillHelp(richTextBox1);
@@ -89,8 +89,12 @@ namespace equilibreuse
             cbxFFTSingle.SelectedItem = Properties.Settings.Default.FFTSingle;
             cbxFFT.SelectedItem = Properties.Settings.Default.FFTGlobal;
             cbxAngleData.SelectedItem = Properties.Settings.Default.AngleData;
-            cbxMagData.SelectedItem = Properties.Settings.Default.MagData;
+            
             chkClockwise.Checked = Properties.Settings.Default.ClockwiseRotating;
+            txtXLockinBalanced.Text = Properties.Settings.Default.XLockinBalanced.ToString();
+            txtYLockinBalanced.Text = Properties.Settings.Default.YLockinBalanced.ToString();
+            txtXLockinG1.Text = Properties.Settings.Default.XLockinMag.ToString();
+            txtYLockin1.Text = Properties.Settings.Default.YLockinMag.ToString();
         }
 
         private void T1_Tick(object sender, EventArgs e)
@@ -1530,6 +1534,8 @@ namespace equilibreuse
             List<double> angleY = new List<double>();
             List<double> magnitudeX = new List<double>();
             List<double> magnitudeY = new List<double>();
+            List<double> lockinX = new List<double>();
+            List<double> lockinY = new List<double>();
             lstAngleXAnalysis.Clear();
             lstAngleYAnalysis.Clear();
             btnUnselectAll_Click(null, EventArgs.Empty);
@@ -1569,11 +1575,13 @@ namespace equilibreuse
                 magnitudeX.Add(data.magX);
                 angleY.Add(data.angleY);
                 magnitudeY.Add(data.magY);
-                for(int j = 0; j < lstSelectToursAnalysis.Items.Count;j++)
+                lockinX.Add(data.lockinX);
+                lockinY.Add(data.lockinY);
+                for (int j = 0; j < lstSelectToursAnalysis.Items.Count;j++)
                 {
                     if(lstSelectToursAnalysis.Items[j].ToString() == sSelected.ToString())
                     {
-                        lstSelectToursAnalysis.Items[j] = sSelected.ToString().Substring(0,7) + $" X:{data.magX.ToString("F2")}@{data.angleX.ToString("F0")} Y:{data.magY.ToString("F2")}@{data.angleY.ToString("F0")}";
+                        lstSelectToursAnalysis.Items[j] = sSelected.ToString().Substring(0,7) + $" AngX {data.angleX.ToString("F0")} M {data.magX.ToString("F1")} L {data.lockinX.ToString("F1")} AngY {data.angleY.ToString("F0")} M {data.magY.ToString("F1")} L {data.lockinY.ToString("F1")}";
                     }
                 }
             }
@@ -1583,18 +1591,24 @@ namespace equilibreuse
                 var statAngleY = MathHelper.ComputeStatistics(angleY);
                 var statMagX = MathHelper.ComputeStatistics(magnitudeX);
                 var statMagY = MathHelper.ComputeStatistics(magnitudeY);
+                var statLockinX = MathHelper.ComputeStatistics(lockinX);
+                var statLockinY = MathHelper.ComputeStatistics(lockinY);
                 lstStats.Items.Clear();
                 lstStats.Items.Add("AngleX " + statAngleX.ToString());
                 lstStats.Items.Add("AngleY " + statAngleY.ToString());
                 lstStats.Items.Add("MagX " + statMagX.ToString());
                 lstStats.Items.Add("MagY " + statMagY.ToString());
-                lblAngleXStat.Text = $"X - Angle:{angleX.Min().ToString("F0")}-{angleX.Max().ToString("F0")} Mag:{magnitudeX.Min().ToString("F2")}-{magnitudeX.Max().ToString("F2")}";
-                lblAngleYStat.Text = $"Y - Angle:{angleY.Min().ToString("F0")}-{angleY.Max().ToString("F0")} Mag:{magnitudeY.Min().ToString("F2")}-{magnitudeY.Max().ToString("F2")}";
+                lstStats.Items.Add("LockinX " + statLockinX.ToString());
+                lstStats.Items.Add("LockinY " + statLockinY.ToString());
+                lblAngleXStat.Text = $"X - Angle:{angleX.Min().ToString("F0")}-{angleX.Max().ToString("F0")}";
+                lblAngleYStat.Text = $"Y - Angle:{angleY.Min().ToString("F0")}-{angleY.Max().ToString("F0")}";
                 txtAngleXCalc.Text = MathHelper.CalculateMeanAngle(angleX.ToArray()).ToString("F0");
                 txtAngleYCalc.Text = MathHelper.CalculateMeanAngle(angleY.ToArray()).ToString("F0");
                 txtMagnitudeX.Text = magnitudeX.Average().ToString("F2");
                 txtMagnitudeY.Text = magnitudeY.Average().ToString("F2");
-                
+                txtLockinX.Text = lockinX.Average().ToString("F2");
+                txtLockinY.Text = lockinY.Average().ToString("F2");
+
                 btnCalculateCorrection_Click(null, EventArgs.Empty);
                 
             }
@@ -1607,9 +1621,10 @@ namespace equilibreuse
         {
             var magX = Convert.ToDouble(txtMagnitudeX.Text);
             var magY = Convert.ToDouble(txtMagnitudeY.Text);
+            
             var dynamicGlobal = EquilibrageHelper.EstimateDynamicImbalanceCorrection(Convert.ToDouble(txtAngleXCalc.Text), Convert.ToDouble(txtMagnitudeX.Text), Convert.ToDouble(txtAngleYCalc.Text), Convert.ToDouble(txtMagnitudeY.Text));
-            lblAngleXCorrect.Text = "Outer Angle to correct X: " + dynamicGlobal.AngleOuterDeg.ToString("F0");
-            lblAngleYCorrect.Text = "Inner Angle to correct Y: " + dynamicGlobal.AngleInnerDeg.ToString("F0");
+            lblAngleXCorrect.Text = "Mag:   Outer Angle: " + dynamicGlobal.AngleOuterDeg.ToString("F0");
+            lblAngleYCorrect.Text = "Mag:   Inner Angle: " + dynamicGlobal.AngleInnerDeg.ToString("F0");
             try
             {
                 double mass1 = Convert.ToDouble(txtMagGrams1.Text);   
@@ -1642,8 +1657,50 @@ namespace equilibreuse
                 var ky3 = EquilibrageHelper.CalculateGrowthConstantLinear(magYBalanced, magY1, mass1);
                 var massLX = EquilibrageHelper.EstimateCorrectiveMassLinear(magX, magXBalanced, kx3);
                 var massLY = EquilibrageHelper.EstimateCorrectiveMassLinear(magY, magYBalanced, ky3);
-                lblAngleXCorrect.Text += " Mass:" + res2.MassOuter.ToString("F0") + ";" + massX.ToString("F0")+";" + massLX.ToString("F0");
-                lblAngleYCorrect.Text += " Mass:" + res2.MassInner.ToString("F0") + ";" + massY.ToString("F0") + ";" + massLY.ToString("F0");
+                lblAngleXCorrect.Text += " Mass:" + res2.MassOuter.ToString("F0") + " MassLog " + massX.ToString("F0")+" MassLinear " + massLX.ToString("F0");
+                lblAngleYCorrect.Text += " Mass:" + res2.MassInner.ToString("F0") + " MassLog " + massY.ToString("F0") + " MassLinear " + massLY.ToString("F0");
+            }
+            catch
+            { }
+            var lockinX = Convert.ToDouble(txtLockinX.Text);
+            var lockinY = Convert.ToDouble(txtLockinY.Text);
+            dynamicGlobal = EquilibrageHelper.EstimateDynamicImbalanceCorrection(Convert.ToDouble(txtAngleXCalc.Text), lockinX, Convert.ToDouble(txtAngleYCalc.Text), lockinY);
+            lblAngleXCorrect.Text += "\r\nLockin:Outer Angle: " + dynamicGlobal.AngleOuterDeg.ToString("F0");
+            lblAngleYCorrect.Text += "\r\nLockin:Inner Angle: " + dynamicGlobal.AngleInnerDeg.ToString("F0");
+            try
+            {
+                double mass1 = Convert.ToDouble(txtMagGrams1.Text);
+                double magX1 = Convert.ToDouble(txtXLockinG1.Text);
+                double magY1 = Convert.ToDouble(txtYLockin1.Text);
+
+                double magXBalanced = Convert.ToDouble(txtXLockinBalanced.Text);
+                double magYBalanced = Convert.ToDouble(txtYLockinBalanced.Text);
+
+                double actualMagX = lockinX;
+                double angleX = Convert.ToDouble(txtAngleXCalc.Text);
+                double actualMagY = lockinY;
+                double angleY = Convert.ToDouble(txtAngleYCalc.Text);
+
+                var kx1 = EquilibrageHelper.CalculateGrowthConstant(magXBalanced, magX1, mass1);
+                var ky1 = EquilibrageHelper.CalculateGrowthConstant(magYBalanced, magY1, mass1);
+                var massX = EquilibrageHelper.EstimateCorrectiveMass(actualMagX, magXBalanced, kx1);
+                var massY = EquilibrageHelper.EstimateCorrectiveMass(actualMagY, magYBalanced, ky1);
+
+                var res = EquilibrageHelper.EstimateDynamicBalancing(actualMagX, angleX, actualMagY, angleY, kx1, ky1);
+                //   var kx = EquilibrageHelper.CalculateAttenuationConstantFrom3Points(Convert.ToDouble(txtXMagBalanced.Text), Convert.ToDouble(txtXMagG1.Text), Convert.ToDouble(txtMagGrams1.Text), Convert.ToDouble(txtXMagG2.Text), Convert.ToDouble(txtMagGrams2.Text));
+                //   var ky = EquilibrageHelper.CalculateAttenuationConstantFrom3Points(Convert.ToDouble(txtYMagBalanced.Text), Convert.ToDouble(txtYMag1.Text), Convert.ToDouble(txtMagGrams1.Text), Convert.ToDouble(txtYMag2.Text), Convert.ToDouble(txtMagGrams2.Text));
+                //   var res = EquilibrageHelper.EstimateDynamicBalancing(Convert.ToDouble(txtMagnitudeX.Text), Convert.ToDouble(txtAngleXCalc.Text), Convert.ToDouble(txtMagnitudeY.Text), Convert.ToDouble(txtAngleYCalc.Text), kx1, ky);
+
+
+                var kx2 = EquilibrageHelper.CalculateAttenuationConstant(magXBalanced, magX1, mass1);
+                var ky2 = EquilibrageHelper.CalculateAttenuationConstant(magYBalanced, magY1, mass1);
+                var res2 = EquilibrageHelper.EstimateDynamicBalancing2(actualMagX, angleX, actualMagY, angleY, kx2, ky2);
+                var kx3 = EquilibrageHelper.CalculateGrowthConstantLinear(magXBalanced, magX1, mass1);
+                var ky3 = EquilibrageHelper.CalculateGrowthConstantLinear(magYBalanced, magY1, mass1);
+                var massLX = EquilibrageHelper.EstimateCorrectiveMassLinear(actualMagX, magXBalanced, kx3);
+                var massLY = EquilibrageHelper.EstimateCorrectiveMassLinear(actualMagY, magYBalanced, ky3);
+                lblAngleXCorrect.Text += " Mass:" + res2.MassOuter.ToString("F0") + " MassLog " + massX.ToString("F0") + " MassLinear " + massLX.ToString("F0");
+                lblAngleYCorrect.Text += " Mass:" + res2.MassInner.ToString("F0") + " MassLog " + massY.ToString("F0") + " MassLinear " + massLY.ToString("F0");
             }
             catch
             { }
@@ -2036,8 +2093,12 @@ namespace equilibreuse
             Properties.Settings.Default.FFTSingle = cbxFFTSingle.SelectedItem.ToString();
             Properties.Settings.Default.FFTGlobal = cbxFFT.SelectedItem.ToString();
             Properties.Settings.Default.AngleData = cbxAngleData.SelectedItem.ToString();
-            Properties.Settings.Default.MagData = cbxMagData.SelectedItem.ToString();
+            
             Properties.Settings.Default.ClockwiseRotating = chkClockwise.Checked;
+            Properties.Settings.Default.XLockinBalanced = Convert.ToDouble(txtXLockinBalanced.Text);
+            Properties.Settings.Default.YLockinBalanced = Convert.ToDouble(txtYLockinBalanced.Text);
+            Properties.Settings.Default.XLockinMag = Convert.ToDouble(txtXLockinG1.Text);
+            Properties.Settings.Default.YLockinMag = Convert.ToDouble(txtYLockin1.Text);
             Properties.Settings.Default.Save();
         }
 
@@ -2153,9 +2214,9 @@ namespace equilibreuse
         }
 
 
-        private (double angleX, double magX, double angleY, double magY) GetDataForCalculation()
+        private (double angleX, double magX, double angleY, double magY, double lockinX, double lockinY) GetDataForCalculation()
         {
-            double angleX, angleY, magX, magY;
+            double angleX, angleY, magX, magY, lockinX, lockinY;
             switch (cbxAngleData.SelectedItem.ToString())
             {
                 case "Global FFT":
@@ -2198,57 +2259,12 @@ namespace equilibreuse
                     angleX = angleY = 0;
                     break;
             }
-            switch (cbxMagData.SelectedItem.ToString())
-            {
-                case "Global Magnitude":
-                    magX = currentAnalysisX.gMagAvg;
-                    magY = currentAnalysisY.gMagAvg;
-                    break;
-                case "Global Mag Lockin":
-                    magX = currentAnalysisX.gMagPhaseLockin;
-                    magY = currentAnalysisY.gMagPhaseLockin;
-                    break;
-                case "Compiled Mag Lockin":
-                    magX = currentAnalysisX.coMagPhaseLockin;
-                    magY = currentAnalysisY.coMagPhaseLockin;
-                    break;
-                case "Turn by Turn Mag Lockin":
-                    magX = currentAnalysisX.ttMagPhaseLockin;
-                    magY = currentAnalysisY.ttMagPhaseLockin;
-                    break;
-                case "Global Mag / nb of turn":
-                    magX = currentAnalysisX.gMagRatio;
-                    magY = currentAnalysisY.gMagRatio;
-                    break;
-                case "Global PSD":
-                    magX = currentAnalysisX.gMagPSD;
-                    magY = currentAnalysisY.gMagPSD;
-                    break;
-                case "Global PkPk Filter":
-                    magX = currentAnalysisX.gPkPkFilter;
-                    magY = currentAnalysisY.gPkPkFilter;
-                    break;
-                case "Global PkPk LP 5hz":
-                    magX = currentAnalysisX.gPkPkTT;
-                    magY = currentAnalysisY.gPkPkTT;
-                    break;
-                case "Global Mag Goertzel":
-                    magX = currentAnalysisX.gGoertzelMag;
-                    magY = currentAnalysisY.gGoertzelMag;
-                    break;
-                case "Compiled Mag":
-                    magX = currentAnalysisX.coMagAvg;
-                    magY = currentAnalysisY.coMagAvg;
-                    break;
-                case "Turn by Turn Mag":
-                    magX = currentAnalysisX.ttMagAvg;
-                    magY = currentAnalysisY.ttMagAvg;
-                    break;
-                default:
-                    magX = magY = 0;
-                    break;
-            }
-            return (angleX, magX, angleY, magY);
+            lockinX = currentAnalysisX.gMagPhaseLockin;
+            lockinY = currentAnalysisY.gMagPhaseLockin;
+            magX = currentAnalysisX.gMagRatio;
+            magY = currentAnalysisY.gMagRatio;
+            
+            return (angleX, magX, angleY, magY, lockinX, lockinY);
         }
     }
     [Delimiter(",")]

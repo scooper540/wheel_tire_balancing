@@ -451,8 +451,13 @@ namespace equilibreuse
             if (bLowPass)
             {
                 //filter low pass on I and Q for magnitude
-                IS = LowPassFilter.ApplyLowPassFilterZeroPhase(IS, 1.0, samplingRate, 1);
-                QS = LowPassFilter.ApplyLowPassFilterZeroPhase(QS, 1.0, samplingRate, 1);
+               //var lpf = new LowPassFilter(1, samplingRate);
+              
+              IS = LowPassFilter.ApplyLowPassFilterZeroPhase(IS, 1, samplingRate, 1);
+               QS = LowPassFilter.ApplyLowPassFilterZeroPhase(QS, 1, samplingRate, 1);
+               //IS = LowPassFilter.ApplyZeroPhase(IS, lpf);
+               //lpf = new LowPassFilter(1, samplingRate);
+               //QS = LowPassFilter.ApplyZeroPhase(QS, lpf);
                 double phase = ((Math.Atan2(IS.Average(), QS.Average()) * 180 / Math.PI) + 360) % 360; // Phase en degrés
                 double amp1 = Math.Sqrt(IS.Average() * IS.Average() + QS.Average() * QS.Average());
                 if(bNormalizeSpeed)

@@ -72,13 +72,14 @@ namespace equilibreuse
             this.label4 = new System.Windows.Forms.Label();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage7 = new System.Windows.Forms.TabPage();
+            this.txtLockinY = new System.Windows.Forms.TextBox();
+            this.txtLockinX = new System.Windows.Forms.TextBox();
+            this.label17 = new System.Windows.Forms.Label();
             this.lstStats = new System.Windows.Forms.ListBox();
             this.label16 = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
             this.lstSelectToursAnalysis = new System.Windows.Forms.CheckedListBox();
-            this.label31 = new System.Windows.Forms.Label();
             this.label30 = new System.Windows.Forms.Label();
-            this.cbxMagData = new System.Windows.Forms.ComboBox();
             this.cbxAngleData = new System.Windows.Forms.ComboBox();
             this.label51 = new System.Windows.Forms.Label();
             this.lblAngleYCorrect = new System.Windows.Forms.Label();
@@ -102,11 +103,15 @@ namespace equilibreuse
             this.txtCorrectAngleX = new System.Windows.Forms.TextBox();
             this.btnSaveData = new System.Windows.Forms.Button();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.txtXLockinBalanced = new System.Windows.Forms.TextBox();
+            this.txtXLockinG1 = new System.Windows.Forms.TextBox();
             this.label50 = new System.Windows.Forms.Label();
             this.txtXMagBalanced = new System.Windows.Forms.TextBox();
             this.label52 = new System.Windows.Forms.Label();
             this.txtXMagG1 = new System.Windows.Forms.TextBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.txtYLockinBalanced = new System.Windows.Forms.TextBox();
+            this.txtYLockin1 = new System.Windows.Forms.TextBox();
             this.label47 = new System.Windows.Forms.Label();
             this.txtYMagBalanced = new System.Windows.Forms.TextBox();
             this.label48 = new System.Windows.Forms.Label();
@@ -184,7 +189,6 @@ namespace equilibreuse
             this.cbxSmoothing = new System.Windows.Forms.ComboBox();
             this.chkClockwise = new System.Windows.Forms.CheckBox();
             this.chkExcludeWrongTurn = new System.Windows.Forms.CheckBox();
-            this.label17 = new System.Windows.Forms.Label();
             this.tabControl1.SuspendLayout();
             this.tabPage7.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -590,19 +594,19 @@ namespace equilibreuse
             this.tabControl1.Location = new System.Drawing.Point(15, 82);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(1260, 549);
+            this.tabControl1.Size = new System.Drawing.Size(1343, 549);
             this.tabControl1.TabIndex = 45;
             // 
             // tabPage7
             // 
+            this.tabPage7.Controls.Add(this.txtLockinY);
+            this.tabPage7.Controls.Add(this.txtLockinX);
             this.tabPage7.Controls.Add(this.label17);
             this.tabPage7.Controls.Add(this.lstStats);
             this.tabPage7.Controls.Add(this.label16);
             this.tabPage7.Controls.Add(this.label8);
             this.tabPage7.Controls.Add(this.lstSelectToursAnalysis);
-            this.tabPage7.Controls.Add(this.label31);
             this.tabPage7.Controls.Add(this.label30);
-            this.tabPage7.Controls.Add(this.cbxMagData);
             this.tabPage7.Controls.Add(this.cbxAngleData);
             this.tabPage7.Controls.Add(this.label51);
             this.tabPage7.Controls.Add(this.lblAngleYCorrect);
@@ -641,10 +645,34 @@ namespace equilibreuse
             this.tabPage7.Location = new System.Drawing.Point(4, 22);
             this.tabPage7.Name = "tabPage7";
             this.tabPage7.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage7.Size = new System.Drawing.Size(1252, 523);
+            this.tabPage7.Size = new System.Drawing.Size(1335, 523);
             this.tabPage7.TabIndex = 6;
             this.tabPage7.Text = "Section selector";
             this.tabPage7.UseVisualStyleBackColor = true;
+            // 
+            // txtLockinY
+            // 
+            this.txtLockinY.Location = new System.Drawing.Point(790, 245);
+            this.txtLockinY.Name = "txtLockinY";
+            this.txtLockinY.Size = new System.Drawing.Size(42, 20);
+            this.txtLockinY.TabIndex = 110;
+            // 
+            // txtLockinX
+            // 
+            this.txtLockinX.Location = new System.Drawing.Point(790, 210);
+            this.txtLockinX.Name = "txtLockinX";
+            this.txtLockinX.Size = new System.Drawing.Size(42, 20);
+            this.txtLockinX.TabIndex = 109;
+            // 
+            // label17
+            // 
+            this.label17.AutoSize = true;
+            this.label17.Location = new System.Drawing.Point(1008, 379);
+            this.label17.Name = "label17";
+            this.label17.Size = new System.Drawing.Size(154, 78);
+            this.label17.TabIndex = 108;
+            this.label17.Text = "Coef:\r\n< 0.05 (5%) : very stable\r\n< 0.10 (10%) : stable\r\n0.10 – 0.20 : medium sta" +
+    "bility\r\n> 0.20 (20%) : unstable or noisy\r\n> 0.30 : not good";
             // 
             // lstStats
             // 
@@ -676,19 +704,10 @@ namespace equilibreuse
             // 
             this.lstSelectToursAnalysis.CheckOnClick = true;
             this.lstSelectToursAnalysis.FormattingEnabled = true;
-            this.lstSelectToursAnalysis.Location = new System.Drawing.Point(943, 67);
+            this.lstSelectToursAnalysis.Location = new System.Drawing.Point(897, 67);
             this.lstSelectToursAnalysis.Name = "lstSelectToursAnalysis";
-            this.lstSelectToursAnalysis.Size = new System.Drawing.Size(218, 94);
+            this.lstSelectToursAnalysis.Size = new System.Drawing.Size(336, 94);
             this.lstSelectToursAnalysis.TabIndex = 104;
-            // 
-            // label31
-            // 
-            this.label31.AutoSize = true;
-            this.label31.Location = new System.Drawing.Point(515, 143);
-            this.label31.Name = "label31";
-            this.label31.Size = new System.Drawing.Size(72, 13);
-            this.label31.TabIndex = 103;
-            this.label31.Text = "MAGNITUDE";
             // 
             // label30
             // 
@@ -698,26 +717,6 @@ namespace equilibreuse
             this.label30.Size = new System.Drawing.Size(43, 13);
             this.label30.TabIndex = 102;
             this.label30.Text = "ANGLE";
-            // 
-            // cbxMagData
-            // 
-            this.cbxMagData.FormattingEnabled = true;
-            this.cbxMagData.Items.AddRange(new object[] {
-            "Global Magnitude",
-            "Global Mag / nb of turn",
-            "Global PSD",
-            "Global PkPk Filter",
-            "Global PkPk LP 5hz",
-            "Compiled Mag",
-            "Turn by Turn Mag",
-            "Global Mag Lockin",
-            "Compiled Mag Lockin",
-            "Turn by Turn Mag Lockin",
-            "Global Mag Goertzel"});
-            this.cbxMagData.Location = new System.Drawing.Point(593, 140);
-            this.cbxMagData.Name = "cbxMagData";
-            this.cbxMagData.Size = new System.Drawing.Size(121, 21);
-            this.cbxMagData.TabIndex = 101;
             // 
             // cbxAngleData
             // 
@@ -751,7 +750,7 @@ namespace equilibreuse
             this.lblAngleYCorrect.AutoSize = true;
             this.lblAngleYCorrect.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblAngleYCorrect.ForeColor = System.Drawing.Color.Red;
-            this.lblAngleYCorrect.Location = new System.Drawing.Point(907, 251);
+            this.lblAngleYCorrect.Location = new System.Drawing.Point(841, 244);
             this.lblAngleYCorrect.Name = "lblAngleYCorrect";
             this.lblAngleYCorrect.Size = new System.Drawing.Size(131, 16);
             this.lblAngleYCorrect.TabIndex = 99;
@@ -762,7 +761,7 @@ namespace equilibreuse
             this.lblAngleXCorrect.AutoSize = true;
             this.lblAngleXCorrect.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblAngleXCorrect.ForeColor = System.Drawing.Color.Red;
-            this.lblAngleXCorrect.Location = new System.Drawing.Point(907, 209);
+            this.lblAngleXCorrect.Location = new System.Drawing.Point(842, 208);
             this.lblAngleXCorrect.Name = "lblAngleXCorrect";
             this.lblAngleXCorrect.Size = new System.Drawing.Size(130, 16);
             this.lblAngleXCorrect.TabIndex = 98;
@@ -771,11 +770,11 @@ namespace equilibreuse
             // label29
             // 
             this.label29.AutoSize = true;
-            this.label29.Location = new System.Drawing.Point(827, 184);
+            this.label29.Location = new System.Drawing.Point(731, 177);
             this.label29.Name = "label29";
-            this.label29.Size = new System.Drawing.Size(72, 13);
+            this.label29.Size = new System.Drawing.Size(101, 26);
             this.label29.TabIndex = 97;
-            this.label29.Text = "MAGNITUDE";
+            this.label29.Text = "MAGNITUDE\r\nFFT MAG   LOCKIN";
             // 
             // txtMagGrams1
             // 
@@ -786,16 +785,16 @@ namespace equilibreuse
             // 
             // txtMagnitudeY
             // 
-            this.txtMagnitudeY.Location = new System.Drawing.Point(836, 247);
+            this.txtMagnitudeY.Location = new System.Drawing.Point(737, 245);
             this.txtMagnitudeY.Name = "txtMagnitudeY";
-            this.txtMagnitudeY.Size = new System.Drawing.Size(61, 20);
+            this.txtMagnitudeY.Size = new System.Drawing.Size(42, 20);
             this.txtMagnitudeY.TabIndex = 96;
             // 
             // txtMagnitudeX
             // 
-            this.txtMagnitudeX.Location = new System.Drawing.Point(835, 209);
+            this.txtMagnitudeX.Location = new System.Drawing.Point(737, 210);
             this.txtMagnitudeX.Name = "txtMagnitudeX";
-            this.txtMagnitudeX.Size = new System.Drawing.Size(61, 20);
+            this.txtMagnitudeX.Size = new System.Drawing.Size(42, 20);
             this.txtMagnitudeX.TabIndex = 95;
             // 
             // lblAngleYStat
@@ -819,7 +818,7 @@ namespace equilibreuse
             // label28
             // 
             this.label28.AutoSize = true;
-            this.label28.Location = new System.Drawing.Point(746, 184);
+            this.label28.Location = new System.Drawing.Point(677, 184);
             this.label28.Name = "label28";
             this.label28.Size = new System.Drawing.Size(43, 13);
             this.label28.TabIndex = 92;
@@ -827,14 +826,14 @@ namespace equilibreuse
             // 
             // txtAngleYCalc
             // 
-            this.txtAngleYCalc.Location = new System.Drawing.Point(735, 247);
+            this.txtAngleYCalc.Location = new System.Drawing.Point(666, 247);
             this.txtAngleYCalc.Name = "txtAngleYCalc";
             this.txtAngleYCalc.Size = new System.Drawing.Size(61, 20);
             this.txtAngleYCalc.TabIndex = 91;
             // 
             // txtAngleXCalc
             // 
-            this.txtAngleXCalc.Location = new System.Drawing.Point(734, 209);
+            this.txtAngleXCalc.Location = new System.Drawing.Point(665, 209);
             this.txtAngleXCalc.Name = "txtAngleXCalc";
             this.txtAngleXCalc.Size = new System.Drawing.Size(61, 20);
             this.txtAngleXCalc.TabIndex = 90;
@@ -887,7 +886,7 @@ namespace equilibreuse
             // 
             this.btnFindAngles.Location = new System.Drawing.Point(735, 110);
             this.btnFindAngles.Name = "btnFindAngles";
-            this.btnFindAngles.Size = new System.Drawing.Size(179, 51);
+            this.btnFindAngles.Size = new System.Drawing.Size(146, 51);
             this.btnFindAngles.TabIndex = 82;
             this.btnFindAngles.Text = "Complete Analysis";
             this.btnFindAngles.UseVisualStyleBackColor = true;
@@ -921,6 +920,8 @@ namespace equilibreuse
             // 
             // groupBox2
             // 
+            this.groupBox2.Controls.Add(this.txtXLockinBalanced);
+            this.groupBox2.Controls.Add(this.txtXLockinG1);
             this.groupBox2.Controls.Add(this.label50);
             this.groupBox2.Controls.Add(this.txtXMagBalanced);
             this.groupBox2.Controls.Add(this.label52);
@@ -932,41 +933,58 @@ namespace equilibreuse
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "X calibration";
             // 
+            // txtXLockinBalanced
+            // 
+            this.txtXLockinBalanced.Location = new System.Drawing.Point(214, 25);
+            this.txtXLockinBalanced.Name = "txtXLockinBalanced";
+            this.txtXLockinBalanced.Size = new System.Drawing.Size(41, 20);
+            this.txtXLockinBalanced.TabIndex = 72;
+            this.txtXLockinBalanced.Text = "2.5";
+            // 
+            // txtXLockinG1
+            // 
+            this.txtXLockinG1.Location = new System.Drawing.Point(214, 51);
+            this.txtXLockinG1.Name = "txtXLockinG1";
+            this.txtXLockinG1.Size = new System.Drawing.Size(41, 20);
+            this.txtXLockinG1.TabIndex = 73;
+            // 
             // label50
             // 
             this.label50.AutoSize = true;
-            this.label50.Location = new System.Drawing.Point(36, 29);
+            this.label50.Location = new System.Drawing.Point(16, 29);
             this.label50.Name = "label50";
-            this.label50.Size = new System.Drawing.Size(104, 13);
+            this.label50.Size = new System.Drawing.Size(144, 13);
             this.label50.TabIndex = 68;
-            this.label50.Text = "Magnitude balanced";
+            this.label50.Text = "Magnitude/Lockin  balanced";
             // 
             // txtXMagBalanced
             // 
-            this.txtXMagBalanced.Location = new System.Drawing.Point(179, 25);
+            this.txtXMagBalanced.Location = new System.Drawing.Point(167, 25);
             this.txtXMagBalanced.Name = "txtXMagBalanced";
-            this.txtXMagBalanced.Size = new System.Drawing.Size(68, 20);
+            this.txtXMagBalanced.Size = new System.Drawing.Size(41, 20);
             this.txtXMagBalanced.TabIndex = 69;
             this.txtXMagBalanced.Text = "2.5";
             // 
             // label52
             // 
             this.label52.AutoSize = true;
-            this.label52.Location = new System.Drawing.Point(36, 54);
+            this.label52.Location = new System.Drawing.Point(18, 54);
             this.label52.Name = "label52";
-            this.label52.Size = new System.Drawing.Size(106, 13);
+            this.label52.Size = new System.Drawing.Size(143, 13);
             this.label52.TabIndex = 70;
-            this.label52.Text = "Magnitude with mass";
+            this.label52.Text = "Magnitude/Lockin with mass";
             // 
             // txtXMagG1
             // 
-            this.txtXMagG1.Location = new System.Drawing.Point(179, 54);
+            this.txtXMagG1.Location = new System.Drawing.Point(167, 51);
             this.txtXMagG1.Name = "txtXMagG1";
-            this.txtXMagG1.Size = new System.Drawing.Size(68, 20);
+            this.txtXMagG1.Size = new System.Drawing.Size(41, 20);
             this.txtXMagG1.TabIndex = 71;
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.txtYLockinBalanced);
+            this.groupBox1.Controls.Add(this.txtYLockin1);
             this.groupBox1.Controls.Add(this.label47);
             this.groupBox1.Controls.Add(this.txtYMagBalanced);
             this.groupBox1.Controls.Add(this.label48);
@@ -978,37 +996,52 @@ namespace equilibreuse
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Y calibration";
             // 
+            // txtYLockinBalanced
+            // 
+            this.txtYLockinBalanced.Location = new System.Drawing.Point(237, 25);
+            this.txtYLockinBalanced.Name = "txtYLockinBalanced";
+            this.txtYLockinBalanced.Size = new System.Drawing.Size(39, 20);
+            this.txtYLockinBalanced.TabIndex = 72;
+            this.txtYLockinBalanced.Text = "2.5";
+            // 
+            // txtYLockin1
+            // 
+            this.txtYLockin1.Location = new System.Drawing.Point(237, 51);
+            this.txtYLockin1.Name = "txtYLockin1";
+            this.txtYLockin1.Size = new System.Drawing.Size(39, 20);
+            this.txtYLockin1.TabIndex = 73;
+            // 
             // label47
             // 
             this.label47.AutoSize = true;
-            this.label47.Location = new System.Drawing.Point(45, 29);
+            this.label47.Location = new System.Drawing.Point(15, 29);
             this.label47.Name = "label47";
-            this.label47.Size = new System.Drawing.Size(104, 13);
+            this.label47.Size = new System.Drawing.Size(141, 13);
             this.label47.TabIndex = 68;
-            this.label47.Text = "Magnitude balanced";
+            this.label47.Text = "Magnitude/Lockin balanced";
             // 
             // txtYMagBalanced
             // 
-            this.txtYMagBalanced.Location = new System.Drawing.Point(193, 25);
+            this.txtYMagBalanced.Location = new System.Drawing.Point(185, 25);
             this.txtYMagBalanced.Name = "txtYMagBalanced";
-            this.txtYMagBalanced.Size = new System.Drawing.Size(68, 20);
+            this.txtYMagBalanced.Size = new System.Drawing.Size(39, 20);
             this.txtYMagBalanced.TabIndex = 69;
             this.txtYMagBalanced.Text = "2.5";
             // 
             // label48
             // 
             this.label48.AutoSize = true;
-            this.label48.Location = new System.Drawing.Point(45, 54);
+            this.label48.Location = new System.Drawing.Point(15, 54);
             this.label48.Name = "label48";
-            this.label48.Size = new System.Drawing.Size(106, 13);
+            this.label48.Size = new System.Drawing.Size(143, 13);
             this.label48.TabIndex = 70;
-            this.label48.Text = "Magnitude with mass";
+            this.label48.Text = "Magnitude/Lockin with mass";
             // 
             // txtYMag1
             // 
-            this.txtYMag1.Location = new System.Drawing.Point(193, 51);
+            this.txtYMag1.Location = new System.Drawing.Point(185, 51);
             this.txtYMag1.Name = "txtYMag1";
-            this.txtYMag1.Size = new System.Drawing.Size(65, 20);
+            this.txtYMag1.Size = new System.Drawing.Size(39, 20);
             this.txtYMag1.TabIndex = 71;
             // 
             // btnExportWAV
@@ -1774,28 +1807,18 @@ namespace equilibreuse
             // chkExcludeWrongTurn
             // 
             this.chkExcludeWrongTurn.AutoSize = true;
-            this.chkExcludeWrongTurn.Location = new System.Drawing.Point(997, 42);
+            this.chkExcludeWrongTurn.Location = new System.Drawing.Point(996, 42);
             this.chkExcludeWrongTurn.Name = "chkExcludeWrongTurn";
             this.chkExcludeWrongTurn.Size = new System.Drawing.Size(122, 17);
             this.chkExcludeWrongTurn.TabIndex = 73;
             this.chkExcludeWrongTurn.Text = "Exclude wrong turns";
             this.chkExcludeWrongTurn.UseVisualStyleBackColor = true;
             // 
-            // label17
-            // 
-            this.label17.AutoSize = true;
-            this.label17.Location = new System.Drawing.Point(1008, 379);
-            this.label17.Name = "label17";
-            this.label17.Size = new System.Drawing.Size(165, 78);
-            this.label17.TabIndex = 108;
-            this.label17.Text = "Coef:\r\n< 0.05 (5%) : stable\r\n< 0.10 (10%) : stable (acceptable)\r\n0.10 – 0.20 : me" +
-    "dium stability\r\n> 0.20 (20%) : unstable or noisy\r\n> 0.30 : not good";
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1287, 639);
+            this.ClientSize = new System.Drawing.Size(1370, 639);
             this.Controls.Add(this.chkExcludeWrongTurn);
             this.Controls.Add(this.chkClockwise);
             this.Controls.Add(this.cbxSmoothing);
@@ -2016,9 +2039,7 @@ namespace equilibreuse
         private System.Windows.Forms.TextBox txtMagnitudeX;
         private System.Windows.Forms.Label lblAngleYCorrect;
         private System.Windows.Forms.Label lblAngleXCorrect;
-        private System.Windows.Forms.ComboBox cbxMagData;
         private System.Windows.Forms.ComboBox cbxAngleData;
-        private System.Windows.Forms.Label label31;
         private System.Windows.Forms.Label label30;
         private System.Windows.Forms.CheckedListBox lstSelectToursAnalysis;
         private System.Windows.Forms.CheckBox chkClockwise;
@@ -2027,6 +2048,12 @@ namespace equilibreuse
         private System.Windows.Forms.CheckBox chkExcludeWrongTurn;
         private System.Windows.Forms.ListBox lstStats;
         private System.Windows.Forms.Label label17;
+        private System.Windows.Forms.TextBox txtXLockinBalanced;
+        private System.Windows.Forms.TextBox txtXLockinG1;
+        private System.Windows.Forms.TextBox txtYLockinBalanced;
+        private System.Windows.Forms.TextBox txtYLockin1;
+        private System.Windows.Forms.TextBox txtLockinY;
+        private System.Windows.Forms.TextBox txtLockinX;
     }
 }
 

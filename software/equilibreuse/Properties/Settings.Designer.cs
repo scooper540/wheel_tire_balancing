@@ -382,5 +382,53 @@ namespace equilibreuse.Properties {
                 this["ClockwiseRotating"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double XLockinBalanced {
+            get {
+                return ((double)(this["XLockinBalanced"]));
+            }
+            set {
+                this["XLockinBalanced"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double YLockinBalanced {
+            get {
+                return ((double)(this["YLockinBalanced"]));
+            }
+            set {
+                this["YLockinBalanced"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double XLockinMag {
+            get {
+                return ((double)(this["XLockinMag"]));
+            }
+            set {
+                this["XLockinMag"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double YLockinMag {
+            get {
+                return ((double)(this["YLockinMag"]));
+            }
+            set {
+                this["YLockinMag"] = value;
+            }
+        }
     }
 }
