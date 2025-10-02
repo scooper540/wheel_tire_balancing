@@ -189,6 +189,7 @@ namespace equilibreuse
             this.cbxSmoothing = new System.Windows.Forms.ComboBox();
             this.chkClockwise = new System.Windows.Forms.CheckBox();
             this.chkExcludeWrongTurn = new System.Windows.Forms.CheckBox();
+            this.chkUseGyroXforY = new System.Windows.Forms.CheckBox();
             this.tabControl1.SuspendLayout();
             this.tabPage7.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -599,6 +600,7 @@ namespace equilibreuse
             // 
             // tabPage7
             // 
+            this.tabPage7.Controls.Add(this.chkUseGyroXforY);
             this.tabPage7.Controls.Add(this.txtLockinY);
             this.tabPage7.Controls.Add(this.txtLockinX);
             this.tabPage7.Controls.Add(this.label17);
@@ -1167,7 +1169,7 @@ namespace equilibreuse
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(1252, 523);
+            this.tabPage1.Size = new System.Drawing.Size(1335, 523);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Compiled data (all in turn)";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -1232,7 +1234,7 @@ namespace equilibreuse
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(1252, 523);
+            this.tabPage2.Size = new System.Drawing.Size(1335, 523);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Single";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -1251,7 +1253,7 @@ namespace equilibreuse
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(1252, 523);
+            this.tabPage3.Size = new System.Drawing.Size(1335, 523);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "Global";
             this.tabPage3.UseVisualStyleBackColor = true;
@@ -1351,7 +1353,7 @@ namespace equilibreuse
             this.tabPage4.Location = new System.Drawing.Point(4, 22);
             this.tabPage4.Name = "tabPage4";
             this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage4.Size = new System.Drawing.Size(1252, 523);
+            this.tabPage4.Size = new System.Drawing.Size(1335, 523);
             this.tabPage4.TabIndex = 3;
             this.tabPage4.Text = "Gyro";
             this.tabPage4.UseVisualStyleBackColor = true;
@@ -1419,7 +1421,7 @@ namespace equilibreuse
             this.tabPage8.Location = new System.Drawing.Point(4, 22);
             this.tabPage8.Name = "tabPage8";
             this.tabPage8.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage8.Size = new System.Drawing.Size(1252, 523);
+            this.tabPage8.Size = new System.Drawing.Size(1335, 523);
             this.tabPage8.TabIndex = 7;
             this.tabPage8.Text = "Analysis Graphical";
             this.tabPage8.UseVisualStyleBackColor = true;
@@ -1512,7 +1514,7 @@ namespace equilibreuse
             this.tabPage15.Location = new System.Drawing.Point(4, 22);
             this.tabPage15.Name = "tabPage15";
             this.tabPage15.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage15.Size = new System.Drawing.Size(1252, 523);
+            this.tabPage15.Size = new System.Drawing.Size(1335, 523);
             this.tabPage15.TabIndex = 9;
             this.tabPage15.Text = "Analysis History";
             this.tabPage15.UseVisualStyleBackColor = true;
@@ -1569,7 +1571,7 @@ namespace equilibreuse
             this.tabPage14.Location = new System.Drawing.Point(4, 22);
             this.tabPage14.Name = "tabPage14";
             this.tabPage14.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage14.Size = new System.Drawing.Size(1252, 523);
+            this.tabPage14.Size = new System.Drawing.Size(1335, 523);
             this.tabPage14.TabIndex = 8;
             this.tabPage14.Text = "Help";
             this.tabPage14.UseVisualStyleBackColor = true;
@@ -1814,6 +1816,16 @@ namespace equilibreuse
             this.chkExcludeWrongTurn.Text = "Exclude wrong turns";
             this.chkExcludeWrongTurn.UseVisualStyleBackColor = true;
             // 
+            // chkUseGyroXforY
+            // 
+            this.chkUseGyroXforY.AutoSize = true;
+            this.chkUseGyroXforY.Location = new System.Drawing.Point(1011, 38);
+            this.chkUseGyroXforY.Name = "chkUseGyroXforY";
+            this.chkUseGyroXforY.Size = new System.Drawing.Size(102, 17);
+            this.chkUseGyroXforY.TabIndex = 111;
+            this.chkUseGyroXforY.Text = "Use GyroX for Y";
+            this.chkUseGyroXforY.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -2054,6 +2066,7 @@ namespace equilibreuse
         private System.Windows.Forms.TextBox txtYLockin1;
         private System.Windows.Forms.TextBox txtLockinY;
         private System.Windows.Forms.TextBox txtLockinX;
+        private System.Windows.Forms.CheckBox chkUseGyroXforY;
     }
 }
 

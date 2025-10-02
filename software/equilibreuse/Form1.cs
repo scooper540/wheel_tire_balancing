@@ -647,6 +647,80 @@ namespace equilibreuse
             return (analyzedX, analyzedY, analyzedZ, resultante, whiteLine, angle, f_rot, rpm, sampleRate);
         }
 
+        // analysis of all consecutives segments
+        private (double[] x, double[] y, double[] z, double[] resultante, double[] whiteLine, double[] angle, double f_rot, double rpm, double sampleRate) GetGlobalTourGyroSignal()
+        {
+            int countTotal = iTotalRecordsInCSV; //number of total records for selected sections in the dataset
+            int alignedCount = selectedSections.Select(x => x.records.Count).Max();
+            double rpm = selectedSections.Select(x => x.Rpm).Min();
+            //get avg samplerate
+            double sampleRate = selectedSections.Select(x => x.SamplingRate).Average();
+            if (chkOrderTracking.Checked) //resample on 360 points per sections
+                countTotal = selectedSections.Count * alignedCount; //made a count total based on the max number of data
+
+            double[] analyzedX = new double[countTotal];
+            double[] analyzedY = new double[countTotal];
+            double[] analyzedZ = new double[countTotal];
+            double[] whiteLine = new double[countTotal];
+            double[] resultante = new double[countTotal];
+            //display peaks
+            double[] angle = new double[countTotal];
+
+
+            int iCount = 0, tourNumber = 0;
+            foreach (section se in selectedSections)
+            {
+                int startCount = iCount;
+                whiteLine[iCount] = 10;
+                int count = se.records.Count;
+                double angleIncrement = 360.0 / count;
+                if (!chkOrderTracking.Checked)
+                {
+                    for (int i = 0; i < count; i++)
+                    {
+                        angle[iCount] = i * angleIncrement;
+                        if (chkAbsolute.Checked)
+                        {
+                            analyzedX[iCount] = Math.Abs(se.records[i].gx);
+                            analyzedY[iCount] = Math.Abs(se.records[i].gy);
+                            analyzedZ[iCount] = Math.Abs(se.records[i].gz);
+                        }
+                        else
+                        {
+                            analyzedX[iCount] = se.records[i].gx;
+                            analyzedY[iCount] = se.records[i].gy;
+                            analyzedZ[iCount] = se.records[i].gz;
+                        }
+                        iCount++;
+                    }
+                }
+                else
+                {
+                    angleIncrement = 360.0 / alignedCount;
+                    for (int i = 0; i < alignedCount; i++)
+                        angle[i + (tourNumber * alignedCount)] = i * angleIncrement;
+                    iCount += alignedCount;
+
+                    MathHelper.ResampleSectionGyroXYZ(se.records, alignedCount, 1.0 / sampleRate, analyzedX, analyzedY, analyzedZ, tourNumber * alignedCount);
+
+                }
+
+
+                tourNumber++;
+
+            }
+            int countX = analyzedX.Count();
+            for (int i = 0; i < countX; i++)
+            {
+                resultante[i] = Math.Sqrt(Math.Pow(analyzedX[i], 2)
+                                            + Math.Pow(analyzedY[i], 2)
+                                            );
+            }
+
+            double avgTourTime = countTotal / sampleRate / selectedSections.Count;  // en secondes  
+            double f_rot = 1.0 / avgTourTime;
+            return (analyzedX, analyzedY, analyzedZ, resultante, whiteLine, angle, f_rot, rpm, sampleRate);
+        }
         private void RefreshAnalysisCompiled()
         {
             var data = GetCompiledTourSignal();
@@ -849,241 +923,87 @@ namespace equilibreuse
 
         private void RefreshGyro()
         {
-            if (String.IsNullOrEmpty(sLastCSV)) return;
-
-            int countTotal = iTotalRecordsInCSV; //number of total records for selected sections in the dataset
-            int alignedCount = selectedSections.Select(x => x.records.Count).Max();
-            double rpm = selectedSections.Select(x => x.Rpm).Min();
-            double sampleRate = selectedSections.Select(x => x.SamplingRate).Average();
-
-            if (chkOrderTracking.Checked) //resample on 360 points per sections
-                countTotal = selectedSections.Count * alignedCount; //made a count total based on the max number of data
-            double[] analyzedX = new double[countTotal];
-            double[] analyzedY = new double[countTotal];
-            double[] analyzedZ = new double[countTotal];
-            double[] whiteLine = new double[countTotal];
-            double[] resultante = new double[countTotal];
-            double[] angleX = new double[countTotal];
-            double[] angleY = new double[countTotal];
-            double[] angleZ = new double[countTotal];
-            double[] pitch = new double[countTotal];
-            double[] roll = new double[countTotal];
-
-            double[] angle = new double[countTotal];
-            int[][] peakX = new int[selectedSections.Count][];
-            int[][] peakY = new int[selectedSections.Count][];
-            int[][] peakZ = new int[selectedSections.Count][];
-
-
-
-            int iCount = 0, tourNumber = 0;
-            foreach (section se in selectedSections)
-            {
-                int startCount = iCount;
-                whiteLine[iCount] = 10;
-                int count = se.records.Count;
-                double angleIncrement = 360.0 / count;
-                if (!chkOrderTracking.Checked)
-                {
-
-                    for (int i = 0; i < count; i++)
-                    {
-                        angle[iCount] = i * angleIncrement;
-                        if (chkAbsolute.Checked)
-                        {
-                            analyzedX[iCount] = Math.Abs(se.records[i].gx);
-                            analyzedY[iCount] = Math.Abs(se.records[i].gy);
-                            analyzedZ[iCount] = Math.Abs(se.records[i].gz);
-                        }
-                        else
-                        {
-                            analyzedX[iCount] = se.records[i].gx;
-                            analyzedY[iCount] = se.records[i].gy;
-                            analyzedZ[iCount] = se.records[i].gz;
-                        }
-                        iCount++;
-                    }
-                }
-                else
-                {
-                    angleIncrement = 360.0 / alignedCount;
-                    //  for (int i = 0; i < alignedCount; i++)
-                    //      angle[i+ (tourNumber* alignedCount)] = i * angleIncrement;
-                    iCount += alignedCount;
-
-                    MathHelper.ResampleSectionGyroXYZ(se.records, alignedCount, 1.0 / sampleRate, analyzedX, analyzedY, analyzedZ, tourNumber * alignedCount);
-
-                }
-
-                //convert the return x axis (0 to number of sample for 1 turn) to 360°
-                peakX[tourNumber] = MathHelper.GetPeakPerTurn(analyzedX.Skip(startCount).Take(iCount - startCount).ToArray()).Select(x => (int)(x * angleIncrement)).ToArray();
-                peakY[tourNumber] = MathHelper.GetPeakPerTurn(analyzedY.Skip(startCount).Take(iCount - startCount).ToArray()).Select(x => (int)(x * angleIncrement)).ToArray();
-                peakZ[tourNumber] = MathHelper.GetPeakPerTurn(analyzedZ.Skip(startCount).Take(iCount - startCount).ToArray()).Select(x => (int)(x * angleIncrement)).ToArray();
-
-
-                tourNumber++;
-
-            }
-            int countX = analyzedX.Count();
-            for (int i = 0; i < countX; i++)
-            {
-                resultante[i] = Math.Sqrt(Math.Pow(analyzedX[i], 2)
-                                            + Math.Pow(analyzedY[i], 2)
-                                            );
-            }
-
-            double avgTourTime = countTotal / sampleRate / selectedSections.Count;  // en secondes  
-            double f_rot = 1.0 / avgTourTime;
-
+            var data = GetGlobalTourGyroSignal();
+            double f_rot = data.f_rot;
+            double[] resultante = data.resultante;
+            double rpm = data.rpm;
+            double sampleRate = data.sampleRate;
+            double[] whiteLine = data.whiteLine;
+            double[] analyzedX = data.x;
+            double[] analyzedY = data.y;
+            double[] analyzedZ = data.z;
+            double[] angle = data.angle;
             ApplyFilters(sampleRate, f_rot, ref analyzedX, ref analyzedY, ref analyzedZ, ref resultante);
-            countTotal = analyzedX.Length;
-            //CalculateGyroAngles(ref analyzedX, ref analyzedY, ref analyzedZ, ref resultante, ref angleX, ref angleY, ref angleZ, ref pitch, ref roll);
 
-            //    lblPeak.Text += $"\r\nGyro X Pk-Pk (global) : {analyzedX.Max() - analyzedX.Min()}\r\nGyro Y Pk-Pk (global) : {analyzedY.Max() - analyzedY.Min()}\r\nGyro Z Pk-Pk (global) : {analyzedZ.Max() - analyzedZ.Min()}";
-
-            formsPlotGyro.Plot.Clear();
-            if (!chkFFT.Checked)
+            var dataX = MathHelper.GetSegments(analyzedX, whiteLine);
+            var dataY = MathHelper.GetSegments(analyzedY, whiteLine);
+            var dataZ = MathHelper.GetSegments(analyzedY, whiteLine);
+            int[][] peakX = new int[dataX.dataSegments.Count][];
+            int[][] peakY = new int[dataX.dataSegments.Count][];
+            int[][] peakZ = new int[dataX.dataSegments.Count][];
+            for (int i = 0; i < dataX.dataSegments.Count; i++)
             {
-                lstPeakResultanteGyro.Items.Clear();
-                lstPeakGyroX.Items.Clear();
-                lstPeakGyroY.Items.Clear();
-                lstPeakGyroZ.Items.Clear();
-
-                double[] temporal = Enumerable.Range(0, countTotal)
-                                    .Select(i => (double)i)
-                                    .ToArray();
-
-                var top5 = MathHelper.GetTopCommonPeaksWithAmplitude(peakX, analyzedX, tol: 10, minSamples: 2, topN: 5);
-                foreach (var item in top5)
-                    lstPeakGyroX.Items.Add($"Average PeakX: Angle {item.Mean} – Fréquence {item.Freq} - Force {item.AverageAmplitude}");
-                top5 = MathHelper.GetTopCommonPeaksWithAmplitude(peakY, analyzedY, tol: 10, minSamples: 2, topN: 5);
-                foreach (var item in top5)
-                    lstPeakGyroY.Items.Add($"Average PeakY: Angle {item.Mean} – Fréquence {item.Freq} - Force {item.AverageAmplitude}");
-                top5 = MathHelper.GetTopCommonPeaksWithAmplitude(peakZ, analyzedZ, tol: 10, minSamples: 2, topN: 5);
-                foreach (var item in top5)
-                    lstPeakGyroZ.Items.Add($"Average PeakZ: Angle {item.Mean} – Fréquence {item.Freq} - Force {item.AverageAmplitude}");
-
-                double max = 0;
-                if (chkShowX.Checked)
-                {
-                    formsPlotGyro.Plot.Add.Scatter(temporal, analyzedX, Colors.Blue).LegendText = "X";
-                    MathHelper.DisplayPeaksTemporal(analyzedX, temporal, "Top Peak X", formsPlotGyro.Plot, lstPeakGyroX);
-                    max = analyzedX.Max();
-                }
-                if (chkShowY.Checked)
-                {
-                    formsPlotGyro.Plot.Add.Scatter(temporal, analyzedY, Colors.Red).LegendText = "Y";
-                    MathHelper.DisplayPeaksTemporal(analyzedY, temporal, "Top Peak Y", formsPlotGyro.Plot, lstPeakGyroY);
-                    max = Math.Max(max, analyzedY.Max());
-                }
-                if (chkShowZ.Checked)
-                {
-                    formsPlotGyro.Plot.Add.Scatter(temporal, analyzedZ, Colors.Yellow).LegendText = "Z";
-                    MathHelper.DisplayPeaksTemporal(analyzedZ, temporal, "Top Peak Z", formsPlotGyro.Plot, lstPeakGyroZ);
-                    max = Math.Max(max, analyzedZ.Max());
-                }
-                if (chkShowResultante.Checked)
-                {
-                    formsPlotGyro.Plot.Add.Scatter(temporal, resultante, Colors.DeepPink).LegendText = "Resultante"; ;
-                    MathHelper.DisplayPeaksTemporal(resultante, temporal, "Top Peak Resultante", formsPlotGyro.Plot, lstPeakResultanteGyro);
-                    max = Math.Max(max, resultante.Max());
-                }
-                max += 5;
-                for (int i = 0; i < iCount; i++)
-                {
-                    if (whiteLine[i] == 10)
-                        whiteLine[i] = max;
-                }
-                var s = formsPlotGyro.Plot.Add.Scatter(temporal, whiteLine, Colors.Black);
-                s.LineWidth = 1;
-                s.LegendText = "WhiteLine";
-                //formsPlotAnalysis.Plot.Axis(0, 360, -1, 1);
-                formsPlotGyro.Plot.Axes.SetLimitsX(0, countTotal);
-                formsPlotGyro.Plot.Axes.AutoScaleY();
-                formsPlotGyro.Plot.ShowLegend();
+                double angleIncrement = 360.0 / dataX.dataSegments.Count;
+                //convert the return x axis (0 to number of sample for 1 turn) to 360°
+                peakX[i] = MathHelper.GetPeakPerTurn(dataX.dataSegments[i].ToArray()).Select(x => (int)(x * angleIncrement)).ToArray();
+                peakY[i] = MathHelper.GetPeakPerTurn(dataY.dataSegments[i].ToArray()).Select(x => (int)(x * angleIncrement)).ToArray();
+                peakZ[i] = MathHelper.GetPeakPerTurn(dataZ.dataSegments[i].ToArray()).Select(x => (int)(x * angleIncrement)).ToArray();
             }
-            else
+
+
+            lstPeakGyroX.Items.Clear();
+            lstPeakGyroY.Items.Clear();
+            lstPeakGyroZ.Items.Clear();
+            lstPeakResultanteGyro.Items.Clear();
+            double fftLimit = Convert.ToDouble(txtFFTLimit.Text);
+
+            formsPlotGyro.Reset();
+            formsPlotGyro.Multiplot.Reset();
+            var plotTemporal = formsPlotGyro.Plot;
+            var plotFFT = formsPlotGyro.Multiplot.AddPlot();
+            double max = 0.001;
+            if (chkShowX.Checked)
             {
-                FFTData cmpX = EquilibrageHelper.CalculateFFT(analyzedX, sampleRate, cbxFFT, chkDb.Checked, rpm, f_rot, chkClockwise.Checked);
-                FFTData cmpY = EquilibrageHelper.CalculateFFT(analyzedY, sampleRate, cbxFFT, chkDb.Checked, rpm, f_rot, chkClockwise.Checked);
-                FFTData cmpZ = EquilibrageHelper.CalculateFFT(analyzedZ, sampleRate, cbxFFT, chkDb.Checked, rpm, f_rot, chkClockwise.Checked);
-                FFTData cmpResultante = EquilibrageHelper.CalculateFFT(resultante, sampleRate, cbxFFT, chkDb.Checked, rpm, f_rot, chkClockwise.Checked);
-
-                formsPlotGyro.Plot.Clear();
-                lstPeakGyroX.Items.Clear();
-                lstPeakGyroY.Items.Clear();
-                lstPeakGyroZ.Items.Clear();
-                lstPeakResultanteGyro.Items.Clear();
-                double fftLimit = Convert.ToDouble(txtFFTLimit.Text);
-                if (chkShowX.Checked)
-                {
-                    MathHelper.AnalyzeAxis("X", cmpX, sampleRate, lstPeakGyroX, Colors.Blue, formsPlotGyro.Plot, f_rot, fftLimit);
-                }
-                if (chkShowY.Checked)
-                {
-                    MathHelper.AnalyzeAxis("Y", cmpY, sampleRate, lstPeakGyroY, Colors.Red, formsPlotGyro.Plot, f_rot, fftLimit);
-                }
-                if (chkShowZ.Checked)
-                {
-                    MathHelper.AnalyzeAxis("Z", cmpZ, sampleRate, lstPeakGyroZ, Colors.Yellow, formsPlotGyro.Plot, f_rot, fftLimit);
-                }
-                if (chkShowResultante.Checked)
-                {
-                    MathHelper.AnalyzeAxis("Resultante", cmpResultante, sampleRate, lstPeakResultanteGyro, Colors.DeepPink, formsPlotGyro.Plot, f_rot, fftLimit);
-                }
-                String sText = $"Fundamental: {f_rot}Hz\r\n1er order: {f_rot * 2}\r\n2eme order: {f_rot * 3}\r\n3eme order: {f_rot * 4}\r\n4er order: {f_rot * 5}\r\n5er order: {f_rot * 6}\r\n";
-                formsPlotGyro.Plot.Add.Annotation(sText);
-
-                //X and Y are inversed on GYRO
-                var calcResult = EquilibrageHelper.CompleteSimulation(null, "Gyroscope", cmpY, cmpX, cmpZ, cmpResultante, sampleRate, f_rot, Convert.ToDouble(txtCorrectAngleX.Text), Convert.ToDouble(txtCorrectAngleY.Text), 1);
-                for (int i = 0; i < 5; i++)
-                {
-                    if (i == 0)
-                    {
-                        if (calcResult.dir[i].IsDynamic)
-                        {
-                            formsPlotT1I.Plot.Add.VerticalLine(calcResult.dir[i].correction.AngleInnerDeg, color: Colors.Yellow, width: 3);
-                            formsPlotT1O.Plot.Add.VerticalLine(calcResult.dir[i].correction.AngleOuterDeg, color: Colors.Yellow, width: 3);
-                        }
-                        formsPlotT1X.Plot.Add.VerticalLine(calcResult.px[i].UnbalanceAngleDeg, color: Colors.Yellow, width: 3);
-                        formsPlotT1Y.Plot.Add.VerticalLine(calcResult.py[i].UnbalanceAngleDeg, color: Colors.Yellow, width: 3);
-                    }
-
-                }
-             /*   //check if we use gyro X for accel Y
-                if (chkUseXGyro.Checked)
-                {
-                    // 5. PSD (densité spectrale de puissance)
-                    // PSD = |X(f)|^2 / (fs * N) ou / (fs * durée)
-                    // return $"{sTitle}: {magnitudePerSecond:F4}\r\n{magnitudePerRevolution:F4} {psd:F4}";
-                    double magnitude = calcResult.px[0].ActualAmplitude;
-                    double magPerTurn = magnitude / selectedSections.Count;
-                    double psd = (magnitude * magnitude) / analyzedX.Length;
-
-                    //lblFFTAnalysis.Text += "Global X Mag: " + magnitude.ToString("F4") + "\r\nBy turn count: " + magPerTurn.ToString("F4") + "\r\nPSD: " + psd.ToString("F4") + "\r\n";
-                    currentAnalysisY.gMagAvg = magnitude;
-                    currentAnalysisY.gMagRatio = magPerTurn;
-                    currentAnalysisY.gMagPSD = psd;
-
-
-                }
-                */
-             /*   if (chkUseYGyro.Checked)
-                {
-                    var magnitude = calcResult.py[0].ActualAmplitude;
-                    var magPerTurn = magnitude / selectedSections.Count;
-                    var psd = (magnitude * magnitude) / analyzedY.Length;
-
-                    //lblFFTAnalysis.Text += "Global Y Mag: " + magnitude.ToString("F4") + "\r\nBy turn count: " + magPerTurn.ToString("F4") + "\r\nPSD: " + psd.ToString("F4") + "\r\n";
-
-                    currentAnalysisX.gMagAvg = magnitude;
-                    currentAnalysisX.gMagRatio = magPerTurn;
-                    currentAnalysisX.gMagPSD = psd;
-
-
-                }*/
-
+                DisplayData(analyzedX, angle, f_rot, rpm, sampleRate, lstPeakGyroX, plotTemporal, plotFFT, "X", Colors.Blue);
+                max = Math.Max(max, analyzedX.Max());
             }
+            if (chkShowY.Checked)
+            {
+                DisplayData(analyzedY, angle, f_rot, rpm, sampleRate, lstPeakGyroY, plotTemporal, plotFFT, "Y", Colors.Red);
+                max = Math.Max(max, analyzedY.Max());
+            }
+            if (chkShowZ.Checked)
+            {
+                DisplayData(analyzedZ, angle, f_rot, rpm, sampleRate, lstPeakGyroZ, plotTemporal, plotFFT, "Z", Colors.Yellow);
+                max = Math.Max(max, analyzedZ.Max());
+            }
+            if (chkShowResultante.Checked)
+            {
+                DisplayData(resultante, angle, f_rot, rpm, sampleRate, lstPeakResultanteGyro, plotTemporal, plotFFT, "Resultante", Colors.DeepPink);
+                max = Math.Max(max, resultante.Max());
+            }
+            max = max * 2;
+            for (int i = 0; i < whiteLine.Length; i++)
+            {
+                if (whiteLine[i] == 10)
+                    whiteLine[i] = max;
+            }
+            double[] temporal = Enumerable.Range(0, whiteLine.Length)
+                                 .Select(i => (double)i)
+                                 .ToArray();
+
+            plotTemporal.Add.Scatter(temporal, whiteLine, Colors.Black).LegendText = "WhiteLine";
+            //formsPlotAnalysis.Plot.Axis(0, 360, -1, 1);
+            plotTemporal.Axes.SetLimitsX(0, angle.Length);
+            plotTemporal.Axes.AutoScaleY();
+            plotTemporal.ShowLegend();
+
+            plotFFT.Axes.AutoScale();
+            plotFFT.ShowLegend();
+            String sText = $"Fundamental: {f_rot}Hz\r\n1er order: {f_rot * 2}\r\n2eme order: {f_rot * 3}\r\n3eme order: {f_rot * 4}\r\n4er order: {f_rot * 5}\r\n5er order: {f_rot * 6}\r\n";
+            plotFFT.Add.Annotation(sText);
+
+
             formsPlotGyro.Refresh();
         }
 
@@ -1342,6 +1262,12 @@ namespace equilibreuse
             var dataGlobal = GetGlobalTourSignal();
             var dataGlobalX = GetPhaseMagnitude(dataGlobal.x, dataGlobal.angle, dataGlobal.sampleRate, dataGlobal.rpm, dataGlobal.f_rot);
             var dataGlobalY = GetPhaseMagnitude(dataGlobal.y, dataGlobal.angle, dataGlobal.sampleRate, dataGlobal.rpm, dataGlobal.f_rot);
+            if(chkUseGyroXforY.Checked)
+            {
+                var dataGyro = GetGlobalTourGyroSignal();
+                dataGlobalY = GetPhaseMagnitude(dataGyro.y, dataGyro.angle, dataGyro.sampleRate, dataGyro.rpm, dataGyro.f_rot);
+            
+            }
 
             currentAnalysisX.coAngleTemporal = dataCompiledX.angleTemporal;
             currentAnalysisX.coAngleFFT = dataCompiledX.fund.Angle;
