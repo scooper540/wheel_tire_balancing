@@ -1265,7 +1265,7 @@ namespace equilibreuse
             if(chkUseGyroXforY.Checked)
             {
                 var dataGyro = GetGlobalTourGyroSignal();
-                dataGlobalY = GetPhaseMagnitude(dataGyro.y, dataGyro.angle, dataGyro.sampleRate, dataGyro.rpm, dataGyro.f_rot);
+                dataGlobalY = GetPhaseMagnitude(dataGyro.x, dataGyro.angle, dataGyro.sampleRate, dataGyro.rpm, dataGyro.f_rot);
             
             }
 
@@ -1583,8 +1583,8 @@ namespace equilibreuse
                 var ky3 = EquilibrageHelper.CalculateGrowthConstantLinear(magYBalanced, magY1, mass1);
                 var massLX = EquilibrageHelper.EstimateCorrectiveMassLinear(magX, magXBalanced, kx3);
                 var massLY = EquilibrageHelper.EstimateCorrectiveMassLinear(magY, magYBalanced, ky3);
-                lblAngleXCorrect.Text += " Mass:" + res2.MassOuter.ToString("F0") + " MassLog " + massX.ToString("F0")+" MassLinear " + massLX.ToString("F0");
-                lblAngleYCorrect.Text += " Mass:" + res2.MassInner.ToString("F0") + " MassLog " + massY.ToString("F0") + " MassLinear " + massLY.ToString("F0");
+                lblAngleXCorrect.Text += " Mass:" + res2.MassInner.ToString("F0") + " MassLog " + massX.ToString("F0") + " MassLinear " + massLX.ToString("F0");
+                lblAngleYCorrect.Text += " Mass:" + res2.MassOuter.ToString("F0") + " MassLog " + massY.ToString("F0") + " MassLinear " + massLY.ToString("F0");
             }
             catch
             { }
@@ -1625,8 +1625,8 @@ namespace equilibreuse
                 var ky3 = EquilibrageHelper.CalculateGrowthConstantLinear(magYBalanced, magY1, mass1);
                 var massLX = EquilibrageHelper.EstimateCorrectiveMassLinear(actualMagX, magXBalanced, kx3);
                 var massLY = EquilibrageHelper.EstimateCorrectiveMassLinear(actualMagY, magYBalanced, ky3);
-                lblAngleXCorrect.Text += " Mass:" + res2.MassOuter.ToString("F0") + " MassLog " + massX.ToString("F0") + " MassLinear " + massLX.ToString("F0");
-                lblAngleYCorrect.Text += " Mass:" + res2.MassInner.ToString("F0") + " MassLog " + massY.ToString("F0") + " MassLinear " + massLY.ToString("F0");
+                lblAngleXCorrect.Text += " Mass:" + res2.MassInner.ToString("F0") + " MassLog " + massX.ToString("F0") + " MassLinear " + massLX.ToString("F0");
+                lblAngleYCorrect.Text += " Mass:" + res2.MassOuter.ToString("F0") + " MassLog " + massY.ToString("F0") + " MassLinear " + massLY.ToString("F0");
             }
             catch
             { }
